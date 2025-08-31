@@ -217,7 +217,7 @@ export default function Home() {
               
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">プロンプト選択</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">プロンプト選択 [NEW]</label>
                   <PromptSelector
                     selectedPrompt={selectedPrompt}
                     onPromptSelect={setSelectedPrompt}
