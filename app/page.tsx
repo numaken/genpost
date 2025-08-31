@@ -37,6 +37,8 @@ export default function Home() {
   const [articleCount, setArticleCount] = useState(1)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generations, setGenerations] = useState<Generation[]>([])
+  const [isTesting, setIsTesting] = useState(false)
+  const [testResult, setTestResult] = useState<any>(null)
 
   const handleGenerate = async () => {
     if (!session) {
@@ -82,6 +84,51 @@ export default function Home() {
       alert('生成中にエラーが発生しました')
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handleTestConnection = async () => {
+    if (!session) {
+      alert('ログインが必要です')
+      return
+    }
+    
+    if (!config.wpSiteUrl || !config.wpUser || !config.wpAppPass) {
+      alert('WordPress設定を入力してください')
+      return
+    }
+
+    setIsTesting(true)
+    setTestResult(null)
+    
+    try {
+      const response = await fetch('/api/test-wp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          wpSiteUrl: config.wpSiteUrl,
+          wpUser: config.wpUser,
+          wpAppPass: config.wpAppPass,
+          categoryId: config.categoryId
+        })
+      })
+
+      const result = await response.json()
+      setTestResult(result)
+      
+      if (response.ok) {
+        alert('WordPress接続テスト成功！テスト投稿が作成されました。')
+      } else {
+        alert(`テストエラー: ${result.error}`)
+        console.error('WordPress test failed:', result)
+      }
+    } catch (error) {
+      alert('接続テスト中にエラーが発生しました')
+      console.error('Test error:', error)
+    } finally {
+      setIsTesting(false)
     }
   }
 
@@ -259,7 +306,53 @@ export default function Home() {
                     onChange={(e) => setConfig({...config, categoryId: e.target.value})}
                   />
                 </div>
+                
+                <button
+                  onClick={handleTestConnection}
+                  disabled={isTesting || !config.wpSiteUrl || !config.wpUser || !config.wpAppPass}
+                  className={`w-full py-3 text-white font-medium rounded-lg transition-colors ${
+                    isTesting || !config.wpSiteUrl || !config.wpUser || !config.wpAppPass
+                      ? 'bg-gray-400 cursor-not-allowed' 
+                      : 'bg-green-500 hover:bg-green-600'
+                  }`}
+                >
+                  {isTesting ? (
+                    <div className="flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                      接続テスト中...
+                    </div>
+                  ) : (
+                    '🔧 WordPress接続テスト'
+                  )}
+                </button>
               </div>
+              
+              {testResult && (
+                <div className={`mt-4 p-4 rounded-lg ${testResult.success ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+                  <h3 className={`font-medium ${testResult.success ? 'text-green-800' : 'text-red-800'}`}>
+                    {testResult.success ? '✅ 接続テスト成功' : '❌ 接続テスト失敗'}
+                  </h3>
+                  {testResult.success ? (
+                    <div className="text-sm text-green-700 mt-2">
+                      <p>サイト: {testResult.site}</p>
+                      <p>ユーザー: {testResult.user?.name}</p>
+                      {testResult.testPost && (
+                        <p>テスト投稿ID: {testResult.testPost.id} ({testResult.testPost.status})</p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-red-700 mt-2">
+                      <p>{testResult.error}</p>
+                      {testResult.details && (
+                        <details className="mt-2">
+                          <summary>詳細情報</summary>
+                          <pre className="text-xs bg-red-100 p-2 rounded mt-1">{JSON.stringify(testResult.details, null, 2)}</pre>
+                        </details>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">

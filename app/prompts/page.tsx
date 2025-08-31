@@ -138,7 +138,15 @@ export default function PricingPage() {
       'retail': '🛍️',
       'consulting': '💼',
       'healthcare': '🏥',
-      'legal': '⚖️'
+      'legal': '⚖️',
+      'sns-marketing': '📱',
+      'influencer': '✨',
+      'affiliate': '💰',
+      'blog-media': '📝',
+      'ecommerce': '🛒',
+      'tech-saas': '💻',
+      'online-school': '🎓',
+      'youtuber': '📹'
     }
     return icons[industry] || '📄'
   }
@@ -154,7 +162,15 @@ export default function PricingPage() {
       'retail': '小売店',
       'consulting': 'コンサルティング',
       'healthcare': 'クリニック',
-      'legal': '法律事務所'
+      'legal': '法律事務所',
+      'sns-marketing': 'SNSマーケティング',
+      'influencer': 'インフルエンサー',
+      'affiliate': 'アフィリエイト',
+      'blog-media': 'ブログ・メディア',
+      'ecommerce': 'ECサイト',
+      'tech-saas': 'IT・SaaS',
+      'online-school': 'オンラインスクール',
+      'youtuber': 'YouTuber・配信者'
     }
     return names[industry] || industry
   }
@@ -371,16 +387,28 @@ export default function PricingPage() {
                 onChange={(e) => setSelectedIndustry(e.target.value)}
               >
                 <option value="all">すべての業界</option>
-                <option value="real-estate">🏠 不動産</option>
-                <option value="restaurant">🍽️ 飲食店</option>
-                <option value="beauty-salon">💇 美容院</option>
-                <option value="dental">🦷 歯科医院</option>
-                <option value="fitness">💪 フィットネス</option>
-                <option value="education">📚 塾・教育</option>
-                <option value="retail">🛍️ 小売店</option>
-                <option value="consulting">💼 コンサルティング</option>
-                <option value="healthcare">🏥 クリニック</option>
-                <option value="legal">⚖️ 法律事務所</option>
+                <optgroup label="🏢 実店舗・サービス業">
+                  <option value="real-estate">🏠 不動産</option>
+                  <option value="restaurant">🍽️ 飲食店</option>
+                  <option value="beauty-salon">💇 美容院</option>
+                  <option value="dental">🦷 歯科医院</option>
+                  <option value="fitness">💪 フィットネス</option>
+                  <option value="education">📚 塾・教育</option>
+                  <option value="retail">🛍️ 小売店</option>
+                  <option value="consulting">💼 コンサルティング</option>
+                  <option value="healthcare">🏥 クリニック</option>
+                  <option value="legal">⚖️ 法律事務所</option>
+                </optgroup>
+                <optgroup label="💻 SNS・デジタル系">
+                  <option value="sns-marketing">📱 SNSマーケティング</option>
+                  <option value="influencer">✨ インフルエンサー</option>
+                  <option value="affiliate">💰 アフィリエイト</option>
+                  <option value="blog-media">📝 ブログ・メディア</option>
+                  <option value="ecommerce">🛒 ECサイト</option>
+                  <option value="tech-saas">💻 IT・SaaS</option>
+                  <option value="online-school">🎓 オンラインスクール</option>
+                  <option value="youtuber">📹 YouTuber・配信者</option>
+                </optgroup>
               </select>
             </div>
             

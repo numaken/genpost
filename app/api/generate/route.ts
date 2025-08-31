@@ -88,8 +88,16 @@ export async function POST(request: NextRequest) {
             url: wpData.link
           })
         } else {
+          const errorText = await wpResponse.text()
+          console.error('WordPress post failed:', {
+            status: wpResponse.status,
+            statusText: wpResponse.statusText,
+            response: errorText,
+            requestUrl: `${config.wpSiteUrl}/wp-json/wp/v2/posts`,
+            user: config.wpUser
+          })
           articles.push({
-            error: 'WordPress投稿に失敗しました',
+            error: `WordPress投稿に失敗しました (${wpResponse.status}): ${errorText}`,
             status: 'error'
           })
         }
