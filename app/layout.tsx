@@ -2,8 +2,8 @@ import './globals.css'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'WordPress記事自動生成システム',
-  description: 'AIを使ってWordPress記事を自動生成',
+  title: 'genpost - AI-Powered WordPress Article Generator',
+  description: 'Generate. Post. Done. Create high-quality WordPress articles in seconds with AI.',
 }
 
 export default function RootLayout({

@@ -77,63 +77,75 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* ヘッダー */}
-      <header className="bg-gradient-to-r from-blue-600 to-purple-600 text-white">
-        <div className="container mx-auto py-8">
-          <h1 className="text-4xl font-bold text-center">
-            🚀 WordPress記事自動生成システム
-          </h1>
-          <p className="text-center mt-4 text-xl">
-            AIが5分で高品質記事を生成 → WordPress自動投稿
-          </p>
+      <header className="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 text-white relative overflow-hidden">
+        <div className="absolute inset-0 bg-black opacity-10"></div>
+        <div className="container mx-auto py-16 relative z-10">
+          <div className="text-center">
+            <div className="mb-6">
+              <h1 className="text-6xl font-black tracking-tight mb-2">
+                gen<span className="text-purple-200">post</span>
+              </h1>
+              <div className="h-1 w-24 bg-gradient-to-r from-purple-300 to-blue-300 mx-auto rounded-full"></div>
+            </div>
+            <p className="text-2xl font-light mb-4 text-blue-100">
+              Generate. Post. Done.
+            </p>
+            <p className="text-lg opacity-90 max-w-2xl mx-auto">
+              AI-powered WordPress article generator that creates high-quality content in seconds
+            </p>
+          </div>
         </div>
       </header>
 
       <div className="container mx-auto py-8">
         <div className="grid lg:grid-cols-2 gap-8">
           {/* 設定パネル */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-bold mb-6">⚙️ WordPress設定</h2>
+          <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+            <div className="flex items-center mb-6">
+              <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
+              <h2 className="text-2xl font-semibold text-gray-800">WordPress Connection</h2>
+            </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">サイトURL</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Site URL</label>
                 <input
                   type="url"
-                  placeholder="https://your-site.com"
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="https://your-wordpress-site.com"
+                  className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
                   value={config.wpSiteUrl}
                   onChange={(e) => setConfig({...config, wpSiteUrl: e.target.value})}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">ユーザー名</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Username</label>
                 <input
                   type="text"
                   placeholder="admin"
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
                   value={config.wpUser}
                   onChange={(e) => setConfig({...config, wpUser: e.target.value})}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">アプリケーションパスワード</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Application Password</label>
                 <input
                   type="password"
                   placeholder="xxxx xxxx xxxx xxxx"
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
                   value={config.wpAppPass}
                   onChange={(e) => setConfig({...config, wpAppPass: e.target.value})}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-2">カテゴリID</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Category ID</label>
                 <input
                   type="number"
                   placeholder="1"
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
                   value={config.categoryId}
                   onChange={(e) => setConfig({...config, categoryId: e.target.value})}
                 />
@@ -142,14 +154,17 @@ export default function Home() {
           </div>
 
           {/* 生成パネル */}
-          <div className="bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-bold mb-6">📝 記事生成</h2>
+          <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+            <div className="flex items-center mb-6">
+              <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
+              <h2 className="text-2xl font-semibold text-gray-800">Content Generation</h2>
+            </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">プロンプトパック</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Content Template</label>
                 <select 
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors bg-white"
                   value={selectedPack}
                   onChange={(e) => setSelectedPack(e.target.value)}
                 >
@@ -162,66 +177,79 @@ export default function Home() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium mb-2">生成記事数</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">Article Count</label>
                 <select 
-                  className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors bg-white"
                   value={articleCount}
                   onChange={(e) => setArticleCount(Number(e.target.value))}
                 >
-                  <option value={1}>1記事</option>
-                  <option value={3}>3記事</option>
-                  <option value={5}>5記事</option>
+                  <option value={1}>1 Article</option>
+                  <option value={3}>3 Articles</option>
+                  <option value={5}>5 Articles</option>
                 </select>
               </div>
               
               <button
                 onClick={handleGenerate}
                 disabled={isGenerating}
-                className={`w-full py-4 text-white font-bold rounded-lg text-xl ${
+                className={`w-full py-5 text-white font-bold rounded-xl text-lg shadow-lg transform transition-all duration-200 ${
                   isGenerating 
                     ? 'bg-gray-400 cursor-not-allowed' 
-                    : 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600'
+                    : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:shadow-xl hover:-translate-y-0.5'
                 }`}
               >
-                {isGenerating ? '🔄 生成中...' : `🚀 ${articleCount}記事を生成する`}
+                {isGenerating ? (
+                  <div className="flex items-center justify-center">
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
+                    Generating...
+                  </div>
+                ) : (
+                  `Generate ${articleCount} Article${articleCount > 1 ? 's' : ''}`
+                )}
               </button>
             </div>
             
-            <div className="mt-6 p-4 bg-yellow-50 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                🛡️ 記事は下書き状態で投稿されます<br/>
-                ⚡ 生成には約30秒〜2分かかります<br/>
-                📝 WordPress管理画面で内容確認後に公開してください
-              </p>
+            <div className="mt-8 p-6 bg-gradient-to-r from-blue-50 to-purple-50 rounded-xl border border-blue-100">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2 mr-4"></div>
+                <div className="text-sm text-gray-700 space-y-1">
+                  <p className="font-medium">✨ Articles are saved as drafts</p>
+                  <p>⚡ Generation takes 30 seconds to 2 minutes</p>
+                  <p>📝 Review and publish from your WordPress dashboard</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* 実行履歴 */}
         {generations.length > 0 && (
-          <div className="mt-8 bg-white rounded-lg shadow-lg p-6">
-            <h2 className="text-2xl font-bold mb-6">📊 実行履歴</h2>
+          <div className="mt-12 bg-white rounded-xl shadow-lg p-8 border border-gray-100">
+            <div className="flex items-center mb-8">
+              <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+              <h2 className="text-2xl font-semibold text-gray-800">Generation History</h2>
+            </div>
             <div className="space-y-4">
               {generations.map((gen) => (
-                <div key={gen.id} className="p-4 border rounded-lg">
+                <div key={gen.id} className="p-6 border border-gray-200 rounded-xl hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-center">
                     <div>
-                      <span className="font-medium">{gen.pack}</span>
-                      <span className="ml-2 text-gray-600">({gen.count}記事)</span>
+                      <span className="font-semibold text-gray-800">{gen.pack}</span>
+                      <span className="ml-3 text-gray-500">({gen.count} article{gen.count > 1 ? 's' : ''})</span>
                     </div>
-                    <div className={`px-3 py-1 rounded text-sm ${
+                    <div className={`px-4 py-2 rounded-full text-sm font-medium ${
                       gen.status === 'completed' 
-                        ? 'bg-green-100 text-green-800' 
+                        ? 'bg-green-100 text-green-700 border border-green-200' 
                         : gen.status === 'error'
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-blue-100 text-blue-800'
+                        ? 'bg-red-100 text-red-700 border border-red-200'
+                        : 'bg-blue-100 text-blue-700 border border-blue-200'
                     }`}>
-                      {gen.status === 'completed' ? '✅ 完了' : 
-                       gen.status === 'error' ? '❌ エラー' : '🔄 処理中'}
+                      {gen.status === 'completed' ? '✓ Completed' : 
+                       gen.status === 'error' ? '✗ Error' : '⟳ Processing'}
                     </div>
                   </div>
-                  <div className="text-sm text-gray-500 mt-2">
-                    {new Date(gen.createdAt).toLocaleString('ja-JP')}
+                  <div className="text-sm text-gray-500 mt-3">
+                    {new Date(gen.createdAt).toLocaleString('en-US')}
                   </div>
                 </div>
               ))}
