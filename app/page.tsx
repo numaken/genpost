@@ -103,15 +103,15 @@ export default function Home() {
           <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
             <div className="flex items-center mb-6">
               <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
-              <h2 className="text-2xl font-semibold text-gray-800">WordPress Connection</h2>
+              <h2 className="text-2xl font-semibold text-gray-800">WordPress接続設定</h2>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Site URL</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">サイトURL</label>
                 <input
                   type="url"
-                  placeholder="https://your-wordpress-site.com"
+                  placeholder="https://あなたのサイト.com"
                   className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-blue-500 transition-colors"
                   value={config.wpSiteUrl}
                   onChange={(e) => setConfig({...config, wpSiteUrl: e.target.value})}
@@ -119,7 +119,7 @@ export default function Home() {
               </div>
               
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Username</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">ユーザー名</label>
                 <input
                   type="text"
                   placeholder="admin"
@@ -130,7 +130,7 @@ export default function Home() {
               </div>
               
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Application Password</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">アプリケーションパスワード</label>
                 <input
                   type="password"
                   placeholder="xxxx xxxx xxxx xxxx"
@@ -141,7 +141,7 @@ export default function Home() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Category ID</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">カテゴリID</label>
                 <input
                   type="number"
                   placeholder="1"
@@ -157,12 +157,12 @@ export default function Home() {
           <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
             <div className="flex items-center mb-6">
               <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-              <h2 className="text-2xl font-semibold text-gray-800">Content Generation</h2>
+              <h2 className="text-2xl font-semibold text-gray-800">コンテンツ生成</h2>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Content Template</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">コンテンツテンプレート</label>
                 <select 
                   className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors bg-white"
                   value={selectedPack}
@@ -177,15 +177,15 @@ export default function Home() {
               </div>
               
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-3">Article Count</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-3">記事数</label>
                 <select 
                   className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors bg-white"
                   value={articleCount}
                   onChange={(e) => setArticleCount(Number(e.target.value))}
                 >
-                  <option value={1}>1 Article</option>
-                  <option value={3}>3 Articles</option>
-                  <option value={5}>5 Articles</option>
+                  <option value={1}>1記事</option>
+                  <option value={3}>3記事</option>
+                  <option value={5}>5記事</option>
                 </select>
               </div>
               
@@ -201,10 +201,10 @@ export default function Home() {
                 {isGenerating ? (
                   <div className="flex items-center justify-center">
                     <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
-                    Generating...
+                    生成中...
                   </div>
                 ) : (
-                  `Generate ${articleCount} Article${articleCount > 1 ? 's' : ''}`
+                  `${articleCount}記事を生成`
                 )}
               </button>
             </div>
@@ -227,7 +227,7 @@ export default function Home() {
           <div className="mt-12 bg-white rounded-xl shadow-lg p-8 border border-gray-100">
             <div className="flex items-center mb-8">
               <div className="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
-              <h2 className="text-2xl font-semibold text-gray-800">Generation History</h2>
+              <h2 className="text-2xl font-semibold text-gray-800">生成履歴</h2>
             </div>
             <div className="space-y-4">
               {generations.map((gen) => (
@@ -235,7 +235,7 @@ export default function Home() {
                   <div className="flex justify-between items-center">
                     <div>
                       <span className="font-semibold text-gray-800">{gen.pack}</span>
-                      <span className="ml-3 text-gray-500">({gen.count} article{gen.count > 1 ? 's' : ''})</span>
+                      <span className="ml-3 text-gray-500">({gen.count}記事)</span>
                     </div>
                     <div className={`px-4 py-2 rounded-full text-sm font-medium ${
                       gen.status === 'completed' 
@@ -244,8 +244,8 @@ export default function Home() {
                         ? 'bg-red-100 text-red-700 border border-red-200'
                         : 'bg-blue-100 text-blue-700 border border-blue-200'
                     }`}>
-                      {gen.status === 'completed' ? '✓ Completed' : 
-                       gen.status === 'error' ? '✗ Error' : '⟳ Processing'}
+                      {gen.status === 'completed' ? '✓ 完了' : 
+                       gen.status === 'error' ? '✗ エラー' : '⟳ 処理中'}
                     </div>
                   </div>
                   <div className="text-sm text-gray-500 mt-3">
