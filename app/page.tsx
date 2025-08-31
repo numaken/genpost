@@ -94,7 +94,7 @@ export default function Home() {
           <div className="container mx-auto flex justify-between items-center">
             <div className="text-xl font-bold">gen<span className="text-purple-200">post</span></div>
             <div className="flex items-center space-x-6">
-              <Link href="/pricing" className="text-white hover:text-purple-200 transition-colors">
+              <Link href="/prompts" className="text-white hover:text-purple-200 transition-colors">
                 プロンプト一覧
               </Link>
               {session ? (
@@ -182,7 +182,7 @@ export default function Home() {
                   無料でアカウント作成
                 </button>
                 <Link 
-                  href="/pricing"
+                  href="/prompts"
                   className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors inline-block"
                 >
                   全プロンプトを見る
