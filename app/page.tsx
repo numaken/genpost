@@ -103,9 +103,6 @@ export default function Home() {
                     <span className="opacity-75">ようこそ、</span>
                     <span className="font-medium">{session.user?.name}さん</span>
                   </div>
-                  <div className="text-xs bg-white/20 px-3 py-1 rounded-full">
-                    {(session.user as any)?.plan || 'FREE'}プラン
-                  </div>
                   <button
                     onClick={() => signOut()}
                     className="text-sm bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors"
@@ -194,7 +191,24 @@ export default function Home() {
             </div>
           </div>
         ) : (
-          <div className="grid lg:grid-cols-2 gap-8">
+          <div>
+            {/* プロンプト購入案内 */}
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-8 border border-purple-200">
+              <h3 className="text-2xl font-bold text-gray-800 mb-3">
+                🎯 無制限記事生成を開始
+              </h3>
+              <p className="text-gray-600 mb-4">
+                プロンプトを購入して、業界特化のプロフェッショナル記事を無制限生成できます。<br/>
+                WordPress自動投稿機能で効率的なコンテンツマーケティングを実現。
+              </p>
+              <div className="flex gap-4 text-sm text-gray-500">
+                <span>✓ 480+業界特化プロンプト</span>
+                <span>✓ WordPress自動投稿</span>
+                <span>✓ 無制限記事生成</span>
+              </div>
+            </div>
+            
+            <div className="grid lg:grid-cols-2 gap-8">
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
               <div className="flex items-center mb-6">
                 <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
@@ -251,7 +265,7 @@ export default function Home() {
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
               <div className="flex items-center mb-6">
                 <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-                <h2 className="text-2xl font-semibold text-gray-800">コンテンツ生成</h2>
+                <h2 className="text-2xl font-semibold text-gray-800">プロンプト選択・購入</h2>
               </div>
               
               <div className="space-y-6">
@@ -301,7 +315,8 @@ export default function Home() {
                 <div className="flex items-start">
                   <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2 mr-4"></div>
                   <div className="text-sm text-gray-700 space-y-1">
-                    <p className="font-medium">✨ 記事は下書きとして保存されます</p>
+                    <p className="font-medium">🛒 プロンプト購入後、無制限生成が可能です</p>
+                    <p>✨ 記事は下書きとして保存されます</p>
                     <p>⚡ 生成には30秒～2分程度かかります</p>
                     <p>📝 WordPressダッシュボードで確認・公開してください</p>
                   </div>
