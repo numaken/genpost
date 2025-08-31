@@ -12,15 +12,28 @@ const RESET_TIME = 24 * 60 * 60 * 1000 // 24時間
 
 export async function POST(request: NextRequest) {
   try {
-    // IP制限チェック
+    // IP制限チェック（Admin除外）
     const forwarded = request.headers.get('x-forwarded-for')
     const ip = forwarded ? forwarded.split(',')[0] : request.ip || 'unknown'
     
-    const now = Date.now()
-    const lastUsed = ipUsageCache.get(ip) || 0
+    // Admin IP除外リスト（テスト用）
+    const adminIPs = [
+      'unknown', // localhost開発環境
+      '127.0.0.1',
+      '::1'
+    ]
     
-    if (now - lastUsed < RESET_TIME) {
-      return NextResponse.json({ error: '本日の利用制限に達しました。明日再度お試しください。' }, { status: 429 })
+    // Admin環境変数チェック（開発・テスト環境）
+    const isDev = process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview'
+    const isAdmin = adminIPs.includes(ip) || isDev
+    
+    if (!isAdmin) {
+      const now = Date.now()
+      const lastUsed = ipUsageCache.get(ip) || 0
+      
+      if (now - lastUsed < RESET_TIME) {
+        return NextResponse.json({ error: '本日の利用制限に達しました。明日再度お試しください。' }, { status: 429 })
+      }
     }
 
     const body = await request.json()
@@ -125,8 +138,11 @@ ${goalText}内容にしてください。
     const title = lines[0].replace(/^(#\s*|タイトル[：:]\s*)/i, '').trim()
     const content = lines.slice(1).join('\n').trim()
 
-    // IP使用記録
-    ipUsageCache.set(ip, now)
+    // IP使用記録（Admin除外）
+    if (!isAdmin) {
+      const now = Date.now()
+      ipUsageCache.set(ip, now)
+    }
 
     return NextResponse.json({
       title,

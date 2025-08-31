@@ -283,7 +283,7 @@ export default function TrialPromptForm() {
 
       {/* 注意書き */}
       <p className="text-xs text-gray-500 text-center">
-        ※ お試し機能は1日1回まで利用可能です
+        ※ お試し機能は1日1回まで利用可能です（開発環境では無制限）
       </p>
     </form>
   )
