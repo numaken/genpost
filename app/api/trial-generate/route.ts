@@ -56,14 +56,14 @@ export async function POST(request: NextRequest) {
       other: 'サービス業'
     }
 
-    const challengeTexts = {
-      // 見込み客向けの課題
-      awareness: 'お店の存在を知ってもらいたい',
-      attraction: 'お店の魅力を伝えたい',
-      differentiation: '他店との違いをアピールしたい',
-      trust: '信頼感・安心感を伝えたい',
-      accessibility: '気軽に来店しやすい雰囲気を伝えたい',
-      // ビジネス向けの課題（従来通り）
+    const contentFocusTexts = {
+      // 見込み客向け - 伝えたいポイント
+      service_quality: 'サービス・商品の品質の高さ',
+      unique_value: '他では味わえない特別な体験',
+      comfort_safety: '安心・快適な環境',
+      personal_care: '一人ひとりへの丁寧な対応',
+      accessibility: '気軽に利用しやすい雰囲気',
+      // ビジネス向け - 課題（従来通り）
       onetime: '一度来てそれっきりの客が多い',
       lowprice: '客単価が低い',
       competition: '競合に客を取られる', 
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     const industryName = industryNames[industry as keyof typeof industryNames] || 'サービス業'
-    const challengeText = challengeTexts[challenge as keyof typeof challengeTexts] || '売上アップが課題'
+    const focusText = contentFocusTexts[challenge as keyof typeof contentFocusTexts] || '売上アップが課題'
 
     // バリエーション設定
     const writerVariations = {
@@ -154,8 +154,8 @@ ${goalText}内容にしてください。
 業界：${industryName}
 サービス・商品：${service}
 ${goalType === 'attraction' || goalType === 'experience' 
-  ? `伝えたいこと：${challengeText}` 
-  : `解決したい課題：${challengeText}`}
+  ? `記事で伝えたいポイント：${focusText}` 
+  : `解決したい課題：${focusText}`}
 
 この設定で記事を作成してください。
 読者が共感し、行動を起こしたくなる魅力的な内容にしてください。` 

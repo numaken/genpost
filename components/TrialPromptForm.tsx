@@ -27,18 +27,18 @@ export default function TrialPromptForm() {
     { value: 'other', label: 'その他' }
   ]
 
-  const getChallengeOptions = (goalType: string) => {
+  const getContentFocusOptions = (goalType: string) => {
     if (goalType === 'attraction' || goalType === 'experience') {
-      // 見込み客向けの課題
+      // 見込み客向け - 伝えたいこと/読者のニーズ
       return [
-        { value: 'awareness', label: 'お店の存在を知ってもらいたい' },
-        { value: 'attraction', label: 'お店の魅力を伝えたい' },
-        { value: 'differentiation', label: '他店との違いをアピールしたい' },
-        { value: 'trust', label: '信頼感・安心感を伝えたい' },
-        { value: 'accessibility', label: '気軽に来店しやすい雰囲気を伝えたい' }
+        { value: 'service_quality', label: 'サービス・商品の品質の高さ' },
+        { value: 'unique_value', label: '他では味わえない特別な体験' },
+        { value: 'comfort_safety', label: '安心・快適な環境' },
+        { value: 'personal_care', label: '一人ひとりへの丁寧な対応' },
+        { value: 'accessibility', label: '気軽に利用しやすい雰囲気' }
       ]
     } else {
-      // ビジネス向けの課題（従来通り）
+      // ビジネス向け - 解決したい課題
       return [
         { value: 'onetime', label: '一度来てそれっきりの客が多い' },
         { value: 'lowprice', label: '客単価が低い' },
@@ -202,12 +202,12 @@ export default function TrialPromptForm() {
         />
       </div>
 
-      {/* 課題（目的に応じて動的変更） */}
+      {/* 記事の焦点（目的に応じて動的変更） */}
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-3">
           {formData.goalType === 'attraction' || formData.goalType === 'experience' 
-            ? 'お店の課題・伝えたいこと' 
-            : '現在の課題'}
+            ? '記事で伝えたいポイント' 
+            : '解決したい課題'}
         </label>
         <select
           value={formData.challenge}
@@ -217,10 +217,10 @@ export default function TrialPromptForm() {
         >
           <option value="">
             {formData.goalType === 'attraction' || formData.goalType === 'experience' 
-              ? '伝えたいことを選択してください' 
+              ? 'アピールポイントを選択してください' 
               : '課題を選択してください'}
           </option>
-          {getChallengeOptions(formData.goalType).map(option => (
+          {getContentFocusOptions(formData.goalType).map(option => (
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
