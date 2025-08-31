@@ -21,9 +21,15 @@ interface PromptWithStatus {
 export default function PricingPage() {
   const { data: session } = useSession()
   const [prompts, setPrompts] = useState<PromptWithStatus[]>([])
+  const [filteredPrompts, setFilteredPrompts] = useState<PromptWithStatus[]>([])
   const [groupedPrompts, setGroupedPrompts] = useState<Record<string, PromptWithStatus[]>>({})
   const [loading, setLoading] = useState(true)
   const [purchasing, setPurchasing] = useState<string | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedIndustry, setSelectedIndustry] = useState('all')
+  const [selectedPurpose, setSelectedPurpose] = useState('all')
+  const [selectedFormat, setSelectedFormat] = useState('all')
+  const [showOnlyAvailable, setShowOnlyAvailable] = useState(false)
 
   useEffect(() => {
     fetchPrompts()
@@ -37,6 +43,7 @@ export default function PricingPage() {
       
       if (response.ok) {
         setPrompts(data.prompts)
+        setFilteredPrompts(data.prompts)
         setGroupedPrompts(data.grouped)
       }
     } catch (error) {
@@ -74,18 +81,64 @@ export default function PricingPage() {
     }
   }
 
+  // フィルタリング機能
+  useEffect(() => {
+    let filtered = [...prompts]
+    
+    // 検索フィルター
+    if (searchTerm.trim()) {
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.description.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+    
+    // 業界フィルター
+    if (selectedIndustry !== 'all') {
+      filtered = filtered.filter(p => p.industry === selectedIndustry)
+    }
+    
+    // 目的フィルター
+    if (selectedPurpose !== 'all') {
+      filtered = filtered.filter(p => p.purpose === selectedPurpose)
+    }
+    
+    // 形式フィルター
+    if (selectedFormat !== 'all') {
+      filtered = filtered.filter(p => p.format === selectedFormat)
+    }
+    
+    // 購入可能のみ表示
+    if (showOnlyAvailable) {
+      filtered = filtered.filter(p => p.is_free || !p.purchased)
+    }
+    
+    setFilteredPrompts(filtered)
+    
+    // フィルター済みプロンプトをグループ化
+    const grouped = filtered.reduce((acc, prompt) => {
+      if (!acc[prompt.industry]) {
+        acc[prompt.industry] = []
+      }
+      acc[prompt.industry].push(prompt)
+      return acc
+    }, {} as Record<string, PromptWithStatus[]>)
+    
+    setGroupedPrompts(grouped)
+  }, [prompts, searchTerm, selectedIndustry, selectedPurpose, selectedFormat, showOnlyAvailable])
+
   const getIndustryIcon = (industry: string) => {
     const icons: Record<string, string> = {
       'real-estate': '🏠',
-      'tech-saas': '💻',
-      'ecommerce': '🛒',
-      'beauty-health': '🏥',
-      'education': '📚',
       'restaurant': '🍽️',
-      'finance': '💰',
-      'entertainment': '🎮',
-      'affiliate': '💸',
-      'blogging': '📝'
+      'beauty-salon': '💇',
+      'dental': '🦷',
+      'fitness': '💪',
+      'education': '📚',
+      'retail': '🛍️',
+      'consulting': '💼',
+      'healthcare': '🏥',
+      'legal': '⚖️'
     }
     return icons[industry] || '📄'
   }
@@ -93,17 +146,39 @@ export default function PricingPage() {
   const getIndustryName = (industry: string) => {
     const names: Record<string, string> = {
       'real-estate': '不動産',
-      'tech-saas': 'IT・SaaS',
-      'ecommerce': 'EC・物販',
-      'beauty-health': '美容・健康',
-      'education': '教育',
-      'restaurant': '飲食',
-      'finance': '金融',
-      'entertainment': 'エンタメ',
-      'affiliate': 'アフィリエイト',
-      'blogging': 'ブログ'
+      'restaurant': '飲食店',
+      'beauty-salon': '美容院',
+      'dental': '歯科医院',
+      'fitness': 'フィットネス',
+      'education': '塾・教育',
+      'retail': '小売店',
+      'consulting': 'コンサルティング',
+      'healthcare': 'クリニック',
+      'legal': '法律事務所'
     }
     return names[industry] || industry
+  }
+
+  const getPurposeName = (purpose: string) => {
+    const names: Record<string, string> = {
+      'customer-acquisition': '新規顧客獲得',
+      'repeat-customer': 'リピーター獲得',
+      'trust-building': '信頼関係構築',
+      'educational-content': '教育・啓発',
+      'seasonal-promotion': '季節・イベント活用'
+    }
+    return names[purpose] || purpose
+  }
+
+  const getFormatName = (format: string) => {
+    const names: Record<string, string> = {
+      'how-to': 'ハウツー記事',
+      'case-study': '事例紹介',
+      'comparison': '比較・選び方',
+      'interview': 'インタビュー形式',
+      'qa-format': 'Q&A形式'
+    }
+    return names[format] || format
   }
 
   const freePrompts = prompts.filter(p => p.is_free)
@@ -150,8 +225,8 @@ export default function PricingPage() {
                 <p className="text-sm text-blue-100">プロンプト総数</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
-                <span className="font-bold text-2xl">{Object.keys(groupedPrompts).length}</span>
-                <p className="text-sm text-blue-100">業界カテゴリ</p>
+                <span className="font-bold text-2xl">{filteredPrompts.length}</span>
+                <p className="text-sm text-blue-100">表示中</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
                 <span className="font-bold text-2xl">¥980</span>
@@ -268,15 +343,137 @@ export default function PricingPage() {
           </div>
         </div>
 
+        {/* 検索・フィルター */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 mb-8">
+          <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+            🔍 プロンプト検索・絞り込み
+          </h2>
+          
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            {/* 検索 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">キーワード検索</label>
+              <input
+                type="text"
+                placeholder="プロンプト名や説明で検索"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            
+            {/* 業界フィルター */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">業界</label>
+              <select
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
+                value={selectedIndustry}
+                onChange={(e) => setSelectedIndustry(e.target.value)}
+              >
+                <option value="all">すべての業界</option>
+                <option value="real-estate">🏠 不動産</option>
+                <option value="restaurant">🍽️ 飲食店</option>
+                <option value="beauty-salon">💇 美容院</option>
+                <option value="dental">🦷 歯科医院</option>
+                <option value="fitness">💪 フィットネス</option>
+                <option value="education">📚 塾・教育</option>
+                <option value="retail">🛍️ 小売店</option>
+                <option value="consulting">💼 コンサルティング</option>
+                <option value="healthcare">🏥 クリニック</option>
+                <option value="legal">⚖️ 法律事務所</option>
+              </select>
+            </div>
+            
+            {/* 目的フィルター */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">目的</label>
+              <select
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
+                value={selectedPurpose}
+                onChange={(e) => setSelectedPurpose(e.target.value)}
+              >
+                <option value="all">すべての目的</option>
+                <option value="customer-acquisition">新規顧客獲得</option>
+                <option value="repeat-customer">リピーター獲得</option>
+                <option value="trust-building">信頼関係構築</option>
+                <option value="educational-content">教育・啓発</option>
+                <option value="seasonal-promotion">季節・イベント活用</option>
+              </select>
+            </div>
+            
+            {/* 形式フィルター */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">記事形式</label>
+              <select
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 bg-white"
+                value={selectedFormat}
+                onChange={(e) => setSelectedFormat(e.target.value)}
+              >
+                <option value="all">すべての形式</option>
+                <option value="how-to">ハウツー記事</option>
+                <option value="case-study">事例紹介</option>
+                <option value="comparison">比較・選び方</option>
+                <option value="interview">インタビュー形式</option>
+                <option value="qa-format">Q&A形式</option>
+              </select>
+            </div>
+          </div>
+          
+          {/* オプション */}
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={showOnlyAvailable}
+                onChange={(e) => setShowOnlyAvailable(e.target.checked)}
+                className="rounded"
+              />
+              <span className="text-sm text-gray-700">購入可能なもののみ表示</span>
+            </label>
+            <button
+              onClick={() => {
+                setSearchTerm('')
+                setSelectedIndustry('all')
+                setSelectedPurpose('all')
+                setSelectedFormat('all')
+                setShowOnlyAvailable(false)
+              }}
+              className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+            >
+              フィルターをリセット
+            </button>
+          </div>
+        </div>
+
         {/* プロンプト一覧 */}
         {loading ? (
           <div className="text-center py-16">
             <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
             <p className="text-gray-500">プロンプトを読み込み中...</p>
           </div>
+        ) : Object.keys(groupedPrompts).length === 0 ? (
+          <div className="text-center py-16">
+            <div className="text-4xl mb-4">🔍</div>
+            <h3 className="text-xl font-semibold text-gray-800 mb-2">該当するプロンプトが見つかりません</h3>
+            <p className="text-gray-500 mb-4">検索条件を変更してお試しください</p>
+            <button
+              onClick={() => {
+                setSearchTerm('')
+                setSelectedIndustry('all')
+                setSelectedPurpose('all')
+                setSelectedFormat('all')
+                setShowOnlyAvailable(false)
+              }}
+              className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              フィルターをリセット
+            </button>
+          </div>
         ) : (
           <div>
-            <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">利用可能なプロンプト</h2>
+            <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">
+              プロンプト一覧 <span className="text-lg font-normal text-gray-500">({filteredPrompts.length}件)</span>
+            </h2>
             
             {Object.entries(groupedPrompts).map(([industry, industryPrompts]) => (
               <div key={industry} className="mb-12">
@@ -313,7 +510,7 @@ export default function PricingPage() {
                         
                         <p className="text-sm text-gray-600 mb-3">{prompt.description}</p>
                         <div className="text-xs text-gray-500 mb-4">
-                          {prompt.purpose} / {prompt.format}
+                          {getPurposeName(prompt.purpose)} / {getFormatName(prompt.format)}
                         </div>
                         
                         {!prompt.is_free && !prompt.purchased && (
