@@ -90,7 +90,7 @@ export async function hasUserPurchased(userId: string, promptId: string): Promis
     .select('*')
     .eq('user_id', userId)
     .eq('is_active', true)
-    .or(`prompt_id.eq.${prompt.id}`)
+    .eq('prompt_id', promptId)
   
   if (error) {
     console.error('Purchase check error:', error)

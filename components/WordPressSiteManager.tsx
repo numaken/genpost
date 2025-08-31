@@ -10,6 +10,7 @@ interface WordPressSite {
   wp_username: string
   wp_app_password: string
   default_category_id: number
+  selected_prompt_id?: string
   created_at: string
 }
 

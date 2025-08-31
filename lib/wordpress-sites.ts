@@ -13,6 +13,7 @@ export interface WordPressSite {
   wp_username: string
   wp_app_password: string
   default_category_id: number
+  selected_prompt_id?: string
   is_active: boolean
   created_at: string
   updated_at: string

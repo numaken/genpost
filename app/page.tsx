@@ -14,6 +14,7 @@ interface WordPressSite {
   wp_username: string
   wp_app_password: string
   default_category_id: number
+  selected_prompt_id?: string
 }
 
 interface Generation {
@@ -34,6 +35,50 @@ export default function Home() {
   const [articleCount, setArticleCount] = useState(1)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generations, setGenerations] = useState<Generation[]>([])
+
+  // サイト選択時の処理
+  const handleSiteSelect = (site: WordPressSite | null) => {
+    setSelectedSite(site)
+    
+    // サイトに保存されているプロンプトがあれば自動選択
+    if (site?.selected_prompt_id) {
+      setSelectedPrompt(site.selected_prompt_id)
+    } else {
+      setSelectedPrompt(null)
+      setPromptInputs({})
+    }
+  }
+
+  // プロンプト選択時の処理（サイトにも保存）
+  const handlePromptSelect = (promptId: string) => {
+    setSelectedPrompt(promptId)
+    
+    // 選択されたサイトにプロンプトIDを保存
+    if (selectedSite) {
+      updateSitePrompt(selectedSite.id, promptId)
+    }
+  }
+
+  // サイトのプロンプト選択を更新
+  const updateSitePrompt = async (siteId: string, promptId: string) => {
+    try {
+      const response = await fetch('/api/wordpress-sites', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          site_id: siteId,
+          selected_prompt_id: promptId
+        })
+      })
+
+      if (response.ok) {
+        // サイト情報を更新
+        setSelectedSite(prev => prev ? { ...prev, selected_prompt_id: promptId } : null)
+      }
+    } catch (error) {
+      console.error('Failed to update site prompt:', error)
+    }
+  }
 
   const handleGenerate = async () => {
     if (!session) {
@@ -213,7 +258,7 @@ export default function Home() {
             
             <div className="grid lg:grid-cols-2 gap-8">
               <WordPressSiteManager 
-                onSiteSelect={setSelectedSite}
+                onSiteSelect={handleSiteSelect}
                 selectedSiteId={selectedSite?.id}
               />
 
@@ -225,10 +270,17 @@ export default function Home() {
               
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">プロンプト選択 [NEW]</label>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">
+                    プロンプト選択
+                    {selectedSite && (
+                      <span className="text-xs text-gray-500 ml-2">
+                        ({selectedSite.site_name}専用)
+                      </span>
+                    )}
+                  </label>
                   <PromptSelector
                     selectedPrompt={selectedPrompt}
-                    onPromptSelect={setSelectedPrompt}
+                    onPromptSelect={handlePromptSelect}
                     onInputsChange={setPromptInputs}
                   />
                 </div>

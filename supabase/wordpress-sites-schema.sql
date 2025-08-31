@@ -7,6 +7,7 @@ CREATE TABLE wordpress_sites (
   wp_username TEXT NOT NULL,
   wp_app_password TEXT NOT NULL, -- 暗号化して保存
   default_category_id INTEGER DEFAULT 1,
+  selected_prompt_id TEXT NULL, -- 選択されたプロンプトID
   is_active BOOLEAN DEFAULT true,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

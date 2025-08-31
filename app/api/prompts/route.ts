@@ -41,7 +41,8 @@ export async function GET(request: NextRequest) {
     if (filter === 'free') {
       filteredPrompts = promptsWithStatus.filter(p => p.is_free)
     } else if (filter === 'purchased') {
-      filteredPrompts = promptsWithStatus.filter(p => p.purchased)
+      // 購入済み = 有料で購入済みのプロンプトのみ（無料は除外）
+      filteredPrompts = promptsWithStatus.filter(p => !p.is_free && p.purchased)
     } else if (filter === 'available') {
       filteredPrompts = promptsWithStatus.filter(p => p.available)
     }
