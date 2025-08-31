@@ -48,8 +48,11 @@ export default function TrialPromptForm() {
   ]
 
   const goalTypeOptions = [
-    { value: 'acquisition', label: '見込み客獲得（相談・来店につなげる）' },
-    { value: 'sharing', label: '情報共有（業界知識・ノウハウの提供）' },
+    { value: 'attraction', label: '魅力発信（お店・サービスの魅力を伝えて来店を促す）' },
+    { value: 'experience', label: '体験価値（利用体験の素晴らしさを伝える）' },
+    { value: 'education', label: '情報提供（読者に役立つ知識・情報を提供）' },
+    { value: 'acquisition', label: 'リード獲得（相談・問い合わせにつなげる）' },
+    { value: 'sharing', label: 'ノウハウ共有（同業者向けの知識・経験の共有）' },
     { value: 'branding', label: 'ブランディング（専門性・信頼性のアピール）' }
   ]
 
