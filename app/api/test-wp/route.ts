@@ -14,8 +14,7 @@ async function performWordPressDiagnostics(siteUrl: string) {
   try {
     // 1. サイト自体にアクセス可能かチェック
     const siteCheck = await fetch(siteUrl, {
-      headers: { 'User-Agent': 'genpost/1.0' },
-      timeout: 10000
+      headers: { 'User-Agent': 'genpost/1.0' }
     })
     diagnostics.siteAccessible = siteCheck.ok
     diagnostics.siteStatus = siteCheck.status
@@ -38,8 +37,7 @@ async function performWordPressDiagnostics(siteUrl: string) {
           headers: { 
             'User-Agent': 'genpost/1.0',
             'Accept': 'application/json'
-          },
-          timeout: 10000
+          }
         })
         
         diagnostics.detailedChecks.push({
