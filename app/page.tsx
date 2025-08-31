@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useSession, signIn, signOut } from 'next-auth/react'
 
 interface Config {
   wpSiteUrl: string
@@ -19,6 +20,7 @@ interface Generation {
 }
 
 export default function Home() {
+  const { data: session, status } = useSession()
   const [config, setConfig] = useState<Config>({
     wpSiteUrl: '',
     wpUser: '',
@@ -79,7 +81,41 @@ export default function Home() {
       {/* ヘッダー */}
       <header className="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-black opacity-10"></div>
-        <div className="container mx-auto py-16 relative z-10">
+        
+        {/* ナビゲーションバー */}
+        <nav className="relative z-10 px-6 py-4">
+          <div className="container mx-auto flex justify-between items-center">
+            <div className="text-xl font-bold">gen<span className="text-purple-200">post</span></div>
+            <div className="flex items-center space-x-4">
+              {session ? (
+                <>
+                  <div className="text-sm">
+                    <span className="opacity-75">ようこそ、</span>
+                    <span className="font-medium">{session.user?.name}さん</span>
+                  </div>
+                  <div className="text-xs bg-white/20 px-3 py-1 rounded-full">
+                    {(session.user as any)?.plan || 'FREE'}プラン
+                  </div>
+                  <button
+                    onClick={() => signOut()}
+                    className="text-sm bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg transition-colors"
+                  >
+                    ログアウト
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={() => signIn()}
+                  className="bg-white text-purple-600 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+                >
+                  ログイン
+                </button>
+              )}
+            </div>
+          </div>
+        </nav>
+        
+        <div className="container mx-auto py-12 relative z-10">
           <div className="text-center">
             <div className="mb-6">
               <h1 className="text-6xl font-black tracking-tight mb-2">
@@ -98,7 +134,19 @@ export default function Home() {
       </header>
 
       <div className="container mx-auto py-8">
-        <div className="grid lg:grid-cols-2 gap-8">
+        {!session ? (
+          <div className="text-center py-16">
+            <h2 className="text-3xl font-bold text-gray-800 mb-4">ログインが必要です</h2>
+            <p className="text-gray-600 mb-8">genpostを使用するには、アカウントにログインしてください。</p>
+            <button
+              onClick={() => signIn()}
+              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-colors"
+            >
+              ログインして始める
+            </button>
+          </div>
+        ) : (
+          <div className="grid lg:grid-cols-2 gap-8">
           {/* 設定パネル */}
           <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
             <div className="flex items-center mb-6">
@@ -255,6 +303,7 @@ export default function Home() {
               ))}
             </div>
           </div>
+        )}
         )}
       </div>
     </div>
