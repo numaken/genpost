@@ -6,7 +6,10 @@ export default function TrialPromptForm() {
   const [formData, setFormData] = useState({
     industry: '',
     service: '',
-    challenge: ''
+    challenge: '',
+    writerType: '',
+    readerType: '',
+    goalType: ''
   })
   const [isGenerating, setIsGenerating] = useState(false)
   const [generatedArticle, setGeneratedArticle] = useState<{title: string, content: string} | null>(null)
@@ -32,11 +35,30 @@ export default function TrialPromptForm() {
     { value: 'newcustomer', label: '新規客ばかりでリピートがない' }
   ]
 
+  const writerTypeOptions = [
+    { value: 'owner', label: '現役の経営者・オーナー（実体験ベース）' },
+    { value: 'consultant', label: '業界専門コンサルタント（専門知識ベース）' },
+    { value: 'expert', label: 'サービス提供の専門家（技術・スキルベース）' }
+  ]
+
+  const readerTypeOptions = [
+    { value: 'prospect', label: 'サービス利用を検討している見込み客' },
+    { value: 'peer', label: '同業界の経営者・事業者' },
+    { value: 'beginner', label: 'これから開業・参入予定の人' }
+  ]
+
+  const goalTypeOptions = [
+    { value: 'acquisition', label: '見込み客獲得（相談・来店につなげる）' },
+    { value: 'sharing', label: '情報共有（業界知識・ノウハウの提供）' },
+    { value: 'branding', label: 'ブランディング（専門性・信頼性のアピール）' }
+  ]
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!formData.industry || !formData.service || !formData.challenge) {
-      setError('全ての項目を入力してください')
+    if (!formData.industry || !formData.service || !formData.challenge || 
+        !formData.writerType || !formData.readerType || !formData.goalType) {
+      setError('全ての項目を選択してください')
       return
     }
 
@@ -65,7 +87,7 @@ export default function TrialPromptForm() {
   }
 
   const resetForm = () => {
-    setFormData({ industry: '', service: '', challenge: '' })
+    setFormData({ industry: '', service: '', challenge: '', writerType: '', readerType: '', goalType: '' })
     setGeneratedArticle(null)
     setError('')
   }
@@ -177,6 +199,59 @@ export default function TrialPromptForm() {
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
+      </div>
+
+      {/* 記事設定セクション */}
+      <div className="bg-blue-50 rounded-lg p-4">
+        <h4 className="font-semibold text-gray-800 mb-4">記事の設定</h4>
+        
+        {/* 書き手のタイプ */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-3">あなたの立場</label>
+          <select
+            value={formData.writerType}
+            onChange={(e) => setFormData({...formData, writerType: e.target.value})}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white text-sm"
+            required
+          >
+            <option value="">立場を選択してください</option>
+            {writerTypeOptions.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* 読者のタイプ */}
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-3">記事の読者</label>
+          <select
+            value={formData.readerType}
+            onChange={(e) => setFormData({...formData, readerType: e.target.value})}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white text-sm"
+            required
+          >
+            <option value="">読者を選択してください</option>
+            {readerTypeOptions.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* 記事の目的 */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">記事の目的</label>
+          <select
+            value={formData.goalType}
+            onChange={(e) => setFormData({...formData, goalType: e.target.value})}
+            className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white text-sm"
+            required
+          >
+            <option value="">目的を選択してください</option>
+            {goalTypeOptions.map(option => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* エラー表示 */}

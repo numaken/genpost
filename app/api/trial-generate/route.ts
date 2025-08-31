@@ -24,9 +24,9 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { industry, service, challenge } = body
+    const { industry, service, challenge, writerType, readerType, goalType } = body
 
-    if (!industry || !service || !challenge) {
+    if (!industry || !service || !challenge || !writerType || !readerType || !goalType) {
       return NextResponse.json({ error: '全ての項目を入力してください' }, { status: 400 })
     }
 
@@ -54,28 +54,64 @@ export async function POST(request: NextRequest) {
     const industryName = industryNames[industry as keyof typeof industryNames] || 'サービス業'
     const challengeText = challengeTexts[challenge as keyof typeof challengeTexts] || '売上アップが課題'
 
+    // バリエーション設定
+    const writerVariations = {
+      owner: `あなたは${industryName}を実際に経営している現役オーナーです。自分の実体験に基づいて`,
+      consultant: `あなたは${industryName}業界を専門とするコンサルタントです。豊富な専門知識と他社事例に基づいて`,
+      expert: `あなたは${industryName}業界で長年サービスを提供している専門家です。技術的な知見と実践経験に基づいて`
+    }
+
+    const readerVariations = {
+      prospect: `${industryName}のサービス利用を検討している見込み客に向けて`,
+      peer: `同じ${industryName}業界を営む経営者・事業者に向けて`,
+      beginner: `これから${industryName}業界での開業・参入を検討している人に向けて`
+    }
+
+    const goalVariations = {
+      acquisition: `最終的に相談や来店につなげることを目的として、信頼関係を築き自然にサービスへ誘導する`,
+      sharing: `業界の発展と同業者の成功を支援することを目的として、惜しみなく知識とノウハウを共有する`,
+      branding: `自身の専門性と信頼性をアピールすることを目的として、権威性を示しながら価値のある情報を提供する`
+    }
+
+    const writerText = writerVariations[writerType as keyof typeof writerVariations]
+    const readerText = readerVariations[readerType as keyof typeof readerVariations]
+    const goalText = goalVariations[goalType as keyof typeof goalVariations]
+
     // OpenAI APIで記事生成
     const completion = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
         { 
           role: 'system', 
-          content: `あなたはリピーター獲得とビジネス成長の専門家です。実践的で具体的なアドバイスを提供し、読者が即座に行動できる記事を作成してください。成功事例を交えながら、説得力のある内容にしてください。` 
+          content: `${writerText}、${readerText}記事を作成します。
+
+【記事の目的】
+${goalText}内容にしてください。
+
+【記事作成のポイント】
+- 実践的で具体的な内容
+- 読者が即座に行動できる
+- 読者の立場に寄り添った文章
+- 専門性と信頼性を感じられる内容
+
+【記事構成】
+1. 読者の心を掴む魅力的なタイトル
+2. 読者の悩みや課題への共感
+3. 具体的で実践的な解決策
+4. すぐに始められるアクションステップ
+5. 期待できる成果や変化
+
+読者にとって価値のある、行動を促す記事を作成してください。` 
         },
         { 
           role: 'user', 
-          content: `${industryName}を経営しており、主力商品・サービスは「${service}」です。現在「${challengeText}」という課題があります。
+          content: `【記事のテーマ】
+業界：${industryName}
+サービス：${service}
+解決したい課題：${challengeText}
 
-客単価を向上させ、リピーター獲得を実現する具体的な戦略について、実践的な記事を書いてください。
-
-記事構成：
-1. 魅力的なタイトル（数値や具体的な成果を含む）
-2. 問題の共感と現状分析
-3. 具体的な解決策（3-5つ）
-4. 実践ステップ
-5. 期待できる成果
-
-読みやすく、すぐに実践できる内容でお願いします。` 
+この設定で、リピーター獲得と客単価向上を実現する記事を作成してください。
+読者が「これは自分のことだ」「すぐに試してみたい」と感じる内容にしてください。` 
         }
       ],
       temperature: 0.7,
