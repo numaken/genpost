@@ -18,7 +18,7 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
   const [prompts, setPrompts] = useState<PromptWithStatus[]>([])
   const [groupedPrompts, setGroupedPrompts] = useState<Record<string, PromptWithStatus[]>>({})
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'available' | 'free' | 'purchased'>('available')
+  const [filter, setFilter] = useState<'all' | 'available' | 'free' | 'purchased'>('all')
   const [selectedIndustry, setSelectedIndustry] = useState<string>('all')
   const [inputs, setInputs] = useState<Record<string, string>>({})
   const [purchasing, setPurchasing] = useState<string | null>(null)
