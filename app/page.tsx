@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import Link from 'next/link'
 import PromptSelector from '@/components/PromptSelector'
+import TrialPromptForm from '@/components/TrialPromptForm'
 
 interface Config {
   wpSiteUrl: string
@@ -144,15 +145,53 @@ export default function Home() {
 
       <div className="container mx-auto py-8">
         {!session ? (
-          <div className="text-center py-16">
-            <h2 className="text-3xl font-bold text-gray-800 mb-4">ログインが必要です</h2>
-            <p className="text-gray-600 mb-8">genpostを使用するには、アカウントにログインしてください。</p>
-            <button
-              onClick={() => signIn()}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-colors"
-            >
-              ログインして始める
-            </button>
+          <div>
+            {/* お試しセクション */}
+            <div className="bg-white rounded-2xl shadow-xl p-8 mb-16 border border-gray-100">
+              <div className="text-center mb-8">
+                <h2 className="text-4xl font-bold text-gray-800 mb-4">
+                  <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                    無料で体験
+                  </span>
+                </h2>
+                <p className="text-xl text-gray-600">
+                  AIが作る記事の品質を今すぐ確認してください
+                </p>
+              </div>
+
+              <div className="max-w-4xl mx-auto">
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-6">
+                  <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                    📈 リピーター獲得記事作成
+                  </h3>
+                  <p className="text-gray-600">
+                    客単価アップとリピーター増加を実現する実践的な記事を作成します
+                  </p>
+                </div>
+
+                <TrialPromptForm />
+              </div>
+            </div>
+
+            {/* ログイン促進セクション */}
+            <div className="text-center py-16">
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">さらに多くの業界特化プロンプトを使いませんか？</h2>
+              <p className="text-gray-600 mb-8">不動産、IT、美容、飲食など480+のプロフェッショナルプロンプトをご利用いただけます。</p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button
+                  onClick={() => signIn()}
+                  className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-colors"
+                >
+                  無料でアカウント作成
+                </button>
+                <Link 
+                  href="/pricing"
+                  className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors inline-block"
+                >
+                  全プロンプトを見る
+                </Link>
+              </div>
+            </div>
           </div>
         ) : (
           <div className="grid lg:grid-cols-2 gap-8">
