@@ -213,9 +213,9 @@ export default function Home() {
               <div className="flex items-start">
                 <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2 mr-4"></div>
                 <div className="text-sm text-gray-700 space-y-1">
-                  <p className="font-medium">✨ Articles are saved as drafts</p>
-                  <p>⚡ Generation takes 30 seconds to 2 minutes</p>
-                  <p>📝 Review and publish from your WordPress dashboard</p>
+                  <p className="font-medium">✨ 記事は下書きとして保存されます</p>
+                  <p>⚡ 生成には30秒～2分程度かかります</p>
+                  <p>📝 WordPressダッシュボードで確認・公開してください</p>
                 </div>
               </div>
             </div>
