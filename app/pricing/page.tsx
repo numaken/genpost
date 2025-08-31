@@ -150,12 +150,12 @@ export default function PricingPage() {
                 <p className="text-sm text-blue-100">プロンプト総数</p>
               </div>
               <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
-                <span className="font-bold text-2xl">{freePrompts.length}</span>
-                <p className="text-sm text-blue-100">無料プロンプト</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
                 <span className="font-bold text-2xl">{Object.keys(groupedPrompts).length}</span>
                 <p className="text-sm text-blue-100">業界カテゴリ</p>
+              </div>
+              <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
+                <span className="font-bold text-2xl">¥980</span>
+                <p className="text-sm text-blue-100">プロンプト単価</p>
               </div>
             </div>
           </div>
@@ -166,50 +166,7 @@ export default function PricingPage() {
         {/* プラン概要 */}
         <div className="mb-16">
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">価格プラン</h2>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-            
-            {/* スターター */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8 relative">
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">スターター</h3>
-                <div className="text-4xl font-bold text-green-600 mb-1">¥0</div>
-                <p className="text-gray-500">無料で始める</p>
-              </div>
-              
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  {freePrompts.length}個の無料プロンプト
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  基本的な記事生成
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  WordPress自動投稿
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  コミュニティサポート
-                </li>
-              </ul>
-              
-              <Link 
-                href="/"
-                className="w-full bg-green-500 text-white text-center py-3 px-6 rounded-lg font-medium hover:bg-green-600 transition-colors block"
-              >
-                無料で始める
-              </Link>
-            </div>
+          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
 
             {/* プロ */}
             <div className="bg-white rounded-xl shadow-xl border-2 border-blue-500 p-8 relative">

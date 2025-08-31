@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { Prompt } from '@/lib/prompts'
 
 interface PromptWithStatus extends Prompt {
@@ -18,7 +19,7 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
   const [prompts, setPrompts] = useState<PromptWithStatus[]>([])
   const [groupedPrompts, setGroupedPrompts] = useState<Record<string, PromptWithStatus[]>>({})
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'available' | 'free' | 'purchased'>('all')
+  const [filter, setFilter] = useState<'all' | 'available' | 'free' | 'purchased'>('purchased')
   const [selectedIndustry, setSelectedIndustry] = useState<string>('all')
   const [inputs, setInputs] = useState<Record<string, string>>({})
   const [purchasing, setPurchasing] = useState<string | null>(null)
@@ -158,14 +159,15 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
     <div className="space-y-6">
       {/* フィルター */}
       <div className="flex flex-wrap gap-4">
-        <select 
-          value={filter}
-          onChange={(e) => setFilter(e.target.value as any)}
-          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-        >
-          <option value="all">すべてのプロンプト</option>
-          <option value="purchased">購入済みプロンプト</option>
-        </select>
+        <div className="flex items-center justify-between w-full">
+          <div className="text-lg font-semibold text-gray-800">購入済みプロンプト</div>
+          <Link 
+            href="/prompts" 
+            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-colors text-sm"
+          >
+            プロンプトを購入
+          </Link>
+        </div>
 
         <select 
           value={selectedIndustry}
@@ -246,8 +248,20 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
       {renderInputFields()}
 
       {prompts.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          条件に一致するプロンプトがありません
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-4">
+            <svg className="mx-auto h-12 w-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">まだプロンプトを購入していません</h3>
+          <p className="text-gray-500 mb-6">業界特化のプロフェッショナルプロンプトを購入して、高品質な記事生成を始めましょう。</p>
+          <Link 
+            href="/prompts"
+            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-colors"
+          >
+            プロンプトカタログを見る
+          </Link>
         </div>
       )}
     </div>
