@@ -141,7 +141,12 @@ ${goalText}内容にしてください。
 4. 実践ステップや注意点
 5. 期待できる成果
 
-読者が共感し、行動したくなる記事を作成してください。` 
+読者が共感し、行動したくなる記事を作成してください。
+
+【注意事項】
+- 「このような内容で〜」「どうでしょうか」のようなメタ的な締めくくりは不要
+- 最後まで読者目線を保ち、自然な終わり方にする
+- 記事について解説するのではなく、記事として完結させる` 
         },
         { 
           role: 'user', 
@@ -162,10 +167,22 @@ ${goalType === 'attraction' || goalType === 'experience'
 
     const fullContent = completion.choices[0].message.content?.trim() || ''
     
-    // タイトルと本文を分離
+    // タイトルと本文を分離し、不要な締めくくりを除去
     const lines = fullContent.split('\n')
     const title = lines[0].replace(/^(#\s*|タイトル[：:]\s*)/i, '').trim()
-    const content = lines.slice(1).join('\n').trim()
+    let content = lines.slice(1).join('\n').trim()
+    
+    // 不要な締めくくり文を除去
+    const unnecessaryEndings = [
+      /このような(アプローチ|内容|方法)で[^。]*。[^。]*どうでしょうか[？。]/gi,
+      /読者の方[々]*も[^。]*体験してみてください[。]?/gi,
+      /以上のような内容で[^。]*ことができます[。]?/gi,
+      /いかがでしたでしょうか[？。]/gi
+    ]
+    
+    unnecessaryEndings.forEach(pattern => {
+      content = content.replace(pattern, '').trim()
+    })
 
     // IP使用記録（Admin除外）
     if (!isAdmin) {
