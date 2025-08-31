@@ -8,6 +8,7 @@ import sys
 import logging
 from typing import Optional
 from base64 import b64encode
+OPENAI_MODEL = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
 
 # python-dotenvがある場合は.envファイルを読み込み
 try:
@@ -24,8 +25,12 @@ class Config:
     def __init__(self):
         # 必須環境変数のチェック
         self.openai_api_key = self._get_required_env("OPENAI_API_KEY")
+        # 🆕 使うモデル名を環境変数から取得（デフォルト: gpt-3.5-turbo）
+        self.openai_model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+
         self.wp_app_pass = self._get_required_env("WP_APP_PASS")
-        
+        self.openai_model = OPENAI_MODEL
+
         # オプション環境変数（デフォルト値あり）
         self.wp_site_url = os.getenv("WP_SITE_URL", "https://numaken.net")
         self.wp_user = os.getenv("WP_USER", "numaken")
@@ -68,7 +73,8 @@ class Config:
         logging.info(f"   生成数: {self.new_count}")
         logging.info(f"   投稿ステータス: {self.post_status}")  # 🆕 投稿ステータスを表示
         logging.info(f"   APIキー: {self.openai_api_key[:10]}...")
-    
+        logging.info(f"   使用モデル: {self.openai_model}")
+
     def get_auth_header(self) -> dict:
         """WordPress認証ヘッダーを生成"""
         auth_str = f"{self.wp_user}:{self.wp_app_pass}"

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WordPress記事自動生成システム - 今だけ¥19,800</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Hiragino Sans', Meiryo, sans-serif; line-height: 1.6; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+        
+        /* ヒーローセクション */
+        .hero { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 60px 0; text-align: center; }
+        .hero h1 { font-size: 3rem; margin-bottom: 20px; }
+        .hero .price { font-size: 2.5rem; color: #f39c12; margin: 20px 0; font-weight: bold; }
+        .hero .old-price { text-decoration: line-through; color: #bdc3c7; font-size: 1.5rem; }
+        
+        /* セクション */
+        .section { padding: 60px 0; }
+        .section:nth-child(even) { background: #f8f9fa; }
+        .section h2 { font-size: 2.2rem; text-align: center; margin-bottom: 40px; color: #2c3e50; }
+        
+        /* 問題セクション */
+        .problems { background: #2c3e50; color: white; }
+        .problems h2 { color: white; }
+        .problem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; }
+        .problem-card { background: rgba(255,255,255,0.1); padding: 30px; border-radius: 15px; text-align: center; }
+        .problem-card .icon { font-size: 3rem; margin-bottom: 15px; }
+        
+        /* 解決策 */
+        .solution-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; }
+        .solution-card { background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; }
+        .solution-card .icon { font-size: 3rem; color: #27ae60; margin-bottom: 15px; }
+        
+        /* 特徴 */
+        .features-list { max-width: 600px; margin: 0 auto; }
+        .features-list li { padding: 15px; background: white; margin: 10px 0; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .features-list li:before { content: "✅ "; color: #27ae60; font-weight: bold; }
+        
+        /* CTA */
+        .cta-button { background: linear-gradient(45deg, #e74c3c, #c0392b); color: white; padding: 20px 40px; border: none; border-radius: 50px; font-size: 1.3rem; font-weight: bold; text-decoration: none; display: inline-block; box-shadow: 0 10px 30px rgba(0,0,0,0.3); transition: transform 0.3s; }
+        .cta-button:hover { transform: translateY(-3px); }
+        
+        /* 保証 */
+        .guarantee { background: #27ae60; color: white; text-align: center; }
+        .guarantee h2 { color: white; }
+        
+        /* 限定性 */
+        .urgency { background: #e74c3c; color: white; text-align: center; padding: 40px 0; }
+        .urgency .timer { font-size: 2rem; font-weight: bold; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <!-- ヒーロー -->
+    <section class="hero">
+        <div class="container">
+            <h1>🚀 WordPress記事執筆を<br>完全自動化</h1>
+            <p style="font-size: 1.3rem; margin: 20px 0;">AIが5分で高品質記事を生成 → WordPress自動投稿</p>
+            <div class="price">
+                <span class="old-price">¥49,800</span> → ¥19,800
+            </div>
+            <p style="margin-bottom: 30px;">⚡ 今だけ60%OFF！先着50名限定</p>
+            <a href="#purchase" class="cta-button">今すぐ購入する</a>
+        </div>
+    </section>
+
+    <!-- 問題提起 -->
+    <section class="section problems">
+        <div class="container">
+            <h2>😰 ブログ運営でこんな悩みありませんか？</h2>
+            <div class="problem-grid">
+                <div class="problem-card">
+                    <div class="icon">⏰</div>
+                    <h3>時間がかかりすぎる</h3>
+                    <p>1記事3時間かけても品質に不安...</p>
+                </div>
+                <div class="problem-card">
+                    <div class="icon">💸</div>
+                    <h3>外注費が高額</h3>
+                    <p>月50記事で外注費50万円...</p>
+                </div>
+                <div class="problem-card">
+                    <div class="icon">📝</div>
+                    <h3>ネタ切れ</h3>
+                    <p>何を書けばいいかわからない...</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 解決策 -->
+    <section class="section">
+        <div class="container">
+            <h2>✨ すべての問題を一発解決</h2>
+            <div class="solution-grid">
+                <div class="solution-card">
+                    <div class="icon">⚡</div>
+                    <h3>5分で記事完成</h3>
+                    <p>AI生成 → WordPress自動投稿まで完全自動化</p>
+                </div>
+                <div class="solution-card">
+                    <div class="icon">🛡️</div>
+                    <h3>安全設計</h3>
+                    <p>下書き保存、1日制限、投稿間隔制御で安心</p>
+                </div>
+                <div class="solution-card">
+                    <div class="icon">📚</div>
+                    <h3>14種類のテンプレート</h3>
+                    <p>料理・技術・旅行・副業など豊富なジャンル</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 特徴 -->
+    <section class="section">
+        <div class="container">
+            <h2>🎯 システム特徴</h2>
+            <ul class="features-list">
+                <li><strong>AI記事自動生成</strong> - OpenAI GPT-3.5で高品質記事作成</li>
+                <li><strong>WordPress直接投稿</strong> - 生成からWordPress投稿まで完全自動</li>
+                <li><strong>14種類プロンプトパック</strong> - 料理、技術、旅行、副業など</li>
+                <li><strong>安全機能搭載</strong> - 下書き保存、1日制限、間隔制御</li>
+                <li><strong>簡単セットアップ</strong> - ワンクリックインストール</li>
+                <li><strong>月50記事対応</strong> - エントリー版でも十分な生成量</li>
+                <li><strong>永続ライセンス</strong> - 買い切りで追加料金なし</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- 使い方 -->
+    <section class="section">
+        <div class="container">
+            <h2>💻 超簡単な使い方</h2>
+            <div style="max-width: 700px; margin: 0 auto; text-align: left;">
+                <div style="background: #2c3e50; color: white; padding: 20px; border-radius: 10px; font-family: monospace;">
+                    <div style="color: #f39c12;"># ステップ1: セットアップ</div>
+                    ./setup.sh<br><br>
+                    
+                    <div style="color: #f39c12;"># ステップ2: WordPress設定</div>
+                    nano .env  # APIキー等を設定<br><br>
+                    
+                    <div style="color: #f39c12;"># ステップ3: 記事生成</div>
+                    python main.py --tech wordpress --count 5<br><br>
+                    
+                    <div style="color: #27ae60;"># 🎉 5記事が下書きで自動投稿完了！</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 保証 -->
+    <section class="section guarantee">
+        <div class="container">
+            <h2>🛡️ 安心の3つの保証</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-top: 40px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem;">💯</div>
+                    <h3>動作保証</h3>
+                    <p>セットアップサポート付き<br>必ず動作するまでサポート</p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem;">🔄</div>
+                    <h3>無料アップデート</h3>
+                    <p>機能追加・改善を<br>永続的に無料提供</p>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 3rem;">💬</div>
+                    <h3>サポート付き</h3>
+                    <p>設定・使い方で困ったら<br>いつでもサポート対応</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 限定性 -->
+    <section class="urgency">
+        <div class="container">
+            <h2>⚡ 特別価格は今だけ</h2>
+            <div class="timer" id="countdown">残り時間: 計算中...</div>
+            <p style="font-size: 1.2rem; margin-bottom: 30px;">
+                先着50名様限定！60%OFF価格<br>
+                次回値上げ後は¥49,800になります
+            </p>
+        </div>
+    </section>
+
+    <!-- 購入 -->
+    <section class="section" id="purchase" style="background: #2c3e50; color: white; text-align: center;">
+        <div class="container">
+            <h2 style="color: white;">🚀 今すぐ購入して<br>記事執筆を自動化する</h2>
+            <div style="font-size: 3rem; color: #f39c12; margin: 30px 0; font-weight: bold;">¥19,800</div>
+            <p style="font-size: 1.2rem; margin-bottom: 30px;">買い切り・永続ライセンス・サポート付き</p>
+            
+            <!-- 購入ボタン（実際の決済リンクに変更） -->
+            <a href="mailto:your-email@example.com?subject=WordPress記事自動生成システム購入希望&body=WordPress記事自動生成システムの購入を希望します。支払い方法をご連絡ください。" 
+               class="cta-button" style="font-size: 1.5rem; padding: 25px 50px;">
+                今すぐ購入する 🛒
+            </a>
+            
+            <p style="margin-top: 30px; opacity: 0.8;">
+                💳 銀行振込・PayPay・クレジットカード対応<br>
+                📧 購入後すぐにダウンロードリンクをお送りします
+            </p>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section">
+        <div class="container">
+            <h2>❓ よくある質問</h2>
+            <div style="max-width: 800px; margin: 0 auto;">
+                <div style="margin: 20px 0; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <h3>Q: プログラミング知識は必要ですか？</h3>
+                    <p><strong>A:</strong> いいえ。セットアップスクリプトで自動インストール、詳細な設定ガイド付きです。</p>
+                </div>
+                <div style="margin: 20px 0; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <h3>Q: 月額料金はかかりますか？</h3>
+                    <p><strong>A:</strong> 買い切りです。OpenAI APIコスト（月¥150-500程度）のみ別途。</p>
+                </div>
+                <div style="margin: 20px 0; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <h3>Q: 記事の品質は大丈夫ですか？</h3>
+                    <p><strong>A:</strong> GPT-3.5使用で人間レベル以上の品質。下書き保存なので確認後公開可能。</p>
+                </div>
+                <div style="margin: 20px 0; padding: 20px; background: white; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);">
+                    <h3>Q: どんなジャンルの記事が書けますか？</h3>
+                    <p><strong>A:</strong> 料理・技術・旅行・副業など14ジャンル対応。カスタマイズも可能。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 最終CTA -->
+    <section style="background: #27ae60; color: white; text-align: center; padding: 60px 0;">
+        <div class="container">
+            <h2 style="color: white;">🎉 記事執筆の悩みから<br>今すぐ解放される</h2>
+            <p style="font-size: 1.2rem; margin: 30px 0;">
+                毎日の記事執筆ストレスを完全自動化<br>
+                あなたの時間を本当に大切なことに使ってください
+            </p>
+            <a href="#purchase" class="cta-button" style="font-size: 1.7rem; padding: 25px 50px;">
+                今すぐ¥19,800で購入する
+            </a>
+            <p style="margin-top: 20px; opacity: 0.9;">
+                ⏰ 特別価格は先着50名まで | 📞 サポート付き | 🔄 永続アップデート
+            </p>
+        </div>
+    </section>
+
+    <script>
+        // カウントダウンタイマー
+        function updateTimer() {
+            const timer = document.getElementById('countdown');
+            const now = new Date();
+            const tomorrow = new Date(now);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            tomorrow.setHours(0, 0, 0, 0);
+
+            const diff = tomorrow - now;
+            const hours = Math.floor(diff / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+            timer.textContent = `残り時間: ${hours}時間${minutes}分${seconds}秒`;
+        }
+
+        setInterval(updateTimer, 1000);
+        updateTimer();
+
+        // スムーススクロール
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

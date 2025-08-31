@@ -125,7 +125,7 @@ class LicenseManager:
     
     def check_usage_limit(self, requested_count: int = 1) -> bool:
         """
-        月間使用制限チェック
+        月間使用制限チェック + 1日制限チェック（安全機能）
         
         Args:
             requested_count (int): 生成予定記事数
@@ -133,6 +133,10 @@ class LicenseManager:
         Returns:
             bool: 制限内かどうか
         """
+        # 🛡️ 1日制限チェック（安全機能）
+        if not self._check_daily_limit(requested_count):
+            return False
+            
         current_month = datetime.now().strftime('%Y-%m')
         monthly_limit = self.EDITIONS[self.edition]['monthly_limit']
         
@@ -169,6 +173,10 @@ class LicenseManager:
             self.usage_data[current_month] = 0
         
         self.usage_data[current_month] += count
+        
+        # 🛡️ 1日使用量も同時記録
+        self.record_daily_usage(count)
+        
         self._save_usage_data()
         
         monthly_limit = self.EDITIONS[self.edition]['monthly_limit']
@@ -267,6 +275,41 @@ class LicenseManager:
             
             print(f"\n現在のプラン: {current_edition['name']} (¥{current_edition['price']:,}/月)")
             print(f"━━━━━━━━━━━━━━━━━━━━\n")
+    
+    def _check_daily_limit(self, requested_count: int) -> bool:
+        """1日制限チェック（安全機能）"""
+        from core.config import config
+        daily_limit = int(os.getenv('DAILY_LIMIT', '10'))
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        
+        # 今日の使用量取得
+        daily_usage_key = f"daily_{current_date}"
+        current_daily = self.usage_data.get(daily_usage_key, 0)
+        
+        if current_daily + requested_count > daily_limit:
+            remaining = daily_limit - current_daily
+            logging.warning(f"🛡️ 1日制限に達します（安全機能）")
+            logging.warning(f"   今日の使用量: {current_daily}/{daily_limit}")
+            logging.warning(f"   残り: {remaining}記事")
+            logging.warning(f"   リクエスト: {requested_count}記事")
+            logging.info(f"💡 明日以降に実行するか、DAILY_LIMIT設定を確認してください")
+            return False
+            
+        return True
+    
+    def record_daily_usage(self, count: int = 1) -> None:
+        """1日使用量記録"""
+        current_date = datetime.now().strftime('%Y-%m-%d')
+        daily_usage_key = f"daily_{current_date}"
+        
+        if daily_usage_key not in self.usage_data:
+            self.usage_data[daily_usage_key] = 0
+        
+        self.usage_data[daily_usage_key] += count
+        self._save_usage_data()
+        
+        daily_limit = int(os.getenv('DAILY_LIMIT', '10'))
+        logging.info(f"📅 今日の使用量: {self.usage_data[daily_usage_key]}/{daily_limit}")
     
     def _show_usage_upsell_message(self, current_usage: int, limit: int) -> None:
         """使用量制限時のアップセルメッセージ"""

@@ -1,6 +1,9 @@
 # WordPress記事自動生成システム 依存関係
+openai>=0.28.0
 requests>=2.31.0
 python-dotenv>=1.0.0
+readability-lxml
+lxml_html_clean
 
 # オプション（開発時）
 pytest>=7.4.0

@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -e
+
+PROMPTS_DIR="prompts"
+TECH_SUBS="wordpress javascript python react vue sql"
+COOKING_SUBS="morning lunch dinner"
+TRAVEL_SUBS="domestic international"
+SIDEBIZ_SUBS="ai-sidebiz affiliate blogging"
+
+read -r -d '' HD_TMPL << 'HEREDOC'
+<!--
+headings.md
+「見出し＆テンプレート」をここに書いてください
+-->
+HEREDOC
+
+read -r -d '' IN_TMPL << 'HEREDOC'
+<!--
+instructions.md
+「ライティング指示（トーン／構成）」をここに書いてください
+-->
+HEREDOC
+
+read -r -d '' SM_TMPL << 'HEREDOC'
+<!--
+samples.md
+「具体的な文例・キーワードリスト」をここに書いてください
+-->
+HEREDOC
+
+# tech
+for sub in \$TECH_SUBS; do
+  DIR="\$PROMPTS_DIR/tech/\$sub"
+  mkdir -p "\$DIR"
+  [[ -f "\$DIR/headings.md"    ]] || printf "%s\n" "\$HD_TMPL" >"\$DIR/headings.md"
+  [[ -f "\$DIR/instructions.md"]] || printf "%s\n" "\$IN_TMPL" >"\$DIR/instructions.md"
+  [[ -f "\$DIR/samples.md"     ]] || printf "%s\n" "\$SM_TMPL" >"\$DIR/samples.md"
+done
+
+# cooking
+for sub in \$COOKING_SUBS; do
+  DIR="\$PROMPTS_DIR/cooking/\$sub"
+  mkdir -p "\$DIR"
+  [[ -f "\$DIR/headings.md"    ]] || printf "%s\n" "\$HD_TMPL" >"\$DIR/headings.md"
+  [[ -f "\$DIR/instructions.md"]] || printf "%s\n" "\$IN_TMPL" >"\$DIR/instructions.md"
+  [[ -f "\$DIR/samples.md"     ]] || printf "%s\n" "\$SM_TMPL" >"\$DIR/samples.md"
+done
+
+# travel
+for sub in \$TRAVEL_SUBS; do
+  DIR="\$PROMPTS_DIR/travel/\$sub"
+  mkdir -p "\$DIR"
+  [[ -f "\$DIR/headings.md"    ]] || printf "%s\n" "\$HD_TMPL" >"\$DIR/headings.md"
+  [[ -f "\$DIR/instructions.md"]] || printf "%s\n" "\$IN_TMPL" >"\$DIR/instructions.md"
+  [[ -f "\$DIR/samples.md"     ]] || printf "%s\n" "\$SM_TMPL" >"\$DIR/samples.md"
+done
+
+# sidebiz
+for sub in \$SIDEBIZ_SUBS; do
+  DIR="\$PROMPTS_DIR/sidebiz/\$sub"
+  mkdir -p "\$DIR"
+  [[ -f "\$DIR/headings.md"    ]] || printf "%s\n" "\$HD_TMPL" >"\$DIR/headings.md"
+  [[ -f "\$DIR/instructions.md"]] || printf "%s\n" "\$IN_TMPL" >"\$DIR/instructions.md"
+  [[ -f "\$DIR/samples.md"     ]] || printf "%s\n" "\$SM_TMPL" >"\$DIR/samples.md"
+done
+
+echo "✅ prompts 配下のディレクトリと雛形ファイルを作成しました"

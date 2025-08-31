@@ -6,10 +6,15 @@ Prompt Manager - プロンプトマーケットプレイス管理システム
 """
 
 import os
-import json
 import logging
-from typing import Dict, List, Optional, Any
+from typing import Dict, Any, Optional, List
 from pathlib import Path
+import json
+import requests
+import zipfile
+import io
+
+BASE_DIR = Path("prompts/packs")
 
 # ログ設定
 logging.basicConfig(
@@ -26,10 +31,12 @@ class PromptManager:
     
     def __init__(self):
         """プロンプトマネージャー初期化"""
+        
         self.prompt_dir = Path("prompts")
         self.packs_dir = self.prompt_dir / "packs"
         self.templates_dir = self.prompt_dir / "templates"
-        
+        self.packs = self._discover_packs()
+
         # ディレクトリ作成
         self.packs_dir.mkdir(parents=True, exist_ok=True)
         self.templates_dir.mkdir(parents=True, exist_ok=True)
@@ -39,51 +46,72 @@ class PromptManager:
         
         logging.info("🎯 プロンプト管理システム初期化完了")
         logging.info(f"📦 インストール済みパック数: {len(self.installed_packs)}")
-    
-    def get_prompt(self, pack_id: str = "default", prompt_type: str = "wordpress") -> str:
+
+
+    def _discover_packs(self) -> dict[str,dict]:
         """
-        プロンプト取得
-        
-        Args:
-            pack_id (str): プロンプトパックID
-            prompt_type (str): プロンプトタイプ
-            
-        Returns:
-            str: プロンプト文字列
+        prompts/packs 以下をスキャンして
+        { "cooking:lunch": {"domain":"cooking","category":"lunch", ...}, ... }
+        として返す。
+        """
+        packs = {}
+        for domain_dir in BASE_DIR.iterdir():
+            if not domain_dir.is_dir(): continue
+            for cat_dir in domain_dir.iterdir():
+                if not cat_dir.is_dir(): continue
+                pack_id = f"{domain_dir.name}:{cat_dir.name}"
+                # もし metadata.json があれば読み込む
+                meta_file = cat_dir / "metadata.json"
+                info = {"domain":domain_dir.name, "category":cat_dir.name}
+                if meta_file.exists():
+                    try:
+                        info.update(json.loads(meta_file.read_text(encoding="utf-8")))
+                    except:
+                        pass
+                packs[pack_id] = info
+        return packs
+
+
+    
+    def get_prompt(self, pack_id: str) -> str:
+        """
+        pack_id="cooking:lunch" のように指定されたら
+        prompts/packs/cooking/lunch/{headings,instructions,samples}.md
+        を読み込んで結合し、そのまま返します。
         """
         try:
-            # インストール済みパックから取得
-            if pack_id in self.installed_packs:
-                pack = self.installed_packs[pack_id]
-                if prompt_type in pack.get("prompts", {}):
-                    prompt = pack["prompts"][prompt_type]
-                    logging.info(f"✅ プロンプト取得: {pack_id}.{prompt_type}")
-                    return prompt["system_prompt"]
-            
-            # デフォルトプロンプトにフォールバック
-            default_prompt = self._get_default_prompt(prompt_type)
-            logging.info(f"📝 デフォルトプロンプト使用: {prompt_type}")
-            return default_prompt
-            
+            domain, category = pack_id.split(":", 1)
+            pack_dir = BASE_DIR / domain / category
+            from core.prompt_builder import load_section
+
+            sections = [
+                load_section(pack_dir, "headings.md"),
+                load_section(pack_dir, "instructions.md"),
+                load_section(pack_dir, "samples.md"),
+            ]
+            logging.info(f"✅ プロンプト読み込み: {pack_id}")
+            return "\n\n".join(sections)
         except Exception as e:
-            logging.error(f"❌ プロンプト取得エラー: {e}")
-            return self._get_fallback_prompt()
+            logging.error(f"❌ プロンプト読み込みエラー ({pack_id}): {e}")
+            raise
+
     
-    def list_available_packs(self) -> Dict[str, Any]:
-        """利用可能なプロンプトパック一覧取得"""
-        available = {}
-        
-        # インストール済みパック
-        for pack_id, pack_info in self.installed_packs.items():
-            available[pack_id] = {
-                "name": pack_info.get("name", pack_id),
-                "version": pack_info.get("version", "1.0.0"),
-                "description": pack_info.get("description", ""),
-                "prompts": list(pack_info.get("prompts", {}).keys()),
-                "status": "installed"
-            }
-        
-        return available
+    def list_available_packs(self) -> dict[str, dict]:
+        """
+        prompts/packs 以下を走査し、
+        {"cooking:lunch": {...}, ...} の形式で返します
+        """
+        packs = {}
+        for domain_dir in BASE_DIR.iterdir():
+            if not domain_dir.is_dir(): continue
+            for cat_dir in domain_dir.iterdir():
+                if not cat_dir.is_dir(): continue
+                pack_id = f"{domain_dir.name}:{cat_dir.name}"
+                packs[pack_id] = {
+                    "domain": domain_dir.name,
+                    "category": cat_dir.name,
+                }
+        return packs
     
     def install_pack(self, pack_file_path: str) -> bool:
         """
@@ -328,16 +356,16 @@ if __name__ == "__main__":
     # サンプルパック作成テスト
     manager.create_sample_pack("cooking", "料理・レシピ")
     manager.create_sample_pack("travel", "旅行・観光")
-    
+
     # プロンプト取得テスト
     cooking_prompt = manager.get_prompt("cooking", "cooking")
     print(f"🍳 料理プロンプト取得成功: {len(cooking_prompt)}文字")
-    
+
     # パック一覧取得テスト
     packs = manager.list_available_packs()
     print(f"📦 利用可能パック数: {len(packs)}")
-    
+
     for pack_id, info in packs.items():
         print(f"   📋 {info['name']} (v{info['version']})")
-    
+
     print("\n✅ プロンプト管理システムテスト完了")

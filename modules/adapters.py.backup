@@ -1,0 +1,437 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Generator Adapters - プロンプトマーケットプレイス完成版
+"""
+
+import logging
+import random
+import os
+import requests
+from typing import Optional, Any
+from core.config import config
+from core.prompt_manager import PromptManager
+
+# 既存の関数ベースジェネレーターをインポート
+try:
+    from modules.wordpress.generator import generate_and_post as wp_generate
+    from modules.javascript.generator import generate_and_post_js as js_generate
+    from modules.python.generator import generate_and_post_python as py_generate
+except ImportError:
+    try:
+        from modules.python.generator import generate_and_post as py_generate
+    except ImportError:
+        py_generate = None
+
+try:
+    from modules.react.generator import generate_and_post_react as react_generate
+except ImportError:
+    try:
+        from modules.react.generator import generate_and_post as react_generate
+    except ImportError:
+        react_generate = None
+
+try:
+    from modules.vue.generator import generate_and_post_vue as vue_generate
+except ImportError:
+    try:
+        from modules.vue.generator import generate_and_post as vue_generate
+    except ImportError:
+        vue_generate = None
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s: %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+class BaseGeneratorAdapter:
+    """ジェネレーターアダプターの基底クラス（プロンプト管理対応版）"""
+    
+    def __init__(self, technology: str):
+        self.technology = technology
+        self.generated_count = 0
+        self.prompt_manager = PromptManager()
+        logging.info(f"🎯 {technology} ジェネレーターアダプター初期化（プロンプト管理対応）")
+    
+    def generate_article(self, topic: Optional[str] = None, prompt_pack: str = "default") -> bool:
+        """記事生成メソッド（プロンプトパック対応版）"""
+        raise NotImplementedError("Subclass must implement generate_article method")
+    
+    def _generate_with_custom_prompt(self, topic: str, custom_prompt: str) -> bool:
+        """カスタムプロンプトで記事生成（共通ロジック）"""
+        try:
+            original_topic = os.environ.get("SINGLE_TOPIC")
+            os.environ["SINGLE_TOPIC"] = topic
+            
+            payload = {
+                "model": "gpt-3.5-turbo",
+                "messages": [
+                    {"role": "system", "content": custom_prompt},
+                    {"role": "user", "content": f"「{topic}」について記事を書いてください"}
+                ],
+                "temperature": 0.8,
+                "max_tokens": 2000,
+            }
+            
+            response = requests.post(
+                "https://api.openai.com/v1/chat/completions",
+                headers=config.get_openai_headers(),
+                json=payload,
+                timeout=60
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                article_content = data["choices"][0]["message"]["content"]
+                logging.info(f"✅ カスタムプロンプト記事生成成功: {topic}")
+                return True
+            else:
+                logging.error(f"OpenAI API エラー: {response.status_code}")
+                return False
+                
+        except Exception as e:
+            logging.error(f"カスタムプロンプト記事生成エラー: {e}")
+            return False
+        finally:
+            if original_topic is not None:
+                os.environ["SINGLE_TOPIC"] = original_topic
+            elif "SINGLE_TOPIC" in os.environ:
+                del os.environ["SINGLE_TOPIC"]
+
+
+class WordPressGenerator(BaseGeneratorAdapter):
+    """WordPress ジェネレーター（プロンプトパック完全対応版）"""
+    
+    def __init__(self):
+        super().__init__("WordPress")
+        self.generate_function = wp_generate
+        
+        self.default_topics = [
+            "WordPressでカスタム投稿タイプを作成する方法",
+            "WordPressフックの使い方とベストプラクティス", 
+            "WordPressのREST APIを活用した開発手法",
+            "WordPressプラグイン開発の基礎知識",
+            "WordPressテーマ開発で知っておくべきポイント"
+        ]
+    
+    def generate_article(self, topic: Optional[str] = None, prompt_pack: str = "default") -> bool:
+        """WordPress記事生成（プロンプトパック完全対応版）"""
+        try:
+            if not topic:
+                topic = random.choice(self.default_topics)
+                logging.info(f"📝 WordPressデフォルトトピック使用: {topic}")
+            
+            if prompt_pack != "default":
+                # プロンプトパックからカスタムプロンプト取得
+                custom_prompt = self.prompt_manager.get_prompt(prompt_pack, "wordpress")
+                logging.info(f"🎨 カスタムプロンプトパック使用: {prompt_pack}")
+                return self._generate_with_custom_prompt(topic, custom_prompt)
+            else:
+                # 既存の関数を直接呼び出し（後方互換性）
+                result = self.generate_function(topic)
+                return result is not False
+            
+        except Exception as e:
+            logging.error(f"❌ WordPress記事生成エラー: {e}")
+            try:
+                logging.info("🔄 環境変数方式で再試行...")
+                original_topic = os.environ.get("SINGLE_TOPIC")
+                os.environ["SINGLE_TOPIC"] = topic
+                
+                result = self.generate_function()
+                
+                if original_topic is not None:
+                    os.environ["SINGLE_TOPIC"] = original_topic
+                elif "SINGLE_TOPIC" in os.environ:
+                    del os.environ["SINGLE_TOPIC"]
+                
+                return result is not False
+                
+            except Exception as e2:
+                logging.error(f"❌ 環境変数方式でも失敗: {e2}")
+                return False
+
+
+class JavaScriptGenerator(BaseGeneratorAdapter):
+    """JavaScript ジェネレーター（プロンプトパック対応版）"""
+    
+    def __init__(self):
+        super().__init__("JavaScript")
+        self.generate_function = js_generate
+        
+        self.default_topics = [
+            "ES6+の新機能と使い方",
+            "JavaScript非同期処理の基本",
+            "DOM操作のベストプラクティス",
+            "Node.js入門ガイド",
+            "TypeScript基礎から実践まで"
+        ]
+    
+    def generate_article(self, topic: Optional[str] = None, prompt_pack: str = "default") -> bool:
+        """JavaScript記事生成（プロンプトパック対応版）"""
+        try:
+            if not topic:
+                topic = random.choice(self.default_topics)
+                logging.info(f"📝 JavaScriptデフォルトトピック使用: {topic}")
+            
+            if prompt_pack != "default":
+                custom_prompt = self.prompt_manager.get_prompt(prompt_pack, "javascript")
+                logging.info(f"🎨 カスタムプロンプトパック使用: {prompt_pack}")
+                return self._generate_with_custom_prompt(topic, custom_prompt)
+            else:
+                original_topic = os.environ.get("SINGLE_TOPIC")
+                os.environ["SINGLE_TOPIC"] = topic
+                
+                result = self.generate_function()
+                
+                if original_topic is not None:
+                    os.environ["SINGLE_TOPIC"] = original_topic
+                elif "SINGLE_TOPIC" in os.environ:
+                    del os.environ["SINGLE_TOPIC"]
+                
+                return result is not False
+            
+        except Exception as e:
+            logging.error(f"❌ JavaScript記事生成エラー: {e}")
+            return False
+
+
+class PythonGenerator(BaseGeneratorAdapter):
+    """Python ジェネレーター（プロンプトパック対応版）"""
+    
+    def __init__(self):
+        super().__init__("Python")
+        self.generate_function = py_generate
+        
+        self.default_topics = [
+            "Python入門者のための基本文法",
+            "Djangoウェブアプリ開発の基礎",
+            "データ分析のためのPandas入門",
+            "Python自動化スクリプトの作り方",
+            "FastAPI でREST API構築"
+        ]
+    
+    def generate_article(self, topic: Optional[str] = None, prompt_pack: str = "default") -> bool:
+        """Python記事生成（プロンプトパック対応版）"""
+        if not self.generate_function:
+            logging.error("❌ Python ジェネレーター関数が見つかりません")
+            return False
+        
+        try:
+            if not topic:
+                topic = random.choice(self.default_topics)
+                logging.info(f"📝 Pythonデフォルトトピック使用: {topic}")
+            
+            if prompt_pack != "default":
+                custom_prompt = self.prompt_manager.get_prompt(prompt_pack, "python")
+                logging.info(f"🎨 カスタムプロンプトパック使用: {prompt_pack}")
+                return self._generate_with_custom_prompt(topic, custom_prompt)
+            else:
+                original_topic = os.environ.get("SINGLE_TOPIC")
+                os.environ["SINGLE_TOPIC"] = topic
+                
+                result = self.generate_function()
+                
+                if original_topic is not None:
+                    os.environ["SINGLE_TOPIC"] = original_topic
+                elif "SINGLE_TOPIC" in os.environ:
+                    del os.environ["SINGLE_TOPIC"]
+                
+                return result is not False
+            
+        except Exception as e:
+            logging.error(f"❌ Python記事生成エラー: {e}")
+            return False
+
+
+class ReactGenerator(BaseGeneratorAdapter):
+    """React ジェネレーター（プロンプトパック対応版）"""
+    
+    def __init__(self):
+        super().__init__("React")
+        self.generate_function = react_generate
+        
+        self.default_topics = [
+            "React Hooks完全ガイド",
+            "Next.js入門から実践まで",
+            "React状態管理のベストプラクティス",
+            "Reactコンポーネント設計パターン",
+            "React Performanceの最適化"
+        ]
+    
+    def generate_article(self, topic: Optional[str] = None, prompt_pack: str = "default") -> bool:
+        """React記事生成（プロンプトパック対応版）"""
+        if not self.generate_function:
+            logging.error("❌ React ジェネレーター関数が見つかりません")
+            return False
+        
+        try:
+            if not topic:
+                topic = random.choice(self.default_topics)
+                logging.info(f"📝 Reactデフォルトトピック使用: {topic}")
+            
+            if prompt_pack != "default":
+                custom_prompt = self.prompt_manager.get_prompt(prompt_pack, "react")
+                logging.info(f"🎨 カスタムプロンプトパック使用: {prompt_pack}")
+                return self._generate_with_custom_prompt(topic, custom_prompt)
+            else:
+                original_topic = os.environ.get("SINGLE_TOPIC")
+                os.environ["SINGLE_TOPIC"] = topic
+                
+                result = self.generate_function()
+                
+                if original_topic is not None:
+                    os.environ["SINGLE_TOPIC"] = original_topic
+                elif "SINGLE_TOPIC" in os.environ:
+                    del os.environ["SINGLE_TOPIC"]
+                
+                return result is not False
+            
+        except Exception as e:
+            logging.error(f"❌ React記事生成エラー: {e}")
+            return False
+
+
+class VueGenerator(BaseGeneratorAdapter):
+    """Vue.js ジェネレーター（プロンプトパック対応版）"""
+    
+    def __init__(self):
+        super().__init__("Vue.js")
+        self.generate_function = vue_generate
+        
+        self.default_topics = [
+            "Vue.js 3 Composition API入門",
+            "Nuxt.js でSSR構築",
+            "Vueコンポーネント設計の基本",
+            "Vue.js状態管理Vuex/Pinia",
+            "VueでSPA開発の実践"
+        ]
+    
+    def generate_article(self, topic: Optional[str] = None, prompt_pack: str = "default") -> bool:
+        """Vue.js記事生成（プロンプトパック対応版）"""
+        if not self.generate_function:
+            logging.error("❌ Vue.js ジェネレーター関数が見つかりません")
+            return False
+        
+        try:
+            if not topic:
+                topic = random.choice(self.default_topics)
+                logging.info(f"📝 Vue.jsデフォルトトピック使用: {topic}")
+            
+            if prompt_pack != "default":
+                custom_prompt = self.prompt_manager.get_prompt(prompt_pack, "vue")
+                logging.info(f"🎨 カスタムプロンプトパック使用: {prompt_pack}")
+                return self._generate_with_custom_prompt(topic, custom_prompt)
+            else:
+                original_topic = os.environ.get("SINGLE_TOPIC")
+                os.environ["SINGLE_TOPIC"] = topic
+                
+                result = self.generate_function()
+                
+                if original_topic is not None:
+                    os.environ["SINGLE_TOPIC"] = original_topic
+                elif "SINGLE_TOPIC" in os.environ:
+                    del os.environ["SINGLE_TOPIC"]
+                
+                return result is not False
+            
+        except Exception as e:
+            logging.error(f"❌ Vue.js記事生成エラー: {e}")
+            return False
+
+
+# 新ジャンルジェネレーター
+class CookingGenerator(BaseGeneratorAdapter):
+    """料理・レシピ ジェネレーター"""
+    
+    def __init__(self):
+        super().__init__("料理・レシピ")
+        
+        self.default_topics = [
+            "簡単で美味しい鶏肉の照り焼きレシピ",
+            "30分で作れるパスタレシピ集",
+            "野菜たっぷりヘルシーサラダの作り方",
+            "初心者でも失敗しないハンバーグレシピ",
+            "お弁当にぴったりな作り置きおかず"
+        ]
+    
+    def generate_article(self, topic: Optional[str] = None, prompt_pack: str = "cooking") -> bool:
+        """料理記事生成"""
+        try:
+            if not topic:
+                topic = random.choice(self.default_topics)
+                logging.info(f"📝 料理デフォルトトピック使用: {topic}")
+            
+            custom_prompt = self.prompt_manager.get_prompt(prompt_pack, "cooking")
+            logging.info(f"🍳 料理プロンプトパック使用: {prompt_pack}")
+            return self._generate_with_custom_prompt(topic, custom_prompt)
+            
+        except Exception as e:
+            logging.error(f"❌ 料理記事生成エラー: {e}")
+            return False
+
+
+class TravelGenerator(BaseGeneratorAdapter):
+    """旅行・観光 ジェネレーター"""
+    
+    def __init__(self):
+        super().__init__("旅行・観光")
+        
+        self.default_topics = [
+            "京都の隠れた名所巡り1日プラン",
+            "東京近郊の日帰り温泉スポット",
+            "沖縄旅行で絶対食べたいグルメガイド",
+            "北海道の絶景ドライブコース",
+            "大阪の食べ歩きおすすめルート"
+        ]
+    
+    def generate_article(self, topic: Optional[str] = None, prompt_pack: str = "travel") -> bool:
+        """旅行記事生成"""
+        try:
+            if not topic:
+                topic = random.choice(self.default_topics)
+                logging.info(f"📝 旅行デフォルトトピック使用: {topic}")
+            
+            custom_prompt = self.prompt_manager.get_prompt(prompt_pack, "travel")
+            logging.info(f"✈️ 旅行プロンプトパック使用: {prompt_pack}")
+            return self._generate_with_custom_prompt(topic, custom_prompt)
+            
+        except Exception as e:
+            logging.error(f"❌ 旅行記事生成エラー: {e}")
+            return False
+
+
+def get_generator(technology: str) -> BaseGeneratorAdapter:
+    """指定された技術のジェネレーターを取得"""
+    generators = {
+        'wordpress': WordPressGenerator,
+        'javascript': JavaScriptGenerator,
+        'python': PythonGenerator,
+        'react': ReactGenerator,
+        'vue': VueGenerator,
+        'cooking': CookingGenerator,
+        'travel': TravelGenerator,
+    }
+    
+    if technology not in generators:
+        raise ValueError(f"未対応の技術: {technology}")
+    
+    return generators[technology]()
+
+
+if __name__ == "__main__":
+    print("🧪 Generator Adapters テスト（プロンプトマーケットプレイス完成版）")
+    print("=" * 60)
+    
+    try:
+        wp_gen = WordPressGenerator()
+        print(f"✅ WordPress アダプター初期化成功")
+        
+        cooking_gen = CookingGenerator()
+        print(f"✅ 料理 アダプター初期化成功")
+        
+    except Exception as e:
+        print(f"❌ アダプターエラー: {e}")
+    
+    print("\n✅ アダプターテスト完了（プロンプトマーケットプレイス完成版）")

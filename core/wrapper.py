@@ -11,7 +11,7 @@ import time
 import requests
 import logging
 import json
-from core.config import config  # 修正: core.config から読み込み
+from core.config import config  # core.config から読み込み
 
 # duplicate_checker からの正しいインポート
 try:
@@ -142,32 +142,48 @@ class ArticleGeneratorWrapper:
         
         try:
             # 動的インポート
-            module_name = stack_info["module_path"]
-            class_name = stack_info["class_name"]
-            
-            module = __import__(module_name, fromlist=[class_name])
-            generator_class = getattr(module, class_name)
-            
+            module = __import__(stack_info["module_path"], fromlist=[stack_info["class_name"]])
+            generator_class = getattr(module, stack_info["class_name"])
             return generator_class()
             
-        except ImportError as e:
-            logging.error(f"❌ モジュールインポートエラー ({technology}): {e}")
+        except (ImportError, AttributeError) as e:
+            logging.error(f"❌ ジェネレーター取得エラー ({technology}): {e}")
             raise
-        except AttributeError as e:
-            logging.error(f"❌ クラス取得エラー ({technology}): {e}")
-            raise
+    
+    def post_article(self, article_text: str) -> bool:
+        """
+        生成済みテキストを WordPress に投稿する
+        Application Passwords による Basic 認証を使用
+        
+        Returns:
+            bool: 成功なら True、失敗なら False
+        """
+        try:
+            # タイトルを先頭行から自動抽出
+            title = article_text.splitlines()[0].strip()
+            data = {
+                'title': title,
+                'content': article_text,
+                'status': config.post_status,
+                'categories': [config.category_id]
+            }
+            url = f"{config.wp_site_url}/wp-json/wp/v2/posts"
+            resp = requests.post(
+                url,
+                auth=(config.wp_user, config.wp_app_pass),
+                json=data,
+                timeout=30
+            )
+            resp.raise_for_status()
+            logging.info(f"✅ 投稿成功: {title}")
+            return True
+        except Exception as e:
+            logging.error(f"❌ 投稿エラー: {e}")
+            return False
     
     def generate_with_duplicate_check(self, generator=None, count=1, technology="wordpress"):
         """
         重複チェック付き記事生成（新構造対応）
-        
-        Args:
-            generator: 記事生成器インスタンス（Noneの場合は自動取得）
-            count (int): 生成数
-            technology (str): 技術名
-        
-        Returns:
-            bool: 成功かどうか
         """
         logging.info(f"📝 {technology}記事を{count}件生成開始（重複チェック付き）")
         
@@ -184,16 +200,14 @@ class ArticleGeneratorWrapper:
         logging.info(f"📊 既存記事数: {len(existing_titles)}件")
         
         success_count = 0
-        
         for i in range(count):
             try:
-                # 記事生成実行
                 if hasattr(generator, 'generate_article'):
                     result = generator.generate_article()
                 elif hasattr(generator, 'generate_articles'):
                     result = generator.generate_articles(1)
                 else:
-                    logging.error(f"❌ ジェネレーター {type(generator).__name__} に生成メソッドが見つかりません")
+                    logging.error(f"❌ {type(generator).__name__} に生成メソッドがありません")
                     continue
                 
                 if result:
@@ -201,32 +215,29 @@ class ArticleGeneratorWrapper:
                     logging.info(f"✅ {technology}記事 {i+1}/{count} 生成完了")
                 else:
                     logging.warning(f"⚠️ {technology}記事 {i+1}/{count} 生成失敗")
-                    
             except Exception as e:
                 logging.error(f"❌ {technology}記事 {i+1}/{count} エラー: {e}")
             
-            # 記事間の待機（最後以外）
             if i < count - 1:
                 time.sleep(3)
         
-        # 結果報告
         if success_count > 0:
             self.generated_count += success_count
             logging.info(f"🎉 {technology}記事生成完了: {success_count}/{count}件成功")
-            
-            # 統計情報表示
             try:
                 stats = get_stats()
-                logging.info(f"📊 重複チェック統計: 総チェック数={stats.get('total_checks', 0)}, "
-                           f"重複検出数={stats.get('duplicates_found', 0)}")
-            except Exception as e:
-                logging.warning(f"⚠️ 統計情報取得エラー: {e}")
-            
+                logging.info(f"📊 重複チェック統計: 総チェック数={stats.get('total_checks', 0)}, 重複検出数={stats.get('duplicates_found', 0)}")
+            except Exception:
+                pass
             return True
         else:
             logging.error(f"❌ {technology}記事生成失敗: 0/{count}件成功")
             return False
     
+    # 以下 generate_new_topics～show_available_techs は省略せずに既存のまま残してください
+    # （省略せずお使いください）
+
+
     def generate_new_topics(self, count, existing_titles, tech_stack="wordpress"):
         """
         指定された技術スタック向けの新規トピックを生成（改善版）
@@ -276,22 +287,22 @@ class ArticleGeneratorWrapper:
 
         # プロンプトを簡潔に修正
         prompt = f"""
-{stack_info['name']}エンジニア向けの実用的なトピックを日本語で {count} 個生成してください。
+        {stack_info['name']}エンジニア向けの実用的なトピックを日本語で {count} 個生成してください。
 
-既存タイトル例：
-{existing_examples}
+        既存タイトル例：
+        {existing_examples}
 
-要件：
-- {tech_config['focus']}
-- 既存タイトルと重複しないもの
-- {tech_config['format']}
-- 実際の開発現場で役立つ内容
+        要件：
+        - {tech_config['focus']}
+        - 既存タイトルと重複しないもの
+        - {tech_config['format']}
+        - 実際の開発現場で役立つ内容
 
-以下の形式で出力してください：
-1. [トピック1]
-2. [トピック2]
-3. [トピック3]
-"""
+        以下の形式で出力してください：
+        1. [トピック1]
+        2. [トピック2]
+        3. [トピック3]
+        """
 
         payload = {
             "model": "gpt-3.5-turbo",
@@ -391,23 +402,67 @@ class ArticleGeneratorWrapper:
             logging.info("")
 
 
-def create_wrapper():
-    """ラッパーインスタンス作成"""
-    return ArticleGeneratorWrapper()
+    def create_wrapper():
+        """ラッパーインスタンス作成"""
+        return ArticleGeneratorWrapper()
 
 
-if __name__ == "__main__":
-    # テスト実行
-    print("🧪 Article Generator Wrapper テスト（import修正版）")
-    
-    try:
-        wrapper = ArticleGeneratorWrapper()
-        stats = wrapper.get_generation_stats()
-        print(f"✅ ラッパー初期化成功")
-        print(f"📊 現在の統計: {stats}")
+    if __name__ == "__main__":
+        # テスト実行
+        print("🧪 Article Generator Wrapper テスト（import修正版）")
         
-        # 利用可能技術表示
-        wrapper.show_available_techs()
-        
-    except Exception as e:
-        print(f"❌ テストエラー: {e}")
+        try:
+            wrapper = ArticleGeneratorWrapper()
+            stats = wrapper.get_generation_stats()
+            print(f"✅ ラッパー初期化成功")
+            print(f"📊 現在の統計: {stats}")
+            
+            # 利用可能技術表示
+            wrapper.show_available_techs()
+            
+        except Exception as e:
+            print(f"❌ テストエラー: {e}")
+
+
+    def generate_with_messages(self, messages: list[dict]) -> str | None:
+        """
+        build_messages で作った messages をそのまま OpenAI に投げて
+        生テキストを返す。
+        """
+        import openai
+        # 🆕 使うモデルをログ出力
+        logging.info(f"🤖 OpenAI API 呼び出しモデル: {config.openai_model}")
+
+        # API 呼び出し
+        resp = openai.ChatCompletion.create(
+            model=config.openai_model,
+            messages=messages,
+            temperature=0.8,
+            max_tokens=1500
+        )
+
+        # 応答チェック
+        if not resp.choices:
+            logging.error("❌ OpenAI API から choices が返ってきませんでした")
+            return None
+
+        # 本文抽出
+        content = resp.choices[0].message.content.strip()
+        return content
+
+    def rewrite_with_feedback(self, original: str, scores: dict) -> str | None:
+        """
+        フィードバックスコアをもとに、リライトプロンプトを組んで再生成。
+        """
+        prompt = (
+            f"以下の記事の評価スコアは {scores} でした。\n"
+            "可読性やエンゲージメントを改善するために、"
+            "よりキャッチーで読みやすい文章に書き直してください。\n\n"
+            f"【元記事】\n{original}"
+        )
+        # 簡易的に system/user だけで呼び出し
+        messages = [
+        {"role":"system","content":"あなたは記事のリライト専門家です。"},
+        {"role":"user","content":prompt}
+        ]
+        return self.generate_with_messages(messages)
