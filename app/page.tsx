@@ -41,6 +41,11 @@ export default function Home() {
   ]
 
   const handleGenerate = async () => {
+    if (!session) {
+      alert('ログインが必要です')
+      return
+    }
+    
     if (!config.wpSiteUrl || !config.wpUser || !config.wpAppPass) {
       alert('WordPress設定を入力してください')
       return
