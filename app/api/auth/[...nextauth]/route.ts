@@ -52,6 +52,7 @@ const handler = NextAuth({
         if (data) {
           session.user = {
             ...session.user,
+            id: data.id,
             plan: data.plan,
             articlesUsed: data.articles_used,
             articlesLimit: data.articles_limit
