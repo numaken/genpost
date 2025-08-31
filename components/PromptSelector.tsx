@@ -38,6 +38,7 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
       const data = await response.json()
       
       if (response.ok) {
+        console.log('Fetched prompts data:', data) // デバッグ用
         setPrompts(data.prompts)
         setGroupedPrompts(data.grouped)
       } else {
