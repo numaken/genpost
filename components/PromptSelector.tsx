@@ -3,6 +3,11 @@
 import { useState, useEffect } from 'react'
 import { Prompt } from '@/lib/prompts'
 
+interface PromptWithStatus extends Prompt {
+  purchased?: boolean
+  available?: boolean
+}
+
 interface PromptSelectorProps {
   selectedPrompt: string | null
   onPromptSelect: (promptId: string) => void
@@ -10,8 +15,8 @@ interface PromptSelectorProps {
 }
 
 export default function PromptSelector({ selectedPrompt, onPromptSelect, onInputsChange }: PromptSelectorProps) {
-  const [prompts, setPrompts] = useState<Prompt[]>([])
-  const [groupedPrompts, setGroupedPrompts] = useState<Record<string, Prompt[]>>({})
+  const [prompts, setPrompts] = useState<PromptWithStatus[]>([])
+  const [groupedPrompts, setGroupedPrompts] = useState<Record<string, PromptWithStatus[]>>({})
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'available' | 'free' | 'purchased'>('available')
   const [selectedIndustry, setSelectedIndustry] = useState<string>('all')

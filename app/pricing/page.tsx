@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import Link from 'next/link'
 
-interface Prompt {
+interface PromptWithStatus {
   id: string
   prompt_id: string
   industry: string
@@ -20,8 +20,8 @@ interface Prompt {
 
 export default function PricingPage() {
   const { data: session } = useSession()
-  const [prompts, setPrompts] = useState<Prompt[]>([])
-  const [groupedPrompts, setGroupedPrompts] = useState<Record<string, Prompt[]>>({})
+  const [prompts, setPrompts] = useState<PromptWithStatus[]>([])
+  const [groupedPrompts, setGroupedPrompts] = useState<Record<string, PromptWithStatus[]>>({})
   const [loading, setLoading] = useState(true)
   const [purchasing, setPurchasing] = useState<string | null>(null)
 
