@@ -27,13 +27,27 @@ export default function TrialPromptForm() {
     { value: 'other', label: 'その他' }
   ]
 
-  const challengeOptions = [
-    { value: 'onetime', label: '一度来てそれっきりの客が多い' },
-    { value: 'lowprice', label: '客単価が低い' },
-    { value: 'competition', label: '競合に客を取られる' },
-    { value: 'seasonal', label: '季節によって売上が不安定' },
-    { value: 'newcustomer', label: '新規客ばかりでリピートがない' }
-  ]
+  const getChallengeOptions = (goalType: string) => {
+    if (goalType === 'attraction' || goalType === 'experience') {
+      // 見込み客向けの課題
+      return [
+        { value: 'awareness', label: 'お店の存在を知ってもらいたい' },
+        { value: 'attraction', label: 'お店の魅力を伝えたい' },
+        { value: 'differentiation', label: '他店との違いをアピールしたい' },
+        { value: 'trust', label: '信頼感・安心感を伝えたい' },
+        { value: 'accessibility', label: '気軽に来店しやすい雰囲気を伝えたい' }
+      ]
+    } else {
+      // ビジネス向けの課題（従来通り）
+      return [
+        { value: 'onetime', label: '一度来てそれっきりの客が多い' },
+        { value: 'lowprice', label: '客単価が低い' },
+        { value: 'competition', label: '競合に客を取られる' },
+        { value: 'seasonal', label: '季節によって売上が不安定' },
+        { value: 'newcustomer', label: '新規客ばかりでリピートがない' }
+      ]
+    }
+  }
 
   const writerTypeOptions = [
     { value: 'owner', label: '現役の経営者・オーナー（実体験ベース）' },
@@ -188,17 +202,25 @@ export default function TrialPromptForm() {
         />
       </div>
 
-      {/* 課題 */}
+      {/* 課題（目的に応じて動的変更） */}
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-3">現在の課題</label>
+        <label className="block text-sm font-medium text-gray-700 mb-3">
+          {formData.goalType === 'attraction' || formData.goalType === 'experience' 
+            ? 'お店の課題・伝えたいこと' 
+            : '現在の課題'}
+        </label>
         <select
           value={formData.challenge}
           onChange={(e) => setFormData({...formData, challenge: e.target.value})}
           className="w-full p-4 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white"
           required
         >
-          <option value="">課題を選択してください</option>
-          {challengeOptions.map(option => (
+          <option value="">
+            {formData.goalType === 'attraction' || formData.goalType === 'experience' 
+              ? '伝えたいことを選択してください' 
+              : '課題を選択してください'}
+          </option>
+          {getChallengeOptions(formData.goalType).map(option => (
             <option key={option.value} value={option.value}>{option.label}</option>
           ))}
         </select>
@@ -245,7 +267,7 @@ export default function TrialPromptForm() {
           <label className="block text-sm font-medium text-gray-700 mb-3">記事の目的</label>
           <select
             value={formData.goalType}
-            onChange={(e) => setFormData({...formData, goalType: e.target.value})}
+            onChange={(e) => setFormData({...formData, goalType: e.target.value, challenge: ''})}
             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-colors bg-white text-sm"
             required
           >

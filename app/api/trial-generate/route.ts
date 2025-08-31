@@ -57,6 +57,13 @@ export async function POST(request: NextRequest) {
     }
 
     const challengeTexts = {
+      // 見込み客向けの課題
+      awareness: 'お店の存在を知ってもらいたい',
+      attraction: 'お店の魅力を伝えたい',
+      differentiation: '他店との違いをアピールしたい',
+      trust: '信頼感・安心感を伝えたい',
+      accessibility: '気軽に来店しやすい雰囲気を伝えたい',
+      // ビジネス向けの課題（従来通り）
       onetime: '一度来てそれっきりの客が多い',
       lowprice: '客単価が低い',
       competition: '競合に客を取られる', 
@@ -140,11 +147,13 @@ ${goalText}内容にしてください。
           role: 'user', 
           content: `【記事のテーマ】
 業界：${industryName}
-サービス：${service}
-解決したい課題：${challengeText}
+サービス・商品：${service}
+${goalType === 'attraction' || goalType === 'experience' 
+  ? `伝えたいこと：${challengeText}` 
+  : `解決したい課題：${challengeText}`}
 
-この設定で、リピーター獲得と客単価向上を実現する記事を作成してください。
-読者が「これは自分のことだ」「すぐに試してみたい」と感じる内容にしてください。` 
+この設定で記事を作成してください。
+読者が共感し、行動を起こしたくなる魅力的な内容にしてください。` 
         }
       ],
       temperature: 0.7,
