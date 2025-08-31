@@ -1,63 +1,66 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
 import OpenAI from 'openai'
+import { getPromptById, hasUserPurchased, recordPromptUsage, processPromptTemplate } from '@/lib/prompts'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
-// プロンプトパックのマッピング
-const PROMPT_PACKS = {
-  'tech:wordpress': {
-    system: 'あなたは優秀なWordPress技術ライターです。初心者にもわかりやすく、実践的なWordPress記事を作成してください。',
-    user: 'WordPressの基本的な使い方について、初心者にもわかりやすい記事を書いてください。具体的な手順とスクリーンショットの説明を含めてください。'
-  },
-  'cooking:lunch': {
-    system: 'あなたは料理研究家として、家庭で作りやすい昼食レシピ記事を作成してください。',
-    user: '忙しい平日でも30分以内で作れる、栄養バランスの良い昼食レシピを紹介してください。材料リストと詳細な手順を含めてください。'
-  },
-  'travel:domestic': {
-    system: 'あなたは国内旅行ライターとして、魅力的な国内観光スポット記事を作成してください。',
-    user: '家族連れにおすすめの国内観光スポットを紹介してください。アクセス方法、料金、見どころを詳しく説明してください。'
-  },
-  'sidebiz:affiliate': {
-    system: 'あなたはアフィリエイトマーケターとして、読者に価値を提供する商品紹介記事を作成してください。',
-    user: '読者の悩みを解決する商品を紹介する記事を書いてください。メリット・デメリット、実体験に基づくレビューを含めてください。'
-  }
-}
-
 export async function POST(request: NextRequest) {
   try {
+    // セッション取得
+    const session = await getServerSession()
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
+    }
+
     const body = await request.json()
-    const { config, pack, count } = body
+    const { config, promptId, count, inputs } = body
 
     if (!config.wpSiteUrl || !config.wpUser || !config.wpAppPass) {
       return NextResponse.json({ error: 'WordPress設定が不完全です' }, { status: 400 })
     }
 
-    const promptPack = PROMPT_PACKS[pack as keyof typeof PROMPT_PACKS]
-    if (!promptPack) {
-      return NextResponse.json({ error: '無効なプロンプトパックです' }, { status: 400 })
+    // プロンプト取得
+    const prompt = await getPromptById(promptId)
+    if (!prompt) {
+      return NextResponse.json({ error: '無効なプロンプトです' }, { status: 400 })
+    }
+
+    // 購入確認（無料プロンプトまたは購入済みプロンプトのみ使用可能）
+    const userId = session.user.email
+    const canUse = prompt.is_free || await hasUserPurchased(userId, promptId)
+    if (!canUse) {
+      return NextResponse.json({ error: 'このプロンプトは購入されていません' }, { status: 403 })
     }
 
     const articles = []
 
+    // プロンプトテンプレート処理
+    const processedUserPrompt = processPromptTemplate(prompt.user_prompt_template, inputs || {})
+
     // 指定された記事数分生成
     for (let i = 0; i < count; i++) {
       try {
-        // OpenAI APIで記事生成
+        // 使用履歴記録
+        await recordPromptUsage(userId, promptId)
+
+        // OpenAI APIで記事生成（G.E.N.設定を適用）
         const completion = await openai.chat.completions.create({
           model: 'gpt-3.5-turbo',
           messages: [
-            { role: 'system', content: promptPack.system },
-            { role: 'user', content: promptPack.user }
+            { role: 'system', content: prompt.system_prompt },
+            { role: 'user', content: processedUserPrompt }
           ],
-          temperature: 0.7,
-          max_tokens: 1200
+          temperature: prompt.gen_config?.engine?.temperature || 0.7,
+          max_tokens: prompt.gen_config?.engine?.max_tokens || 1500
         })
 
         const articleContent = completion.choices[0].message.content?.trim() || ''
 
         // WordPress REST APIで投稿
+        const articleTitle = `${prompt.name} - ${new Date().toLocaleString('ja-JP')}`
         const wpResponse = await fetch(`${config.wpSiteUrl}/wp-json/wp/v2/posts`, {
           method: 'POST',
           headers: {
@@ -65,10 +68,14 @@ export async function POST(request: NextRequest) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            title: `AI生成記事 ${new Date().toLocaleString('ja-JP')}`,
+            title: articleTitle,
             content: articleContent,
             status: 'draft',
-            categories: [parseInt(config.categoryId) || 1]
+            categories: [parseInt(config.categoryId) || 1],
+            meta: {
+              'genpost_prompt_id': promptId,
+              'genpost_generated': true
+            }
           })
         })
 
@@ -102,7 +109,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       id: Date.now().toString(),
-      pack,
+      promptId,
+      promptName: prompt.name,
       count,
       status: 'completed',
       articles,

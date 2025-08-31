@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>genpost プロンプトカタログ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.2em;
+        }
+        
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+        }
+        
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .industry-section {
+            margin-bottom: 50px;
+        }
+        
+        .industry-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .industry-icon {
+            font-size: 2em;
+        }
+        
+        .industry-title {
+            font-size: 1.8em;
+            color: #333;
+        }
+        
+        .industry-price {
+            margin-left: auto;
+            background: #28a745;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+        
+        .prompt-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .prompt-table th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #555;
+            border-bottom: 2px solid #dee2e6;
+        }
+        
+        .prompt-table td {
+            padding: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .prompt-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .available {
+            color: #28a745;
+            font-weight: bold;
+        }
+        
+        .unavailable {
+            color: #dc3545;
+            opacity: 0.5;
+        }
+        
+        .price-tag {
+            background: #007bff;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+        
+        .pricing-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 50px;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .pricing-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #dee2e6;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .pricing-card.featured {
+            border-color: #667eea;
+            position: relative;
+        }
+        
+        .pricing-card.featured::before {
+            content: "人気";
+            position: absolute;
+            top: -10px;
+            right: 20px;
+            background: #ff6b6b;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 0.8em;
+        }
+        
+        .pricing-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .pricing-price {
+            font-size: 2.5em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+        
+        .pricing-price span {
+            font-size: 0.5em;
+            color: #999;
+        }
+        
+        .pricing-features {
+            list-style: none;
+            margin-bottom: 25px;
+        }
+        
+        .pricing-features li {
+            padding: 8px 0;
+            color: #666;
+        }
+        
+        .btn-purchase {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s;
+            width: 100%;
+        }
+        
+        .btn-purchase:hover {
+            transform: scale(1.05);
+        }
+        
+        .legend {
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+            margin: 30px 0;
+            flex-wrap: wrap;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        
+        .legend-available {
+            background: #28a745;
+        }
+        
+        .legend-unavailable {
+            background: #dc3545;
+            opacity: 0.5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 genpost プロンプトカタログ</h1>
+        <p class="subtitle">G.E.N.システム™️搭載 - 成果直結型AI記事生成プロンプト</p>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number">10</div>
+                <div class="stat-label">カテゴリ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">8</div>
+                <div class="stat-label">用途</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">6</div>
+                <div class="stat-label">形式</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">480</div>
+                <div class="stat-label">総プロンプト数</div>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-icon legend-available"></div>
+                <span>利用可能</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-icon legend-unavailable"></div>
+                <span>準備中</span>
+            </div>
+        </div>
+        
+        <!-- 不動産業界 -->
+        <div class="industry-section">
+            <div class="industry-header">
+                <span class="industry-icon">🏠</span>
+                <h2 class="industry-title">不動産業界</h2>
+                <span class="industry-price">パック価格 ¥19,800</span>
+            </div>
+            
+            <table class="prompt-table">
+                <thead>
+                    <tr>
+                        <th>用途</th>
+                        <th>ガイド</th>
+                        <th>リスト</th>
+                        <th>ニュース</th>
+                        <th>オピニオン</th>
+                        <th>データ</th>
+                        <th>インタビュー</th>
+                        <th>個別価格</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>集客</strong></td>
+                        <td class="available">✅ 地域売却ガイド</td>
+                        <td class="available">✅ 査定会社TOP5</td>
+                        <td class="available">✅ 市況速報</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 相場レポート</td>
+                        <td class="available">✅ 売却成功談</td>
+                        <td><span class="price-tag">¥2,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>売上促進</strong></td>
+                        <td class="available">✅ 物件選びガイド</td>
+                        <td class="available">✅ おすすめ物件10選</td>
+                        <td class="unavailable">❌</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 投資分析</td>
+                        <td class="unavailable">❌</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>信頼構築</strong></td>
+                        <td class="available">✅ 不動産の基礎</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 業界ニュース</td>
+                        <td class="available">✅ 専門家視点</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 社長対談</td>
+                        <td><span class="price-tag">¥1,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>バズ狙い</strong></td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 驚きの物件7選</td>
+                        <td class="available">✅ 話題の再開発</td>
+                        <td class="available">✅ 市場予測</td>
+                        <td class="unavailable">❌</td>
+                        <td class="unavailable">❌</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- IT・SaaS業界 -->
+        <div class="industry-section">
+            <div class="industry-header">
+                <span class="industry-icon">💻</span>
+                <h2 class="industry-title">IT・SaaS業界</h2>
+                <span class="industry-price">パック価格 ¥24,800</span>
+            </div>
+            
+            <table class="prompt-table">
+                <thead>
+                    <tr>
+                        <th>用途</th>
+                        <th>ガイド</th>
+                        <th>リスト</th>
+                        <th>ニュース</th>
+                        <th>オピニオン</th>
+                        <th>データ</th>
+                        <th>インタビュー</th>
+                        <th>個別価格</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>集客</strong></td>
+                        <td class="available">✅ 導入ガイド</td>
+                        <td class="available">✅ ツール10選</td>
+                        <td class="available">✅ 最新技術</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 比較表</td>
+                        <td class="available">✅ CTO対談</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>売上促進</strong></td>
+                        <td class="available">✅ 活用ガイド</td>
+                        <td class="available">✅ 事例集</td>
+                        <td class="unavailable">❌</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ ROI分析</td>
+                        <td class="unavailable">❌</td>
+                        <td><span class="price-tag">¥4,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>バズ狙い</strong></td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 衝撃の新技術</td>
+                        <td class="available">✅ バズニュース</td>
+                        <td class="available">✅ 未来予測</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 有名人対談</td>
+                        <td><span class="price-tag">¥4,980</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- EC・物販業界 -->
+        <div class="industry-section">
+            <div class="industry-header">
+                <span class="industry-icon">🛒</span>
+                <h2 class="industry-title">EC・物販業界</h2>
+                <span class="industry-price">パック価格 ¥22,800</span>
+            </div>
+            
+            <table class="prompt-table">
+                <thead>
+                    <tr>
+                        <th>用途</th>
+                        <th>ガイド</th>
+                        <th>リスト</th>
+                        <th>ニュース</th>
+                        <th>オピニオン</th>
+                        <th>データ</th>
+                        <th>インタビュー</th>
+                        <th>個別価格</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>集客</strong></td>
+                        <td class="available">✅ 選び方ガイド</td>
+                        <td class="available">✅ 人気商品TOP10</td>
+                        <td class="available">✅ 新商品情報</td>
+                        <td class="unavailable">❌</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ ユーザーの声</td>
+                        <td><span class="price-tag">¥2,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>売上促進</strong></td>
+                        <td class="available">✅ 使い方ガイド</td>
+                        <td class="available">✅ セール情報</td>
+                        <td class="unavailable">❌</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 売上ランキング</td>
+                        <td class="unavailable">❌</td>
+                        <td><span class="price-tag">¥4,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>商品レビュー</strong></td>
+                        <td class="available">✅ 詳細レビュー</td>
+                        <td class="available">✅ 比較レビュー</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 専門家評価</td>
+                        <td class="available">✅ スペック比較</td>
+                        <td class="unavailable">❌</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 美容・健康業界 -->
+        <div class="industry-section">
+            <div class="industry-header">
+                <span class="industry-icon">🏥</span>
+                <h2 class="industry-title">美容・健康業界</h2>
+                <span class="industry-price">パック価格 ¥21,800</span>
+            </div>
+            
+            <table class="prompt-table">
+                <thead>
+                    <tr>
+                        <th>用途</th>
+                        <th>ガイド</th>
+                        <th>リスト</th>
+                        <th>ニュース</th>
+                        <th>オピニオン</th>
+                        <th>データ</th>
+                        <th>インタビュー</th>
+                        <th>個別価格</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>集客</strong></td>
+                        <td class="available">✅ 施術ガイド</td>
+                        <td class="available">✅ 人気サロン10選</td>
+                        <td class="available">✅ 美容トレンド</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 効果データ</td>
+                        <td class="available">✅ お客様体験談</td>
+                        <td><span class="price-tag">¥2,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>売上促進</strong></td>
+                        <td class="available">✅ ケア方法</td>
+                        <td class="available">✅ キャンペーン情報</td>
+                        <td class="unavailable">❌</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ ビフォーアフター</td>
+                        <td class="available">✅ 成功事例</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>信頼構築</strong></td>
+                        <td class="available">✅ 専門知識解説</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 業界ニュース</td>
+                        <td class="available">✅ 医師監修記事</td>
+                        <td class="available">✅ 研究データ</td>
+                        <td class="available">✅ 専門家対談</td>
+                        <td><span class="price-tag">¥2,980</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 教育・スクール業界 -->
+        <div class="industry-section">
+            <div class="industry-header">
+                <span class="industry-icon">📚</span>
+                <h2 class="industry-title">教育・スクール業界</h2>
+                <span class="industry-price">パック価格 ¥18,800</span>
+            </div>
+            
+            <table class="prompt-table">
+                <thead>
+                    <tr>
+                        <th>用途</th>
+                        <th>ガイド</th>
+                        <th>リスト</th>
+                        <th>ニュース</th>
+                        <th>オピニオン</th>
+                        <th>データ</th>
+                        <th>インタビュー</th>
+                        <th>個別価格</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>集客</strong></td>
+                        <td class="available">✅ 学習ガイド</td>
+                        <td class="available">✅ 人気講座TOP10</td>
+                        <td class="available">✅ 教育トレンド</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 合格実績</td>
+                        <td class="available">✅ 生徒の声</td>
+                        <td><span class="price-tag">¥2,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>売上促進</strong></td>
+                        <td class="available">✅ コース詳細</td>
+                        <td class="available">✅ 体験レッスン案内</td>
+                        <td class="unavailable">❌</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 成績向上データ</td>
+                        <td class="available">✅ 卒業生インタビュー</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ハウツー</strong></td>
+                        <td class="available">✅ 勉強法ガイド</td>
+                        <td class="available">✅ 効率的な学習法5選</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 教育論</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 講師インタビュー</td>
+                        <td><span class="price-tag">¥1,980</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 飲食業界 -->
+        <div class="industry-section">
+            <div class="industry-header">
+                <span class="industry-icon">🍽️</span>
+                <h2 class="industry-title">飲食業界</h2>
+                <span class="industry-price">パック価格 ¥17,800</span>
+            </div>
+            
+            <table class="prompt-table">
+                <thead>
+                    <tr>
+                        <th>用途</th>
+                        <th>ガイド</th>
+                        <th>リスト</th>
+                        <th>ニュース</th>
+                        <th>オピニオン</th>
+                        <th>データ</th>
+                        <th>インタビュー</th>
+                        <th>個別価格</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>集客</strong></td>
+                        <td class="available">✅ お店紹介</td>
+                        <td class="available">✅ おすすめメニュー10選</td>
+                        <td class="available">✅ 新メニュー情報</td>
+                        <td class="unavailable">❌</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ お客様の声</td>
+                        <td><span class="price-tag">¥2,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>売上促進</strong></td>
+                        <td class="available">✅ コース紹介</td>
+                        <td class="available">✅ 季節限定メニュー</td>
+                        <td class="available">✅ イベント告知</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 人気ランキング</td>
+                        <td class="unavailable">❌</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>バズ狙い</strong></td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 激うまグルメ7選</td>
+                        <td class="available">✅ 話題の新店</td>
+                        <td class="available">✅ グルメレポート</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ シェフインタビュー</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 金融・投資業界 -->
+        <div class="industry-section">
+            <div class="industry-header">
+                <span class="industry-icon">💰</span>
+                <h2 class="industry-title">金融・投資業界</h2>
+                <span class="industry-price">パック価格 ¥26,800</span>
+            </div>
+            
+            <table class="prompt-table">
+                <thead>
+                    <tr>
+                        <th>用途</th>
+                        <th>ガイド</th>
+                        <th>リスト</th>
+                        <th>ニュース</th>
+                        <th>オピニオン</th>
+                        <th>データ</th>
+                        <th>インタビュー</th>
+                        <th>個別価格</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>集客</strong></td>
+                        <td class="available">✅ 投資入門ガイド</td>
+                        <td class="available">✅ おすすめ投資先10選</td>
+                        <td class="available">✅ 市場ニュース</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 市場分析</td>
+                        <td class="available">✅ 投資家インタビュー</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>信頼構築</strong></td>
+                        <td class="available">✅ 金融知識解説</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 経済ニュース</td>
+                        <td class="available">✅ アナリスト視点</td>
+                        <td class="available">✅ 統計データ</td>
+                        <td class="available">✅ 専門家対談</td>
+                        <td><span class="price-tag">¥2,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>比較</strong></td>
+                        <td class="available">✅ 商品比較ガイド</td>
+                        <td class="available">✅ 証券会社比較</td>
+                        <td class="unavailable">❌</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 手数料比較</td>
+                        <td class="unavailable">❌</td>
+                        <td><span class="price-tag">¥2,980</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- エンタメ業界 -->
+        <div class="industry-section">
+            <div class="industry-header">
+                <span class="industry-icon">🎮</span>
+                <h2 class="industry-title">エンタメ業界</h2>
+                <span class="industry-price">パック価格 ¥19,800</span>
+            </div>
+            
+            <table class="prompt-table">
+                <thead>
+                    <tr>
+                        <th>用途</th>
+                        <th>ガイド</th>
+                        <th>リスト</th>
+                        <th>ニュース</th>
+                        <th>オピニオン</th>
+                        <th>データ</th>
+                        <th>インタビュー</th>
+                        <th>個別価格</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>集客</strong></td>
+                        <td class="available">✅ 作品紹介</td>
+                        <td class="available">✅ おすすめ作品10選</td>
+                        <td class="available">✅ 新作情報</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 視聴率データ</td>
+                        <td class="available">✅ ファンの声</td>
+                        <td><span class="price-tag">¥2,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>バズ狙い</strong></td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 話題作品まとめ</td>
+                        <td class="available">✅ 速報ニュース</td>
+                        <td class="available">✅ 考察記事</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ クリエイター対談</td>
+                        <td><span class="price-tag">¥4,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>レビュー</strong></td>
+                        <td class="available">✅ 詳細レビュー</td>
+                        <td class="available">✅ ランキング形式</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 批評記事</td>
+                        <td class="available">✅ 評価データ</td>
+                        <td class="unavailable">❌</td>
+                        <td><span class="price-tag">¥2,980</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- アフィリエイト・副業ペルソナ -->
+        <div class="industry-section">
+            <div class="industry-header">
+                <span class="industry-icon">💸</span>
+                <h2 class="industry-title">アフィリエイター・副業系</h2>
+                <span class="industry-price">パック価格 ¥29,800</span>
+            </div>
+            
+            <table class="prompt-table">
+                <thead>
+                    <tr>
+                        <th>用途</th>
+                        <th>ガイド</th>
+                        <th>リスト</th>
+                        <th>ニュース</th>
+                        <th>オピニオン</th>
+                        <th>データ</th>
+                        <th>インタビュー</th>
+                        <th>個別価格</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>商品レビュー</strong></td>
+                        <td class="available">✅ 詳細レビューガイド</td>
+                        <td class="available">✅ おすすめ商品10選</td>
+                        <td class="available">✅ 新商品速報</td>
+                        <td class="available">✅ 正直レビュー</td>
+                        <td class="available">✅ 比較データ</td>
+                        <td class="available">✅ ユーザーの声</td>
+                        <td><span class="price-tag">¥4,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>比較記事</strong></td>
+                        <td class="available">✅ 比較ガイド</td>
+                        <td class="available">✅ ランキング形式</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ おすすめ理由</td>
+                        <td class="available">✅ スペック比較表</td>
+                        <td class="unavailable">❌</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>集客</strong></td>
+                        <td class="available">✅ 悩み解決ガイド</td>
+                        <td class="available">✅ 解決方法5選</td>
+                        <td class="available">✅ トレンド情報</td>
+                        <td class="available">✅ 体験談</td>
+                        <td class="available">✅ 統計データ</td>
+                        <td class="available">✅ 成功者インタビュー</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ハウツー</strong></td>
+                        <td class="available">✅ 稼ぎ方ガイド</td>
+                        <td class="available">✅ 副業方法10選</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 実践レポート</td>
+                        <td class="available">✅ 収益データ</td>
+                        <td class="available">✅ 実践者インタビュー</td>
+                        <td><span class="price-tag">¥2,980</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 個人ブロガー向け -->
+        <div class="industry-section">
+            <div class="industry-header">
+                <span class="industry-icon">📝</span>
+                <h2 class="industry-title">個人ブロガー向け</h2>
+                <span class="industry-price">パック価格 ¥24,800</span>
+            </div>
+            
+            <table class="prompt-table">
+                <thead>
+                    <tr>
+                        <th>用途</th>
+                        <th>ガイド</th>
+                        <th>リスト</th>
+                        <th>ニュース</th>
+                        <th>オピニオン</th>
+                        <th>データ</th>
+                        <th>インタビュー</th>
+                        <th>個別価格</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>バズ狙い</strong></td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 話題のネタ10選</td>
+                        <td class="available">✅ トレンド速報</td>
+                        <td class="available">✅ 炎上しない意見記事</td>
+                        <td class="available">✅ SNS分析データ</td>
+                        <td class="available">✅ インフルエンサー対談</td>
+                        <td><span class="price-tag">¥4,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>日記・体験談</strong></td>
+                        <td class="available">✅ 体験談の書き方</td>
+                        <td class="available">✅ ネタ探し方法</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 日常コラム</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ ブロガー座談会</td>
+                        <td><span class="price-tag">¥1,980</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>SEO記事</strong></td>
+                        <td class="available">✅ SEO対策ガイド</td>
+                        <td class="available">✅ キーワード攻略法</td>
+                        <td class="available">✅ アルゴリズム速報</td>
+                        <td class="unavailable">❌</td>
+                        <td class="available">✅ 検索データ分析</td>
+                        <td class="available">✅ SEO専門家対談</td>
+                        <td><span class="price-tag">¥3,980</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 価格プラン -->
+        <div class="pricing-section">
+            <h2 style="text-align: center; margin-bottom: 10px;">💎 料金プラン</h2>
+            <p style="text-align: center; color: #666;">あなたのビジネスに最適なプランをお選びください</p>
+            
+            <div class="pricing-grid">
+                <div class="pricing-card">
+                    <h3 class="pricing-title">個別購入</h3>
+                    <div class="pricing-price">¥1,980<span>〜</span></div>
+                    <ul class="pricing-features">
+                        <li>✓ 1プロンプトから購入可能</li>
+                        <li>✓ 永続利用権</li>
+                        <li>✓ アップデート無料</li>
+                        <li>✓ メールサポート</li>
+                    </ul>
+                    <button class="btn-purchase">プロンプトを選ぶ</button>
+                </div>
+                
+                <div class="pricing-card featured">
+                    <h3 class="pricing-title">業界パック</h3>
+                    <div class="pricing-price">¥19,800<span>〜</span></div>
+                    <ul class="pricing-features">
+                        <li>✓ 業界の全プロンプト</li>
+                        <li>✓ 40% OFF</li>
+                        <li>✓ カスタマイズ相談</li>
+                        <li>✓ 優先サポート</li>
+                    </ul>
+                    <button class="btn-purchase">業界パックを選ぶ</button>
+                </div>
+                
+                <div class="pricing-card">
+                    <h3 class="pricing-title">サブスクリプション</h3>
+                    <div class="pricing-price">¥9,800<span>/月</span></div>
+                    <ul class="pricing-features">
+                        <li>✓ 全384プロンプト使い放題</li>
+                        <li>✓ 新プロンプト即利用</li>
+                        <li>✓ カスタムプロンプト作成</li>
+                        <li>✓ 電話サポート</li>
+                    </ul>
+                    <button class="btn-purchase">サブスク開始</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

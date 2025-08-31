@@ -1,0 +1,68 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
+import { getAllPrompts, getFreePrompts, hasUserPurchased } from '@/lib/prompts'
+
+export async function GET(request: NextRequest) {
+  try {
+    // セッション取得
+    const session = await getServerSession()
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const filter = searchParams.get('filter') // 'free', 'purchased', 'all'
+    const industry = searchParams.get('industry') // 業界フィルター
+    
+    const userId = session.user.email
+
+    // 全プロンプトを取得
+    let prompts = await getAllPrompts()
+
+    // 業界フィルター
+    if (industry) {
+      prompts = prompts.filter(p => p.industry === industry)
+    }
+
+    // 各プロンプトに購入状態を追加
+    const promptsWithStatus = await Promise.all(
+      prompts.map(async (prompt) => {
+        const purchased = await hasUserPurchased(userId, prompt.prompt_id)
+        return {
+          ...prompt,
+          purchased,
+          available: prompt.is_free || purchased
+        }
+      })
+    )
+
+    // フィルター適用
+    let filteredPrompts = promptsWithStatus
+    if (filter === 'free') {
+      filteredPrompts = promptsWithStatus.filter(p => p.is_free)
+    } else if (filter === 'purchased') {
+      filteredPrompts = promptsWithStatus.filter(p => p.purchased)
+    } else if (filter === 'available') {
+      filteredPrompts = promptsWithStatus.filter(p => p.available)
+    }
+
+    // 業界別にグループ化
+    const groupedPrompts = filteredPrompts.reduce((acc, prompt) => {
+      if (!acc[prompt.industry]) {
+        acc[prompt.industry] = []
+      }
+      acc[prompt.industry].push(prompt)
+      return acc
+    }, {} as Record<string, typeof filteredPrompts>)
+
+    return NextResponse.json({
+      prompts: filteredPrompts,
+      grouped: groupedPrompts,
+      total: filteredPrompts.length
+    })
+
+  } catch (error) {
+    console.error('Prompts API error:', error)
+    return NextResponse.json({ error: 'プロンプト取得に失敗しました' }, { status: 500 })
+  }
+}

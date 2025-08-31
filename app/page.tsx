@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import { useSession, signIn, signOut } from 'next-auth/react'
+import Link from 'next/link'
+import PromptSelector from '@/components/PromptSelector'
 
 interface Config {
   wpSiteUrl: string
@@ -12,7 +14,8 @@ interface Config {
 
 interface Generation {
   id: string
-  pack: string
+  promptId: string
+  promptName: string
   count: number
   status: 'pending' | 'generating' | 'completed' | 'error'
   articles: any[]
@@ -28,17 +31,11 @@ export default function Home() {
     categoryId: '1'
   })
   
-  const [selectedPack, setSelectedPack] = useState('tech:wordpress')
+  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null)
+  const [promptInputs, setPromptInputs] = useState<Record<string, string>>({})
   const [articleCount, setArticleCount] = useState(1)
   const [isGenerating, setIsGenerating] = useState(false)
   const [generations, setGenerations] = useState<Generation[]>([])
-
-  const promptPacks = [
-    { id: 'tech:wordpress', name: 'WordPress技術記事', description: '初心者向けWordPress解説記事' },
-    { id: 'cooking:lunch', name: '昼食レシピ記事', description: '簡単で美味しい昼食レシピ' },
-    { id: 'travel:domestic', name: '国内旅行記事', description: '国内観光スポット紹介' },
-    { id: 'sidebiz:affiliate', name: 'アフィリエイト記事', description: '商品紹介・レビュー記事' }
-  ]
 
   const handleGenerate = async () => {
     if (!session) {
@@ -48,6 +45,11 @@ export default function Home() {
     
     if (!config.wpSiteUrl || !config.wpUser || !config.wpAppPass) {
       alert('WordPress設定を入力してください')
+      return
+    }
+    
+    if (!selectedPrompt) {
+      alert('プロンプトを選択してください')
       return
     }
 
@@ -61,8 +63,9 @@ export default function Home() {
         },
         body: JSON.stringify({
           config,
-          pack: selectedPack,
-          count: articleCount
+          promptId: selectedPrompt,
+          count: articleCount,
+          inputs: promptInputs
         })
       })
 
@@ -89,7 +92,10 @@ export default function Home() {
         <nav className="relative z-10 px-6 py-4">
           <div className="container mx-auto flex justify-between items-center">
             <div className="text-xl font-bold">gen<span className="text-purple-200">post</span></div>
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
+              <Link href="/pricing" className="text-white hover:text-purple-200 transition-colors">
+                プロンプト一覧
+              </Link>
               {session ? (
                 <>
                   <div className="text-sm">
@@ -209,20 +215,14 @@ export default function Home() {
                 <h2 className="text-2xl font-semibold text-gray-800">コンテンツ生成</h2>
               </div>
               
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-3">コンテンツテンプレート</label>
-                  <select 
-                    className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors bg-white"
-                    value={selectedPack}
-                    onChange={(e) => setSelectedPack(e.target.value)}
-                  >
-                    {promptPacks.map(pack => (
-                      <option key={pack.id} value={pack.id}>
-                        {pack.name} - {pack.description}
-                      </option>
-                    ))}
-                  </select>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">プロンプト選択</label>
+                  <PromptSelector
+                    selectedPrompt={selectedPrompt}
+                    onPromptSelect={setSelectedPrompt}
+                    onInputsChange={setPromptInputs}
+                  />
                 </div>
                 
                 <div>
@@ -240,9 +240,9 @@ export default function Home() {
                 
                 <button
                   onClick={handleGenerate}
-                  disabled={isGenerating}
+                  disabled={isGenerating || !selectedPrompt}
                   className={`w-full py-5 text-white font-bold rounded-xl text-lg shadow-lg transform transition-all duration-200 ${
-                    isGenerating 
+                    isGenerating || !selectedPrompt
                       ? 'bg-gray-400 cursor-not-allowed' 
                       : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:shadow-xl hover:-translate-y-0.5'
                   }`}
@@ -283,7 +283,7 @@ export default function Home() {
                 <div key={gen.id} className="p-6 border border-gray-200 rounded-xl hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-center">
                     <div>
-                      <span className="font-semibold text-gray-800">{gen.pack}</span>
+                      <span className="font-semibold text-gray-800">{gen.promptName || gen.promptId}</span>
                       <span className="ml-3 text-gray-500">({gen.count}記事)</span>
                     </div>
                     <div className={`px-4 py-2 rounded-full text-sm font-medium ${
