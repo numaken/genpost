@@ -195,7 +195,7 @@ ${goalType === 'attraction' || goalType === 'experience'
       content,
       industry: industryName,
       service,
-      challenge: challengeText
+      challenge: focusText
     })
 
   } catch (error) {
