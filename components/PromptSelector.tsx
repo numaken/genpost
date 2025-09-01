@@ -15,6 +15,180 @@ interface PromptSelectorProps {
   onInputsChange: (inputs: Record<string, string>) => void
 }
 
+// 入力フィールドの日本語マッピング
+const fieldLabels: Record<string, string> = {
+  location: '地域・場所',
+  company_feature: '会社の特徴',
+  service_name: 'サービス名',
+  product_name: '商品名',
+  target_audience: 'ターゲット層',
+  industry: '業界',
+  company_name: '会社名',
+  brand_name: 'ブランド名',
+  price: '価格',
+  features: '特徴・機能',
+  benefits: 'メリット・効果',
+  keyword: 'キーワード',
+  topic: 'トピック・話題',
+  theme: 'テーマ',
+  genre: 'ジャンル',
+  category: 'カテゴリー',
+  title: 'タイトル',
+  description: '説明',
+  content: 'コンテンツ',
+  problem: '課題・問題',
+  solution: '解決策',
+  goal: '目標',
+  objective: '目的',
+  method: '方法・手段',
+  technique: '技術・テクニック',
+  strategy: '戦略',
+  approach: 'アプローチ',
+  concept: 'コンセプト',
+  idea: 'アイデア',
+  plan: '計画',
+  schedule: 'スケジュール',
+  timeline: 'タイムライン',
+  deadline: '締切',
+  budget: '予算',
+  cost: '費用',
+  investment: '投資額',
+  roi: 'ROI・投資収益率',
+  kpi: 'KPI・重要指標',
+  metric: '測定指標',
+  data: 'データ',
+  analytics: '分析結果',
+  insight: '洞察・気づき',
+  trend: 'トレンド',
+  market: '市場',
+  competition: '競合',
+  competitor: '競合他社',
+  advantage: '優位性',
+  strength: '強み',
+  weakness: '弱み',
+  opportunity: '機会',
+  threat: '脅威',
+  risk: 'リスク',
+  challenge: '課題',
+  issue: '問題',
+  concern: '懸念点',
+  requirement: '要件',
+  specification: '仕様',
+  standard: '基準',
+  criteria: '判断基準',
+  evaluation: '評価',
+  assessment: 'アセスメント',
+  review: 'レビュー',
+  feedback: 'フィードバック',
+  comment: 'コメント',
+  opinion: '意見',
+  suggestion: '提案',
+  recommendation: '推奨事項',
+  advice: 'アドバイス',
+  tip: 'コツ・ヒント',
+  example: '例',
+  case: 'ケース',
+  scenario: 'シナリオ',
+  situation: '状況',
+  context: '文脈・背景',
+  background: '背景',
+  history: '履歴・経歴',
+  experience: '経験',
+  skill: 'スキル',
+  expertise: '専門知識',
+  knowledge: '知識',
+  education: '教育',
+  training: '研修・トレーニング',
+  certification: '資格・認定',
+  qualification: '資格',
+  achievement: '実績・成果',
+  accomplishment: '達成事項',
+  success: '成功事例',
+  failure: '失敗事例',
+  lesson: '学び・教訓',
+  best_practice: 'ベストプラクティス',
+  guideline: 'ガイドライン',
+  procedure: '手順',
+  process: 'プロセス',
+  workflow: 'ワークフロー',
+  system: 'システム',
+  tool: 'ツール',
+  software: 'ソフトウェア',
+  platform: 'プラットフォーム',
+  technology: '技術',
+  innovation: '革新・イノベーション',
+  development: '開発',
+  improvement: '改善',
+  optimization: '最適化',
+  efficiency: '効率性',
+  productivity: '生産性',
+  performance: 'パフォーマンス',
+  quality: '品質',
+  reliability: '信頼性',
+  security: 'セキュリティ',
+  safety: '安全性',
+  compliance: 'コンプライアンス',
+  regulation: '規制',
+  law: '法律',
+  policy: 'ポリシー',
+  rule: 'ルール',
+  standard_operating_procedure: '標準作業手順',
+  manual: 'マニュアル',
+  documentation: 'ドキュメント',
+  report: 'レポート',
+  presentation: 'プレゼンテーション',
+  meeting: '会議',
+  discussion: '議論',
+  negotiation: '交渉',
+  agreement: '合意',
+  contract: '契約',
+  deal: '取引',
+  partnership: 'パートナーシップ',
+  collaboration: '協力・連携',
+  teamwork: 'チームワーク',
+  communication: 'コミュニケーション',
+  relationship: '関係性',
+  network: 'ネットワーク',
+  connection: 'つながり',
+  contact: '連絡先',
+  support: 'サポート',
+  service: 'サービス',
+  assistance: '支援・援助',
+  help: 'ヘルプ',
+  guidance: '指導・ガイダンス',
+  mentoring: 'メンタリング',
+  coaching: 'コーチング',
+  consulting: 'コンサルティング',
+  advisory: 'アドバイザリー',
+  expertise_area: '専門分野',
+  specialization: '専門特化',
+  focus_area: '重点分野',
+  core_business: '中核事業',
+  main_service: '主要サービス',
+  primary_product: '主力商品',
+  flagship: 'フラッグシップ',
+  signature: 'シグネチャー',
+  unique_selling_point: 'USP・独自の価値提案',
+  value_proposition: '価値提案',
+  mission: 'ミッション',
+  vision: 'ビジョン',
+  values: '価値観',
+  culture: '企業文化',
+  philosophy: '理念・哲学',
+  principle: '原則',
+  belief: '信念',
+  commitment: 'コミットメント',
+  promise: '約束',
+  guarantee: '保証',
+  warranty: '保証期間',
+  policy_detail: 'ポリシー詳細'
+}
+
+// 日本語ラベルを取得する関数
+function getFieldLabel(field: string): string {
+  return fieldLabels[field] || field
+}
+
 export default function PromptSelector({ selectedPrompt, onPromptSelect, onInputsChange }: PromptSelectorProps) {
   const [prompts, setPrompts] = useState<PromptWithStatus[]>([])
   const [groupedPrompts, setGroupedPrompts] = useState<Record<string, PromptWithStatus[]>>({})
@@ -128,20 +302,26 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
       <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
         <h4 className="font-semibold text-gray-800 mb-3">入力項目</h4>
         <div className="space-y-3">
-          {fields.map(field => (
-            <div key={field}>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                {field}
-              </label>
-              <input
-                type="text"
-                className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-                placeholder={`${field}を入力してください`}
-                value={inputs[field] || ''}
-                onChange={(e) => handleInputChange(field, e.target.value)}
-              />
-            </div>
-          ))}
+          {fields.map(field => {
+            const japaneseLabel = getFieldLabel(field)
+            return (
+              <div key={field}>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  {japaneseLabel}
+                  {field !== japaneseLabel && (
+                    <span className="ml-1 text-xs text-gray-500">({field})</span>
+                  )}
+                </label>
+                <input
+                  type="text"
+                  className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
+                  placeholder={`${japaneseLabel}を入力してください`}
+                  value={inputs[field] || ''}
+                  onChange={(e) => handleInputChange(field, e.target.value)}
+                />
+              </div>
+            )
+          })}
         </div>
       </div>
     )
