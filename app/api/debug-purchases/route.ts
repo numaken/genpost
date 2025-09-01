@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       .eq('user_id', userEmail)
 
     // 購入済みプロンプトの詳細を取得
-    let purchasedPromptDetails = []
+    let purchasedPromptDetails: any = {}
     if (userPrompts && userPrompts.length > 0) {
       const promptIds = userPrompts.map(p => p.prompt_id)
       const { data: purchasedPrompts, error: purchasedError } = await supabase
