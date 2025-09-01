@@ -2,10 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import OpenAI from 'openai'
 import { getPromptById, hasUserPurchased, recordPromptUsage, processPromptTemplate } from '@/lib/prompts'
-
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+import { getEffectiveApiKey } from '@/lib/api-keys'
 
 // 生成された記事からタイトルと本文を抽出・整形する関数
 function parseGeneratedArticle(rawContent: string, promptName: string): { title: string, content: string } {
@@ -133,8 +130,14 @@ export async function POST(request: NextRequest) {
         // 使用履歴記録
         await recordPromptUsage(userId, promptId)
 
+        // ユーザーのAPIキーを取得してOpenAIクライアントを初期化
+        const effectiveApiKey = await getEffectiveApiKey(userId)
+        const userOpenAI = new OpenAI({
+          apiKey: effectiveApiKey,
+        })
+
         // OpenAI APIで記事生成（G.E.N.設定を適用）
-        const completion = await openai.chat.completions.create({
+        const completion = await userOpenAI.chat.completions.create({
           model: 'gpt-3.5-turbo',
           messages: [
             { role: 'system', content: prompt.system_prompt },

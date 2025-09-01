@@ -6,6 +6,7 @@ import Link from 'next/link'
 import PromptSelector from '@/components/PromptSelector'
 import TrialPromptForm from '@/components/TrialPromptForm'
 import WordPressSiteManager from '@/components/WordPressSiteManager'
+import ApiKeyManager from '@/components/ApiKeyManager'
 
 interface WordPressSite {
   id: string
@@ -272,6 +273,11 @@ export default function Home() {
                 onSiteSelect={handleSiteSelect}
                 selectedSiteId={selectedSite?.id}
               />
+
+              <ApiKeyManager />
+            </div>
+
+            <div className="grid lg:grid-cols-1 gap-8 mt-8">
 
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
               <div className="flex items-center mb-6">
