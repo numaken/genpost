@@ -12,8 +12,17 @@ const supabase = createClient(
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession()
-    if (!session?.user?.email || session.user.email !== 'numaken@example.com') {
-      return NextResponse.json({ error: '管理者権限が必要です' }, { status: 401 })
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
+    }
+
+    // 開発環境では全員管理者として扱う（本番では特定のメールアドレスのみ）
+    const isAdmin = process.env.NODE_ENV === 'development' || 
+                    session.user.email === 'numaken@panolabollc.com' ||
+                    session.user.email === 'admin@panolabollc.com'
+    
+    if (!isAdmin) {
+      return NextResponse.json({ error: `管理者権限が必要です (現在: ${session.user.email})` }, { status: 401 })
     }
 
     const body = await request.json()
