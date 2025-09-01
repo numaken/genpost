@@ -60,7 +60,8 @@ export async function POST(request: NextRequest) {
         promptBatches.push(jsonData.prompts.slice(i, i + batchSize))
       }
 
-      for (const [batchIndex, batch] of promptBatches.entries()) {
+      for (let batchIndex = 0; batchIndex < promptBatches.length; batchIndex++) {
+        const batch = promptBatches[batchIndex];
         try {
           const { error } = await supabase
             .from('prompts')
