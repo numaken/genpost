@@ -84,13 +84,13 @@ export async function hasUserPurchased(userId: string, promptId: string): Promis
   if (!prompt) return false
   if (prompt.is_free) return true
   
-  // 購入履歴をチェック
+  // 購入履歴をチェック（prompt.idで検索）
   const { data, error } = await supabase
     .from('user_prompts')
     .select('*')
     .eq('user_id', userId)
     .eq('is_active', true)
-    .eq('prompt_id', promptId)
+    .eq('prompt_id', prompt.id) // UUIDで検索
   
   if (error) {
     console.error('Purchase check error:', error)
@@ -109,7 +109,7 @@ export async function purchasePrompt(userId: string, promptId: string) {
     .from('user_prompts')
     .insert({
       user_id: userId,
-      prompt_id: promptId, // prompt_id（文字列）を直接保存
+      prompt_id: prompt.id, // UUIDを使用（データベーススキーマに合わせる）
       purchased_at: new Date().toISOString(),
       is_active: true
     })

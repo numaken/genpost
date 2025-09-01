@@ -25,12 +25,27 @@ export async function POST(request: NextRequest) {
     const userEmail = session.user.email
 
     try {
-      // 直接user_promptsテーブルに挿入
+      // まずpromptsテーブルから正しいUUIDを取得
+      const { data: promptData, error: promptError } = await supabase
+        .from('prompts')
+        .select('id, prompt_id')
+        .eq('prompt_id', promptId)
+        .single()
+
+      if (promptError || !promptData) {
+        console.error('Prompt lookup error:', promptError)
+        return NextResponse.json({ 
+          error: 'プロンプトが見つかりません',
+          details: promptError?.message || 'プロンプトIDが無効です'
+        }, { status: 400 })
+      }
+
+      // user_promptsテーブルに挿入（UUIDとして）
       const { data, error } = await supabase
         .from('user_prompts')
         .insert({
           user_id: userEmail,
-          prompt_id: promptId,
+          prompt_id: promptData.id, // UUIDを使用
           purchased_at: new Date().toISOString(),
           is_active: true
         })
