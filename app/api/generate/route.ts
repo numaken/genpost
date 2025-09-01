@@ -7,6 +7,93 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
+// 生成された記事からタイトルと本文を抽出・整形する関数
+function parseGeneratedArticle(rawContent: string, promptName: string): { title: string, content: string } {
+  let title = ''
+  let content = ''
+  
+  try {
+    // パターン1: 【タイトル】形式の場合
+    const titleMatch = rawContent.match(/【タイトル】\s*\n+(.*?)\n*(?=\n*【|$)/s);
+    if (titleMatch) {
+      title = titleMatch[1].trim();
+    }
+    
+    // パターン2: 記事内容の抽出（複数のパターンに対応）
+    const contentPatterns = [
+      /【記事(?:内容)?】\s*\n([\s\S]*?)(?=\n*【[^】]+】|$)/, // 【記事】【記事内容】
+      /【本文】\s*\n([\s\S]*?)(?=\n*【[^】]+】|$)/, // 【本文】
+      /【内容】\s*\n([\s\S]*?)(?=\n*【[^】]+】|$)/, // 【内容】
+      /【コンテンツ】\s*\n([\s\S]*?)(?=\n*【[^】]+】|$)/, // 【コンテンツ】
+    ];
+    
+    for (const pattern of contentPatterns) {
+      const contentMatch = rawContent.match(pattern);
+      if (contentMatch) {
+        content = contentMatch[1].trim();
+        break;
+      }
+    }
+    
+    // パターン3: マークアップなしの場合（通常の文章）
+    if (!title && !content) {
+      // 【...】マークアップが全くない場合、最初の行をタイトル、残りを本文とする
+      const lines = rawContent.split('\n').filter(line => line.trim() !== '');
+      if (lines.length > 0) {
+        title = lines[0].trim();
+        content = lines.slice(1).join('\n').trim();
+      }
+    }
+    
+    // パターン4: 構造化マークアップがあるが特定のパターンでない場合
+    if (!title || !content) {
+      // 全ての【...】マークアップを除去
+      const cleanedText = rawContent.replace(/【[^】]+】\s*\n*/g, '').trim();
+      
+      if (!title) {
+        // 最初の段落をタイトルとして使用
+        const firstParagraph = cleanedText.split('\n\n')[0];
+        title = firstParagraph.split('\n')[0].trim();
+      }
+      
+      if (!content) {
+        // タイトル以外を本文として使用
+        const paragraphs = cleanedText.split('\n\n');
+        if (paragraphs.length > 1) {
+          content = paragraphs.slice(1).join('\n\n').trim();
+        } else {
+          // 単一段落の場合、2行目以降を本文とする
+          const lines = cleanedText.split('\n');
+          content = lines.slice(1).join('\n').trim();
+        }
+      }
+    }
+    
+    // フォールバック処理
+    if (!title) {
+      title = `${promptName} - ${new Date().toLocaleString('ja-JP')}`;
+    }
+    
+    if (!content) {
+      content = rawContent.replace(/【[^】]+】\s*\n*/g, '').trim();
+    }
+    
+    // HTMLエンティティのエスケープ
+    title = title.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    content = content.replace(/\n\n+/g, '\n\n'); // 過度な改行を整理
+    
+  } catch (error) {
+    console.error('Article parsing error:', error);
+    // エラー時のフォールバック
+    const cleanedText = rawContent.replace(/【[^】]+】\s*\n*/g, '').trim();
+    const lines = cleanedText.split('\n').filter(line => line.trim() !== '');
+    title = lines.length > 0 ? lines[0].trim() : `${promptName} - ${new Date().toLocaleString('ja-JP')}`;
+    content = lines.length > 1 ? lines.slice(1).join('\n').trim() : cleanedText;
+  }
+  
+  return { title, content };
+}
+
 export async function POST(request: NextRequest) {
   try {
     // セッション取得
@@ -16,7 +103,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { config, promptId, count, inputs } = body
+    const { config, promptId, count, postStatus = 'draft', scheduledStartDate, scheduledInterval = 1, inputs } = body
 
     if (!config.wpSiteUrl || !config.wpUser || !config.wpAppPass) {
       return NextResponse.json({ error: 'WordPress設定が不完全です' }, { status: 400 })
@@ -57,26 +144,66 @@ export async function POST(request: NextRequest) {
           max_tokens: prompt.gen_config?.engine?.max_tokens || 1500
         })
 
-        const articleContent = completion.choices[0].message.content?.trim() || ''
+        let rawContent = completion.choices[0].message.content?.trim() || ''
+
+        // 生成された記事からタイトルと内容を解析・抽出
+        console.log('Raw AI content:', rawContent)
+        const { title: extractedTitle, content: cleanContent } = parseGeneratedArticle(rawContent, prompt.name)
+        console.log('Extracted title:', extractedTitle)
+        console.log('Extracted content preview:', cleanContent.substring(0, 100) + '...')
+
+        // 重複チェック: 同じタイトルの記事が存在するかチェック
+        const duplicateCheckUrl = `${config.wpSiteUrl}/wp-json/wp/v2/posts?search=${encodeURIComponent(extractedTitle)}&per_page=5`
+        const duplicateResponse = await fetch(duplicateCheckUrl, {
+          headers: {
+            'Authorization': `Basic ${Buffer.from(`${config.wpUser}:${config.wpAppPass}`).toString('base64')}`,
+          }
+        })
+
+        if (duplicateResponse.ok) {
+          const existingPosts = await duplicateResponse.json()
+          const duplicateFound = existingPosts.some((post: any) => 
+            post.title.rendered.toLowerCase().trim() === extractedTitle.toLowerCase().trim()
+          )
+
+          if (duplicateFound) {
+            console.log(`Duplicate title found, skipping: ${extractedTitle}`)
+            articles.push({
+              title: extractedTitle,
+              status: 'skipped',
+              reason: '同じタイトルの記事が既に存在します'
+            })
+            continue
+          }
+        }
+
+        // 予約投稿の場合、各記事の投稿日時を計算
+        let postData: any = {
+          title: extractedTitle,
+          content: cleanContent,
+          status: postStatus === 'scheduled' ? 'future' : postStatus,
+          categories: [parseInt(config.categoryId) || 1],
+          meta: {
+            'genpost_prompt_id': promptId,
+            'genpost_generated': true
+          }
+        }
+
+        // 予約投稿の場合、日時を設定
+        if (postStatus === 'scheduled' && scheduledStartDate) {
+          const baseDate = new Date(scheduledStartDate)
+          const publishDate = new Date(baseDate.getTime() + (i * scheduledInterval * 24 * 60 * 60 * 1000))
+          postData.date = publishDate.toISOString()
+        }
 
         // WordPress REST APIで投稿
-        const articleTitle = `${prompt.name} - ${new Date().toLocaleString('ja-JP')}`
         const wpResponse = await fetch(`${config.wpSiteUrl}/wp-json/wp/v2/posts`, {
           method: 'POST',
           headers: {
             'Authorization': `Basic ${Buffer.from(`${config.wpUser}:${config.wpAppPass}`).toString('base64')}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            title: articleTitle,
-            content: articleContent,
-            status: 'draft',
-            categories: [parseInt(config.categoryId) || 1],
-            meta: {
-              'genpost_prompt_id': promptId,
-              'genpost_generated': true
-            }
-          })
+          body: JSON.stringify(postData)
         })
 
         if (wpResponse.ok) {
@@ -85,7 +212,10 @@ export async function POST(request: NextRequest) {
             id: wpData.id,
             title: wpData.title.rendered,
             status: 'success',
-            url: wpData.link
+            url: wpData.link,
+            publishDate: postStatus === 'scheduled' && scheduledStartDate ? 
+              new Date(new Date(scheduledStartDate).getTime() + (i * scheduledInterval * 24 * 60 * 60 * 1000)).toLocaleString('ja-JP') : 
+              undefined
           })
         } else {
           const errorText = await wpResponse.text()

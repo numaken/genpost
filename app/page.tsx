@@ -33,6 +33,9 @@ export default function Home() {
   const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null)
   const [promptInputs, setPromptInputs] = useState<Record<string, string>>({})
   const [articleCount, setArticleCount] = useState(1)
+  const [postStatus, setPostStatus] = useState<'draft' | 'publish' | 'pending' | 'scheduled'>('draft')
+  const [scheduledStartDate, setScheduledStartDate] = useState('')
+  const [scheduledInterval, setScheduledInterval] = useState(1) // 間隔（日）
   const [isGenerating, setIsGenerating] = useState(false)
   const [generations, setGenerations] = useState<Generation[]>([])
 
@@ -96,6 +99,11 @@ export default function Home() {
       return
     }
 
+    if (postStatus === 'scheduled' && !scheduledStartDate) {
+      alert('予約投稿の開始日時を設定してください')
+      return
+    }
+
     setIsGenerating(true)
     
     try {
@@ -113,6 +121,9 @@ export default function Home() {
           },
           promptId: selectedPrompt,
           count: articleCount,
+          postStatus: postStatus,
+          scheduledStartDate: postStatus === 'scheduled' ? scheduledStartDate : undefined,
+          scheduledInterval: postStatus === 'scheduled' ? scheduledInterval : undefined,
           inputs: promptInputs
         })
       })
@@ -297,6 +308,74 @@ export default function Home() {
                     <option value={5}>5記事</option>
                   </select>
                 </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-3">投稿ステータス</label>
+                  <select 
+                    className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors bg-white"
+                    value={postStatus}
+                    onChange={(e) => setPostStatus(e.target.value as 'draft' | 'publish' | 'pending' | 'scheduled')}
+                  >
+                    <option value="draft">下書き（確認後に公開）</option>
+                    <option value="publish">即座に公開</option>
+                    <option value="pending">レビュー待ち</option>
+                    <option value="scheduled">📅 予約投稿（1ヶ月分散投稿）</option>
+                  </select>
+                </div>
+
+                {/* 予約投稿設定 */}
+                {postStatus === 'scheduled' && (
+                  <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 border border-blue-200">
+                    <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                      📅 予約投稿設定
+                      <span className="ml-2 px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded">人気機能</span>
+                    </h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          開始日時
+                        </label>
+                        <input
+                          type="datetime-local"
+                          value={scheduledStartDate}
+                          onChange={(e) => setScheduledStartDate(e.target.value)}
+                          min={new Date().toISOString().slice(0, 16)}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          投稿間隔
+                        </label>
+                        <select
+                          value={scheduledInterval}
+                          onChange={(e) => setScheduledInterval(Number(e.target.value))}
+                          className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          <option value={1}>毎日</option>
+                          <option value={2}>2日間隔</option>
+                          <option value={3}>3日間隔</option>
+                          <option value={7}>週1回</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {scheduledStartDate && (
+                      <div className="mt-4 p-3 bg-white rounded border">
+                        <p className="text-sm text-gray-600">
+                          <strong>📋 投稿予定:</strong><br/>
+                          {Array.from({ length: articleCount }, (_, i) => {
+                            const date = new Date(scheduledStartDate)
+                            date.setDate(date.getDate() + (i * scheduledInterval))
+                            return `${i + 1}記事目: ${date.toLocaleDateString('ja-JP')} ${date.toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}`
+                          }).join('\n')}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 <button
                   onClick={handleGenerate}
@@ -324,7 +403,8 @@ export default function Home() {
                   <div className="text-sm text-gray-700 space-y-1">
                     <p className="font-medium">🛒 プロンプト購入後、無制限生成が可能です</p>
                     <p>🏠 WordPressサイトの登録・管理（2サイトまで無料）</p>
-                    <p>✨ 記事は下書きとして保存されます</p>
+                    <p>✨ 投稿ステータス（下書き/公開/予約投稿）を選択できます</p>
+                    <p>📅 予約投稿で1ヶ月分の記事を自動分散投稿</p>
                     <p>⚡ 生成には30秒～2分程度かかります</p>
                     <p>📝 WordPressダッシュボードで確認・公開してください</p>
                   </div>

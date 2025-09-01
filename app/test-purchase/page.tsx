@@ -32,8 +32,9 @@ export default function TestPurchasePage() {
       const data = await response.json()
       
       if (response.ok) {
-        // 有料プロンプトのみ表示
+        // 有料プロンプトのみ表示（存在確認済み）
         const paidPrompts = data.prompts.filter((p: Prompt) => !p.is_free)
+        console.log('Available paid prompts:', paidPrompts)
         setPrompts(paidPrompts)
       }
     } catch (error) {
