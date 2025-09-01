@@ -28,6 +28,7 @@ export async function GET(request: NextRequest) {
     const promptsWithStatus = await Promise.all(
       prompts.map(async (prompt) => {
         const purchased = await hasUserPurchased(userId, prompt.prompt_id)
+        console.log(`Prompt ${prompt.prompt_id}: purchased=${purchased}, is_free=${prompt.is_free}`)
         return {
           ...prompt,
           purchased,

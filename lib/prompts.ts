@@ -81,8 +81,14 @@ export async function getFreePrompts(): Promise<Prompt[]> {
 export async function hasUserPurchased(userId: string, promptId: string): Promise<boolean> {
   // まず無料プロンプトかチェック
   const prompt = await getPromptById(promptId)
-  if (!prompt) return false
-  if (prompt.is_free) return true
+  if (!prompt) {
+    console.log(`Prompt ${promptId} not found`)
+    return false
+  }
+  if (prompt.is_free) {
+    console.log(`Prompt ${promptId} is free`)
+    return true
+  }
   
   // 購入履歴をチェック
   const { data, error } = await supabase
@@ -96,6 +102,8 @@ export async function hasUserPurchased(userId: string, promptId: string): Promis
     console.error('Purchase check error:', error)
     return false
   }
+  
+  console.log(`Purchase check for ${userId}/${promptId}: found ${data?.length || 0} records`)
   
   return data && data.length > 0
 }
