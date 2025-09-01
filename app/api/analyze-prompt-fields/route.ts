@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
       const isPurchased = purchasedPromptIds.includes(prompt.id)
 
-      fields.forEach(field => {
+      fields.forEach((field: string) => {
         if (!fieldAnalysis[field]) {
           fieldAnalysis[field] = {
             count: 0,
