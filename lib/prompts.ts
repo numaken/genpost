@@ -109,7 +109,7 @@ export async function purchasePrompt(userId: string, promptId: string) {
     .from('user_prompts')
     .insert({
       user_id: userId,
-      prompt_id: prompt.id,
+      prompt_id: promptId, // prompt_id（文字列）を直接保存
       purchased_at: new Date().toISOString(),
       is_active: true
     })
