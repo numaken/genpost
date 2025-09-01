@@ -18,6 +18,7 @@ export async function POST(request: NextRequest) {
 
     // 開発環境では全員管理者として扱う（本番では特定のメールアドレスのみ）
     const isAdmin = process.env.NODE_ENV === 'development' || 
+                    session.user.email === 'numaken@gmail.com' ||
                     session.user.email === 'numaken@panolabollc.com' ||
                     session.user.email === 'admin@panolabollc.com'
     
