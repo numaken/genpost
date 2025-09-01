@@ -84,20 +84,34 @@ export async function hasUserPurchased(userId: string, promptId: string): Promis
   if (!prompt) return false
   if (prompt.is_free) return true
   
-  // 購入履歴をチェック（prompt.idで検索）
-  const { data, error } = await supabase
+  // 1. 個別購入をチェック（prompt.idで検索）
+  const { data: individualPurchase, error: individualError } = await supabase
     .from('user_prompts')
     .select('*')
     .eq('user_id', userId)
     .eq('is_active', true)
     .eq('prompt_id', prompt.id) // UUIDで検索
   
-  if (error) {
-    console.error('Purchase check error:', error)
+  if (individualError) {
+    console.error('Individual purchase check error:', individualError)
+  } else if (individualPurchase && individualPurchase.length > 0) {
+    return true
+  }
+
+  // 2. 業界パック購入をチェック
+  const { data: packPurchase, error: packError } = await supabase
+    .from('user_industry_packs')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('is_active', true)
+    .eq('pack_id', `${prompt.industry}-pack`)
+  
+  if (packError) {
+    console.error('Pack purchase check error:', packError)
     return false
   }
   
-  return data && data.length > 0
+  return packPurchase && packPurchase.length > 0
 }
 
 // プロンプト購入記録
@@ -147,4 +161,62 @@ export function processPromptTemplate(template: string, inputs: Record<string, s
   })
   
   return processed
+}
+
+// 業界パック関連の型定義
+export interface IndustryPack {
+  id: string
+  pack_id: string
+  industry: string
+  name: string
+  description: string
+  price: number
+  icon: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+// 全業界パック取得
+export async function getAllIndustryPacks(): Promise<IndustryPack[]> {
+  const { data, error } = await supabase
+    .from('industry_packs')
+    .select('*')
+    .eq('is_active', true)
+    .order('industry')
+  
+  if (error) throw error
+  return data || []
+}
+
+// 業界パック購入記録
+export async function purchaseIndustryPack(userId: string, packId: string) {
+  const { data, error } = await supabase
+    .from('user_industry_packs')
+    .insert({
+      user_id: userId,
+      pack_id: packId,
+      purchased_at: new Date().toISOString(),
+      is_active: true
+    })
+  
+  if (error) throw error
+  return data
+}
+
+// ユーザーの業界パック購入確認
+export async function hasUserPurchasedPack(userId: string, packId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('user_industry_packs')
+    .select('*')
+    .eq('user_id', userId)
+    .eq('pack_id', packId)
+    .eq('is_active', true)
+  
+  if (error) {
+    console.error('Pack purchase check error:', error)
+    return false
+  }
+  
+  return data && data.length > 0
 }
