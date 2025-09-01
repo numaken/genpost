@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
 
       // {field} パターンを抽出
       const matches = prompt.user_prompt_template.match(/\{([^}]+)\}/g) || []
-      const fields = matches.map(match => match.slice(1, -1)) // {key} → key
+      const fields = matches.map((match: string) => match.slice(1, -1)) // {key} → key
 
       const isPurchased = purchasedPromptIds.includes(prompt.id)
 
