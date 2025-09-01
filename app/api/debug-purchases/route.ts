@@ -23,6 +23,21 @@ export async function GET(request: NextRequest) {
       .select('*')
       .eq('user_id', userEmail)
 
+    // 購入済みプロンプトの詳細を取得
+    let purchasedPromptDetails = []
+    if (userPrompts && userPrompts.length > 0) {
+      const promptIds = userPrompts.map(p => p.prompt_id)
+      const { data: purchasedPrompts, error: purchasedError } = await supabase
+        .from('prompts')
+        .select('id, prompt_id, name, is_free, industry, description')
+        .in('id', promptIds)
+      
+      purchasedPromptDetails = {
+        data: purchasedPrompts,
+        error: purchasedError
+      }
+    }
+
     // promptsテーブルのサンプルデータを取得
     const { data: prompts, error: promptsError } = await supabase
       .from('prompts')
@@ -37,6 +52,7 @@ export async function GET(request: NextRequest) {
           error: userPromptsError,
           count: userPrompts?.length || 0
         },
+        purchasedPromptDetails: purchasedPromptDetails,
         promptsSample: {
           data: prompts,
           error: promptsError

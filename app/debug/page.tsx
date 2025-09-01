@@ -70,6 +70,13 @@ export default function DebugPage() {
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4">
+                <h3 className="font-semibold mb-2">購入済みプロンプト詳細</h3>
+                <pre className="text-xs bg-white p-3 rounded overflow-auto max-h-64">
+                  {JSON.stringify(debugData.debug?.purchasedPromptDetails, null, 2)}
+                </pre>
+              </div>
+
+              <div className="bg-gray-50 rounded-lg p-4">
                 <h3 className="font-semibold mb-2">プロンプトサンプル</h3>
                 <pre className="text-xs bg-white p-3 rounded overflow-auto max-h-64">
                   {JSON.stringify(debugData.debug?.promptsSample, null, 2)}
