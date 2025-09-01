@@ -29,15 +29,20 @@ export async function POST(request: NextRequest) {
 
     try {
       // プロンプト購入を記録
-      await purchasePrompt(userEmail, promptId)
+      const result = await purchasePrompt(userEmail, promptId)
       
       console.log(`Test purchase recorded: ${userEmail} -> ${promptId}`)
+      console.log('Purchase result:', result)
       
       return NextResponse.json({
         success: true,
         message: `プロンプト ${promptId} の購入を記録しました（テストモード）`,
         user: userEmail,
-        promptId: promptId
+        promptId: promptId,
+        debug: {
+          purchaseResult: result,
+          timestamp: new Date().toISOString()
+        }
       })
 
     } catch (error) {
