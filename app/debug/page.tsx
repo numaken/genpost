@@ -9,6 +9,8 @@ export default function DebugPage() {
   const [fieldAnalysis, setFieldAnalysis] = useState<any>(null)
   const [loading, setLoading] = useState(false)
   const [analyzingFields, setAnalyzingFields] = useState(false)
+  const [importing, setImporting] = useState(false)
+  const [importResult, setImportResult] = useState<any>(null)
 
   const fetchDebugData = async () => {
     if (!session) return
@@ -42,6 +44,27 @@ export default function DebugPage() {
     }
   }
 
+  const handleImport = async () => {
+    if (!session) return
+
+    setImporting(true)
+    setImportResult(null)
+    
+    try {
+      const response = await fetch('/api/import-catalog', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'import' })
+      })
+      const data = await response.json()
+      setImportResult(data)
+    } catch (error) {
+      setImportResult({ error: 'インポートに失敗しました', details: String(error) })
+    } finally {
+      setImporting(false)
+    }
+  }
+
   useEffect(() => {
     fetchDebugData()
   }, [session])
@@ -62,7 +85,7 @@ export default function DebugPage() {
             🔍 デバッグ情報
           </h1>
 
-          <div className="flex gap-4 mb-6">
+          <div className="flex gap-4 mb-6 flex-wrap">
             <button
               onClick={fetchDebugData}
               disabled={loading}
@@ -76,6 +99,20 @@ export default function DebugPage() {
               className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 disabled:opacity-50"
             >
               {analyzingFields ? 'フィールド分析中...' : 'フィールド分析'}
+            </button>
+            <button
+              onClick={handleImport}
+              disabled={importing}
+              className="px-4 py-2 bg-purple-500 text-white rounded hover:bg-purple-600 disabled:opacity-50"
+            >
+              {importing ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                  インポート中...
+                </div>
+              ) : (
+                '📦 カタログインポート'
+              )}
             </button>
           </div>
 
@@ -169,6 +206,51 @@ export default function DebugPage() {
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <h3 className="font-semibold text-red-800 mb-2">フィールド分析エラー</h3>
                   <p className="text-red-600">{fieldAnalysis.error}</p>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* インポート結果 */}
+          {importResult && (
+            <div className="space-y-6 mt-8">
+              <h2 className="text-xl font-bold text-gray-800">📦 インポート結果</h2>
+              
+              {importResult.success ? (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-green-800 mb-2">✅ インポート完了</h3>
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">プロンプト:</span>
+                      <span className="ml-2 font-medium text-green-700">{importResult.imported?.prompts || 0}</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">業界パック:</span>
+                      <span className="ml-2 font-medium text-green-700">{importResult.imported?.packs || 0}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-red-800 mb-2">❌ インポートエラー</h3>
+                  <p className="text-red-600">{importResult.error}</p>
+                  {importResult.details && (
+                    <p className="text-xs text-red-500 mt-2">{importResult.details}</p>
+                  )}
+                </div>
+              )}
+
+              {importResult.errors && importResult.errors.length > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                  <h3 className="font-semibold text-orange-800 mb-2">⚠️ 部分的なエラー</h3>
+                  <div className="max-h-40 overflow-auto">
+                    {importResult.errors.slice(0, 10).map((error: string, index: number) => (
+                      <p key={index} className="text-xs text-orange-600">{error}</p>
+                    ))}
+                    {importResult.errors.length > 10 && (
+                      <p className="text-xs text-orange-500">...他 {importResult.errors.length - 10} 件のエラー</p>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
