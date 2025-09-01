@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
       const promptIds = userPrompts.map(p => p.prompt_id)
       const { data: purchasedPrompts, error: purchasedError } = await supabase
         .from('prompts')
-        .select('id, prompt_id, name, is_free, industry, description')
+        .select('id, prompt_id, name, is_free, industry, description, user_prompt_template')
         .in('id', promptIds)
       
       purchasedPromptDetails = {
