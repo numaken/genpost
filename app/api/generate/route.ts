@@ -14,7 +14,7 @@ function parseGeneratedArticle(rawContent: string, promptName: string): { title:
   
   try {
     // パターン1: 【タイトル】形式の場合
-    const titleMatch = rawContent.match(/【タイトル】\s*\n+(.*?)\n*(?=\n*【|$)/s);
+    const titleMatch = rawContent.match(/【タイトル】\s*\n+([\s\S]*?)\n*(?=\n*【|$)/);
     if (titleMatch) {
       title = titleMatch[1].trim();
     }
