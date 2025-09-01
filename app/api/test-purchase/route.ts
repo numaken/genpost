@@ -17,12 +17,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'プロンプトIDが必要です' }, { status: 400 })
     }
 
-    // 開発環境またはテストモードでのみ動作
-    const isTestMode = process.env.NODE_ENV !== 'production' || 
-                      process.env.STRIPE_SECRET_KEY?.includes('sk_test_')
+    // Stripeテストキーまたは特定の環境でのみ動作
+    const isTestMode = process.env.STRIPE_SECRET_KEY?.includes('sk_test_') ||
+                      process.env.ENABLE_TEST_PURCHASE === 'true'
 
     if (!isTestMode) {
-      return NextResponse.json({ error: 'この機能はテスト環境でのみ利用可能です' }, { status: 403 })
+      return NextResponse.json({ error: 'この機能はテストモードでのみ利用可能です' }, { status: 403 })
     }
 
     const userEmail = session.user.email

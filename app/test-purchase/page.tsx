@@ -52,7 +52,8 @@ export default function TestPurchasePage() {
     setPurchasing(promptId)
 
     try {
-      const response = await fetch('/api/test-purchase', {
+      // まず直接購入を試す
+      const response = await fetch('/api/direct-purchase', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -63,17 +64,18 @@ export default function TestPurchasePage() {
       const data = await response.json()
 
       if (response.ok) {
-        alert(`テスト購入完了: ${data.message}`)
+        alert(`購入記録完了: ${data.message}`)
         // ホームページにリダイレクト
         setTimeout(() => {
           router.push('/')
         }, 1000)
       } else {
-        alert(`エラー: ${data.error}`)
+        console.error('Direct purchase failed:', data)
+        alert(`エラー: ${data.error}${data.details ? ` (${data.details})` : ''}`)
       }
     } catch (error) {
-      console.error('Test purchase error:', error)
-      alert('テスト購入中にエラーが発生しました')
+      console.error('Purchase error:', error)
+      alert('購入記録中にエラーが発生しました')
     } finally {
       setPurchasing(null)
     }
