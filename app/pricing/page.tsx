@@ -1,338 +1,135 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { useSession, signIn } from 'next-auth/react'
+import PricingTable from '@/components/PricingTable'
 import Link from 'next/link'
-
-interface PromptWithStatus {
-  id: string
-  prompt_id: string
-  industry: string
-  name: string
-  description: string
-  price: number
-  is_free: boolean
-  purpose: string
-  format: string
-  purchased?: boolean
-  available?: boolean
-}
 
 export default function PricingPage() {
   const { data: session } = useSession()
-  const [prompts, setPrompts] = useState<PromptWithStatus[]>([])
-  const [groupedPrompts, setGroupedPrompts] = useState<Record<string, PromptWithStatus[]>>({})
-  const [loading, setLoading] = useState(true)
-  const [purchasing, setPurchasing] = useState<string | null>(null)
-
-  useEffect(() => {
-    fetchPrompts()
-  }, [])
-
-  const fetchPrompts = async () => {
-    try {
-      setLoading(true)
-      const response = await fetch('/api/prompts?filter=all')
-      const data = await response.json()
-      
-      if (response.ok) {
-        setPrompts(data.prompts)
-        setGroupedPrompts(data.grouped)
-      }
-    } catch (error) {
-      console.error('Error fetching prompts:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handlePurchase = async (promptId: string) => {
-    if (!session) {
-      signIn()
-      return
-    }
-
-    try {
-      setPurchasing(promptId)
-      const response = await fetch('/api/purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ promptId })
-      })
-
-      const data = await response.json()
-
-      if (response.ok && data.url) {
-        window.location.href = data.url
-      } else {
-        alert(`購入エラー: ${data.error}`)
-      }
-    } catch (error) {
-      alert('購入処理中にエラーが発生しました')
-    } finally {
-      setPurchasing(null)
-    }
-  }
-
-  const getIndustryIcon = (industry: string) => {
-    const icons: Record<string, string> = {
-      'real-estate': '🏠',
-      'tech-saas': '💻',
-      'ecommerce': '🛒',
-      'beauty-health': '🏥',
-      'education': '📚',
-      'restaurant': '🍽️',
-      'finance': '💰',
-      'entertainment': '🎮',
-      'affiliate': '💸',
-      'blogging': '📝'
-    }
-    return icons[industry] || '📄'
-  }
-
-  const getIndustryName = (industry: string) => {
-    const names: Record<string, string> = {
-      'real-estate': '不動産',
-      'tech-saas': 'IT・SaaS',
-      'ecommerce': 'EC・物販',
-      'beauty-health': '美容・健康',
-      'education': '教育',
-      'restaurant': '飲食',
-      'finance': '金融',
-      'entertainment': 'エンタメ',
-      'affiliate': 'アフィリエイト',
-      'blogging': 'ブログ'
-    }
-    return names[industry] || industry
-  }
-
-  const freePrompts = prompts.filter(p => p.is_free)
-  const paidPrompts = prompts.filter(p => !p.is_free)
-  const totalPrompts = prompts.length
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-500 via-purple-500 to-indigo-600 text-white">
-        <nav className="px-6 py-4">
-          <div className="container mx-auto flex justify-between items-center">
-            <Link href="/" className="text-xl font-bold">
-              gen<span className="text-purple-200">post</span>
-            </Link>
-            <div className="flex items-center space-x-4">
-              {session ? (
-                <div className="text-sm">
-                  <span className="opacity-75">ようこそ、</span>
-                  <span className="font-medium">{session.user?.name}さん</span>
-                </div>
-              ) : (
-                <button
-                  onClick={() => signIn()}
-                  className="bg-white text-purple-600 px-6 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
-                >
-                  ログイン
-                </button>
-              )}
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="container mx-auto px-4 py-8">
+        {/* ヘッダー */}
+        <div className="flex items-center justify-between mb-8">
+          <Link href="/" className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">GP</span>
             </div>
-          </div>
-        </nav>
+            <span className="text-xl font-bold text-gray-800">GenPost</span>
+          </Link>
 
-        <div className="container mx-auto py-16 px-6">
-          <div className="text-center">
-            <h1 className="text-5xl font-bold mb-6">プロンプトマーケットプレイス</h1>
-            <p className="text-xl text-blue-100 mb-8 max-w-3xl mx-auto">
-              業界特化型のAIプロンプトで、高品質なコンテンツを瞬時に生成
-            </p>
-            
-            <div className="flex justify-center items-center gap-8 text-lg">
-              <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
-                <span className="font-bold text-2xl">{totalPrompts}</span>
-                <p className="text-sm text-blue-100">プロンプト総数</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
-                <span className="font-bold text-2xl">{Object.keys(groupedPrompts).length}</span>
-                <p className="text-sm text-blue-100">業界カテゴリ</p>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm px-6 py-3 rounded-lg">
-                <span className="font-bold text-2xl">¥980</span>
-                <p className="text-sm text-blue-100">プロンプト単価</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <div className="container mx-auto py-12 px-6">
-        {/* プラン概要 */}
-        <div className="mb-16">
-          <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">価格プラン</h2>
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-
-            {/* プロ */}
-            <div className="bg-white rounded-xl shadow-xl border-2 border-blue-500 p-8 relative">
-              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                <span className="bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-medium">
-                  おすすめ
+          <div className="flex items-center space-x-4">
+            {session ? (
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-gray-600">
+                  {session.user?.name || session.user?.email}
                 </span>
+                <Link 
+                  href="/"
+                  className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                >
+                  ダッシュボード
+                </Link>
               </div>
-              
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">プロ</h3>
-                <div className="text-4xl font-bold text-blue-600 mb-1">¥980</div>
-                <p className="text-gray-500">1プロンプトあたり</p>
-              </div>
-              
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  スターターの全機能
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  高品質プレミアムプロンプト
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  業界特化カスタマイズ
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  G.E.N.システム最適化
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  優先サポート
-                </li>
-              </ul>
-              
-              <div className="text-center">
-                <p className="text-sm text-gray-500 mb-4">必要なプロンプトを個別購入</p>
-              </div>
-            </div>
-
-            {/* エンタープライズ */}
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-              <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">エンタープライズ</h3>
-                <div className="text-4xl font-bold text-purple-600 mb-1">お問い合わせ</div>
-                <p className="text-gray-500">カスタムソリューション</p>
-              </div>
-              
-              <ul className="space-y-3 mb-8">
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  プロの全機能
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  カスタムプロンプト開発
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  API統合サポート
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  専任サポート担当者
-                </li>
-                <li className="flex items-center text-gray-600">
-                  <svg className="w-5 h-5 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                  SLA保証
-                </li>
-              </ul>
-              
-              <button className="w-full bg-purple-500 text-white py-3 px-6 rounded-lg font-medium hover:bg-purple-600 transition-colors">
-                お問い合わせ
+            ) : (
+              <button
+                onClick={() => signIn('google')}
+                className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              >
+                ログイン
               </button>
-            </div>
+            )}
           </div>
         </div>
 
-        {/* プロンプト一覧 */}
-        {loading ? (
-          <div className="text-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent mx-auto mb-4"></div>
-            <p className="text-gray-500">プロンプトを読み込み中...</p>
+        {/* メインコンテンツ */}
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold text-gray-900 mb-4">
+              GenPost 料金プラン
+            </h1>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+              AI駆動のWordPress記事自動生成で、あなたのコンテンツマーケティングを加速させましょう
+            </p>
           </div>
-        ) : (
-          <div>
-            <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">利用可能なプロンプト</h2>
+
+          <PricingTable />
+
+          {/* FAQ セクション */}
+          <div className="mt-16 max-w-4xl mx-auto">
+            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
+              よくあるご質問
+            </h2>
             
-            {Object.entries(groupedPrompts).map(([industry, industryPrompts]) => (
-              <div key={industry} className="mb-12">
-                <div className="bg-white rounded-xl shadow-lg border border-gray-200 overflow-hidden">
-                  <div className="bg-gray-50 px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-xl font-bold text-gray-800 flex items-center gap-3">
-                      <span className="text-2xl">{getIndustryIcon(industry)}</span>
-                      {getIndustryName(industry)}
-                      <span className="text-sm text-gray-500 font-normal">({industryPrompts.length}個のプロンプト)</span>
-                    </h3>
-                  </div>
-                  
-                  <div className="p-6 grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {industryPrompts.map((prompt) => (
-                      <div key={prompt.id} className="border border-gray-200 rounded-lg p-5 hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-3">
-                          <h4 className="font-semibold text-gray-800 flex-1">{prompt.name}</h4>
-                          <div className="flex items-center gap-2 ml-3">
-                            {prompt.is_free ? (
-                              <span className="px-2 py-1 bg-green-100 text-green-700 text-xs font-medium rounded">
-                                無料
-                              </span>
-                            ) : prompt.purchased ? (
-                              <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded">
-                                購入済み
-                              </span>
-                            ) : (
-                              <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded">
-                                ¥{prompt.price.toLocaleString()}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        <p className="text-sm text-gray-600 mb-3">{prompt.description}</p>
-                        <div className="text-xs text-gray-500 mb-4">
-                          {prompt.purpose} / {prompt.format}
-                        </div>
-                        
-                        {!prompt.is_free && !prompt.purchased && (
-                          <button
-                            onClick={() => handlePurchase(prompt.prompt_id)}
-                            disabled={purchasing === prompt.prompt_id}
-                            className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                          >
-                            {purchasing === prompt.prompt_id ? '処理中...' : '購入する'}
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
+            <div className="space-y-6">
+              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Q. プランの変更はいつでもできますか？
+                </h3>
+                <p className="text-gray-600">
+                  A. はい、いつでもプランの変更や解約が可能です。アップグレードは即座に反映され、ダウングレードは次の請求サイクルから適用されます。
+                </p>
               </div>
-            ))}
+
+              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Q. 独自APIキーを使用する場合の費用は？
+                </h3>
+                <p className="text-gray-600">
+                  A. 独自のOpenAI APIキーを設定した場合、GenPostのプラン料金に加えて、OpenAI APIの使用料金が直接OpenAIから請求されます。GPT-3.5-turboの場合、1記事あたり約1-3円程度の費用が目安です。
+                </p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Q. WordPress サイトは何個まで接続できますか？
+                </h3>
+                <p className="text-gray-600">
+                  A. フリープランでは2サイトまで、有料プランでは無制限でWordPressサイトを接続できます。
+                </p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Q. 生成された記事の品質はどうですか？
+                </h3>
+                <p className="text-gray-600">
+                  A. 450種類以上の専用プロンプトを使用して、業界特化型の高品質な記事を生成します。重複チェック機能により、既存記事との重複も防げます。
+                </p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Q. サポートはありますか？
+                </h3>
+                <p className="text-gray-600">
+                  A. 全プランで基本サポートを提供しており、有料プランではより手厚いサポートをご利用いただけます。お問い合わせはメールまたはチャットでお気軽にどうぞ。
+                </p>
+              </div>
+            </div>
           </div>
-        )}
+
+          {/* CTA セクション */}
+          {!session && (
+            <div className="mt-16 text-center">
+              <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-8 text-white">
+                <h2 className="text-2xl font-bold mb-4">
+                  今すぐ無料で始めましょう
+                </h2>
+                <p className="text-lg mb-6 opacity-90">
+                  クレジットカード不要。5記事まで無料で生成できます。
+                </p>
+                <button
+                  onClick={() => signIn('google')}
+                  className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+                >
+                  無料でGenPostを始める
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )

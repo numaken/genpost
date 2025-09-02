@@ -7,6 +7,7 @@ import PromptSelector from '@/components/PromptSelector'
 import TrialPromptForm from '@/components/TrialPromptForm'
 import WordPressSiteManager from '@/components/WordPressSiteManager'
 import ApiKeyManager from '@/components/ApiKeyManager'
+import UsageDisplay from '@/components/UsageDisplay'
 
 interface WordPressSite {
   id: string
@@ -157,6 +158,9 @@ export default function Home() {
               <Link href="/prompts" className="text-white hover:text-purple-200 transition-colors">
                 プロンプト一覧
               </Link>
+              <Link href="/pricing" className="text-white hover:text-purple-200 transition-colors">
+                料金表
+              </Link>
               {session ? (
                 <>
                   <div className="text-sm">
@@ -275,6 +279,8 @@ export default function Home() {
               />
 
               <ApiKeyManager />
+              
+              <UsageDisplay />
             </div>
 
             <div className="grid lg:grid-cols-1 gap-8 mt-8">

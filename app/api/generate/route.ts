@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import OpenAI from 'openai'
 import { getPromptById, hasUserPurchased, recordPromptUsage, processPromptTemplate } from '@/lib/prompts'
-import { getEffectiveApiKey } from '@/lib/api-keys'
+import { getEffectiveApiKey, getUserApiKey } from '@/lib/api-keys'
+import { canUseSharedApiKey, incrementUsage } from '@/lib/usage-limits'
+import { getPromptVersion, recordABTestResult, calculateQualityScore } from '@/lib/prompt-versions'
 
 // 生成された記事からタイトルと本文を抽出・整形する関数
 function parseGeneratedArticle(rawContent: string, promptName: string): { title: string, content: string } {
@@ -106,23 +108,44 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'WordPress設定が不完全です' }, { status: 400 })
     }
 
-    // プロンプト取得
-    const prompt = await getPromptById(promptId)
-    if (!prompt) {
-      return NextResponse.json({ error: '無効なプロンプトです' }, { status: 400 })
+    const userId = session.user.email
+
+    // プロンプトバージョン取得（A/Bテスト対応）
+    const promptVersion = await getPromptVersion(promptId, userId)
+    if (!promptVersion) {
+      // フォールバック: 従来版プロンプト取得
+      const prompt = await getPromptById(promptId)
+      if (!prompt) {
+        return NextResponse.json({ error: '無効なプロンプトです' }, { status: 400 })
+      }
+      // 従来版用の構造に変換
+      promptVersion = {
+        id: prompt.id,
+        prompt_id: prompt.prompt_id,
+        version: 'v1.0',
+        version_name: '従来版',
+        system_prompt: prompt.system_prompt,
+        user_prompt_template: prompt.user_prompt_template,
+        gen_config: prompt.gen_config,
+        quality_settings: {},
+        is_active: prompt.is_active,
+        is_default: true
+      }
     }
 
-    // 購入確認（無料プロンプトまたは購入済みプロンプトのみ使用可能）
-    const userId = session.user.email
-    const canUse = prompt.is_free || await hasUserPurchased(userId, promptId)
-    if (!canUse) {
-      return NextResponse.json({ error: 'このプロンプトは購入されていません' }, { status: 403 })
+    // 購入確認（従来版との互換性のため）
+    const originalPrompt = await getPromptById(promptId)
+    if (originalPrompt) {
+      const canUse = originalPrompt.is_free || await hasUserPurchased(userId, promptId)
+      if (!canUse) {
+        return NextResponse.json({ error: 'このプロンプトは購入されていません' }, { status: 403 })
+      }
     }
 
     const articles = []
 
     // プロンプトテンプレート処理
-    const processedUserPrompt = processPromptTemplate(prompt.user_prompt_template, inputs || {})
+    const processedUserPrompt = processPromptTemplate(promptVersion.user_prompt_template, inputs || {})
 
     // 指定された記事数分生成
     for (let i = 0; i < count; i++) {
@@ -130,30 +153,58 @@ export async function POST(request: NextRequest) {
         // 使用履歴記録
         await recordPromptUsage(userId, promptId)
 
+        // 共有APIキーを使用する場合は制限をチェック
+        const userApiKey = await getUserApiKey(userId, 'openai')
+        const usingSharedApiKey = !userApiKey
+        
+        if (usingSharedApiKey) {
+          const usageCheck = await canUseSharedApiKey(userId)
+          if (!usageCheck.canUse) {
+            return NextResponse.json({ 
+              error: usageCheck.reason || '共有APIキーの使用制限に達しました',
+              usage: usageCheck.usage,
+              subscription: usageCheck.subscription
+            }, { status: 403 })
+          }
+        }
+
         // ユーザーのAPIキーを取得してOpenAIクライアントを初期化
         const effectiveApiKey = await getEffectiveApiKey(userId)
         const userOpenAI = new OpenAI({
           apiKey: effectiveApiKey,
         })
 
-        // OpenAI APIで記事生成（G.E.N.設定を適用）
+        // OpenAI APIで記事生成（改良版設定を適用）
+        const genConfig = promptVersion.gen_config || {}
+        const startTime = Date.now()
+        
         const completion = await userOpenAI.chat.completions.create({
-          model: 'gpt-3.5-turbo',
+          model: genConfig.model || 'gpt-3.5-turbo',
           messages: [
-            { role: 'system', content: prompt.system_prompt },
+            { role: 'system', content: promptVersion.system_prompt },
             { role: 'user', content: processedUserPrompt }
           ],
-          temperature: prompt.gen_config?.engine?.temperature || 0.7,
-          max_tokens: prompt.gen_config?.engine?.max_tokens || 1500
+          temperature: genConfig.temperature || 0.5,
+          max_tokens: genConfig.max_tokens || 2000,
+          top_p: genConfig.top_p || 0.9,
+          presence_penalty: genConfig.presence_penalty || 0.1,
+          frequency_penalty: genConfig.frequency_penalty || 0.1
         })
+        
+        const generationTime = Date.now() - startTime
 
         let rawContent = completion.choices[0].message.content?.trim() || ''
 
         // 生成された記事からタイトルと内容を解析・抽出
         console.log('Raw AI content:', rawContent)
-        const { title: extractedTitle, content: cleanContent } = parseGeneratedArticle(rawContent, prompt.name)
+        console.log('Using prompt version:', promptVersion.version, promptVersion.version_name)
+        
+        const { title: extractedTitle, content: cleanContent } = parseGeneratedArticle(rawContent, promptVersion.version_name)
         console.log('Extracted title:', extractedTitle)
         console.log('Extracted content preview:', cleanContent.substring(0, 100) + '...')
+        
+        // 品質スコア計算（A/Bテスト用）
+        const qualityScore = await calculateQualityScore(rawContent, promptVersion.quality_settings)
 
         // 重複チェック: 同じタイトルの記事が存在するかチェック
         const duplicateCheckUrl = `${config.wpSiteUrl}/wp-json/wp/v2/posts?search=${encodeURIComponent(extractedTitle)}&per_page=5`
@@ -211,11 +262,36 @@ export async function POST(request: NextRequest) {
 
         if (wpResponse.ok) {
           const wpData = await wpResponse.json()
+          
+          // 記事生成成功時に使用量を増加（共有APIキーの場合のみ）
+          if (usingSharedApiKey) {
+            await incrementUsage(userId, true)
+          }
+          
+          // A/Bテスト結果を記録
+          await recordABTestResult({
+            user_id: userId,
+            prompt_id: promptId,
+            version_used: promptVersion.version,
+            article_generated: rawContent,
+            generation_time_ms: generationTime,
+            quality_score: qualityScore,
+            metrics: {
+              title_extracted: !!extractedTitle,
+              content_length: cleanContent.length,
+              has_structure: rawContent.includes('##'),
+              wordpress_post_id: wpData.id
+            }
+          })
+          
           articles.push({
             id: wpData.id,
             title: wpData.title.rendered,
             status: 'success',
             url: wpData.link,
+            version: promptVersion.version,
+            version_name: promptVersion.version_name,
+            quality_score: qualityScore,
             publishDate: postStatus === 'scheduled' && scheduledStartDate ? 
               new Date(new Date(scheduledStartDate).getTime() + (i * scheduledInterval * 24 * 60 * 60 * 1000)).toLocaleString('ja-JP') : 
               undefined
