@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
     const userId = session.user.email
 
     // プロンプトバージョン取得（A/Bテスト対応）
-    const promptVersion = await getPromptVersion(promptId, userId)
+    let promptVersion = await getPromptVersion(promptId, userId)
     if (!promptVersion) {
       // フォールバック: 従来版プロンプト取得
       const prompt = await getPromptById(promptId)
