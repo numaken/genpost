@@ -27,65 +27,86 @@ const plans: PricingPlan[] = [
       '450+種類のプロンプト使用可能',
       'WordPress自動投稿',
       '重複記事チェック',
-      '基本サポート'
+      'コミュニティサポート'
     ],
     buttonText: '無料で始める',
     buttonColor: 'bg-gray-500 hover:bg-gray-600'
   },
   {
-    id: 'basic',
-    name: 'ベーシックプラン',
-    price: 980,
-    priceYearly: 9800,
-    maxArticles: 50,
+    id: 'lite',
+    name: 'ライトプラン',
+    price: 2980,
+    priceYearly: 29800,
+    maxArticles: 15,
     features: [
-      '月50記事まで生成可能',
+      '月15記事まで生成可能',
       '450+種類のプロンプト使用可能',
       'WordPress自動投稿',
       '重複記事チェック',
-      '予約投稿機能',
+      '予約投稿機能（7日間）',
       'メールサポート'
     ],
-    buttonText: 'ベーシックプランを選ぶ',
+    buttonText: 'ライトプランを選ぶ',
     buttonColor: 'bg-blue-500 hover:bg-blue-600'
+  },
+  {
+    id: 'standard',
+    name: 'スタンダードプラン',
+    price: 4980,
+    priceYearly: 49800,
+    maxArticles: 30,
+    features: [
+      '月30記事まで生成可能',
+      '450+種類のプロンプト使用可能',
+      'WordPress自動投稿',
+      '重複記事チェック',
+      '予約投稿機能（30日間）',
+      '複数サイト管理（3サイト）',
+      '優先メールサポート'
+    ],
+    popular: true,
+    buttonText: 'スタンダードプランを選ぶ',
+    buttonColor: 'bg-green-500 hover:bg-green-600'
   },
   {
     id: 'pro',
     name: 'プロプラン',
-    price: 2980,
-    priceYearly: 29800,
-    maxArticles: 200,
+    price: 9800,
+    priceYearly: 98000,
+    maxArticles: 100,
     features: [
-      '月200記事まで生成可能',
+      '月100記事まで生成可能',
       '450+種類のプロンプト使用可能',
       'WordPress自動投稿',
       '重複記事チェック',
-      '予約投稿機能',
-      '複数サイト管理',
-      '優先サポート'
+      '予約投稿機能（90日間）',
+      '複数サイト管理（10サイト）',
+      'GPT-4オプション利用可能',
+      '専用サポート（24時間以内返信）'
     ],
-    popular: true,
     buttonText: 'プロプランを選ぶ',
-    buttonColor: 'bg-green-500 hover:bg-green-600'
+    buttonColor: 'bg-purple-500 hover:bg-purple-600'
   },
   {
-    id: 'unlimited',
-    name: '無制限プラン',
-    price: 4980,
-    priceYearly: 49800,
+    id: 'enterprise',
+    name: 'エンタープライズプラン',
+    price: 19800,
+    priceYearly: 198000,
     maxArticles: 999999,
     features: [
       '記事生成数無制限',
       '450+種類のプロンプト使用可能',
       'WordPress自動投稿',
       '重複記事チェック',
-      '予約投稿機能',
-      '複数サイト管理',
-      '専用サポート',
+      '予約投稿機能（無制限）',
+      '複数サイト管理（無制限）',
+      'GPT-4標準対応',
+      '専用カスタマーサクセス',
+      'API連携サポート',
       '新機能優先アクセス'
     ],
-    buttonText: '無制限プランを選ぶ',
-    buttonColor: 'bg-purple-500 hover:bg-purple-600'
+    buttonText: 'エンタープライズプランを選ぶ',
+    buttonColor: 'bg-indigo-600 hover:bg-indigo-700'
   }
 ]
 

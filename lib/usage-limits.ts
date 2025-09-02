@@ -8,9 +8,10 @@ const supabase = createClient(
 // プランの制限設定
 export const PLAN_LIMITS = {
   free: { maxSharedApiArticles: 5, name: 'フリープラン' },
-  basic: { maxSharedApiArticles: 50, name: 'ベーシックプラン' },
-  pro: { maxSharedApiArticles: 200, name: 'プロプラン' },
-  unlimited: { maxSharedApiArticles: 999999, name: '無制限プラン' }
+  lite: { maxSharedApiArticles: 15, name: 'ライトプラン' },
+  standard: { maxSharedApiArticles: 30, name: 'スタンダードプラン' },
+  pro: { maxSharedApiArticles: 100, name: 'プロプラン' },
+  enterprise: { maxSharedApiArticles: 999999, name: 'エンタープライズプラン' }
 } as const
 
 export type PlanType = keyof typeof PLAN_LIMITS
