@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
 // import { getABTestStats, startABTest, stopABTest } from '@/lib/prompt-versions' // サーバーサイド専用なのでコメントアウト
 import Link from 'next/link'
@@ -30,13 +30,7 @@ export default function ABTestDashboard() {
   const [stats, setStats] = useState<{ [promptId: string]: ABTestStats }>({})
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (session) {
-      fetchABTests()
-    }
-  }, [session])
-
-  const fetchABTests = async () => {
+  const fetchABTests = useCallback(async () => {
     try {
       setLoading(true)
       console.log('A/Bテスト取得開始...')
@@ -64,9 +58,15 @@ export default function ABTestDashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const handleToggleTest = async (promptId: string, isActive: boolean) => {
+  useEffect(() => {
+    if (session) {
+      fetchABTests()
+    }
+  }, [session, fetchABTests])
+
+  const handleToggleTest = useCallback(async (promptId: string, isActive: boolean) => {
     try {
       // API経由でテスト状態を切り替え
       const response = await fetch('/api/admin/ab-tests', {
@@ -89,7 +89,7 @@ export default function ABTestDashboard() {
     } catch (error) {
       console.error('A/Bテスト切り替えエラー:', error)
     }
-  }
+  }, [fetchABTests])
 
   const calculateImprovement = (versionA: any, versionB: any, metric: string) => {
     if (!versionA || !versionB) return null
