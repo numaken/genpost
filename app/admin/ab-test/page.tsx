@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
-import { getABTestStats, startABTest, stopABTest } from '@/lib/prompt-versions'
+// import { getABTestStats, startABTest, stopABTest } from '@/lib/prompt-versions' // サーバーサイド専用なのでコメントアウト
 import Link from 'next/link'
 
 interface ABTestStats {
@@ -52,15 +52,9 @@ export default function ABTestDashboard() {
         console.log('テスト数:', data.tests?.length || 0)
         setABTests(data.tests || [])
         
-        // 各テストの統計を取得
+        // 統計は後でAPIから取得するようにする（一旦スキップ）
         const statsData: { [promptId: string]: ABTestStats } = {}
-        for (const test of data.tests || []) {
-          console.log('統計取得中:', test.prompt_id)
-          const testStats = await getABTestStats(test.prompt_id)
-          if (testStats) {
-            statsData[test.prompt_id] = testStats
-          }
-        }
+        // TODO: 統計データをAPIから取得する実装を追加
         setStats(statsData)
       } else {
         console.error('API エラー:', data.error)
@@ -74,14 +68,23 @@ export default function ABTestDashboard() {
 
   const handleToggleTest = async (promptId: string, isActive: boolean) => {
     try {
-      if (isActive) {
-        await stopABTest(promptId)
-      } else {
-        await startABTest(promptId)
-      }
+      // API経由でテスト状態を切り替え
+      const response = await fetch('/api/admin/ab-tests', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          prompt_id: promptId, 
+          is_active: !isActive 
+        })
+      })
       
-      // データを再取得
-      await fetchABTests()
+      if (response.ok) {
+        // データを再取得
+        await fetchABTests()
+      } else {
+        const data = await response.json()
+        console.error('A/Bテスト切り替えエラー:', data.error)
+      }
       
     } catch (error) {
       console.error('A/Bテスト切り替えエラー:', error)

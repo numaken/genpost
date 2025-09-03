@@ -107,10 +107,10 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { id, is_active, traffic_split } = body
+    const { id, prompt_id, is_active, traffic_split } = body
 
-    if (!id) {
-      return NextResponse.json({ error: 'idは必須です' }, { status: 400 })
+    if (!id && !prompt_id) {
+      return NextResponse.json({ error: 'idまたはprompt_idは必須です' }, { status: 400 })
     }
 
     const updateData: any = {}
@@ -121,10 +121,18 @@ export async function PUT(request: NextRequest) {
       updateData.traffic_split = traffic_split
     }
 
-    const { data, error } = await supabase
+    // idがある場合はidで更新、なければprompt_idで更新
+    const query = supabase
       .from('prompt_ab_test_config')
       .update(updateData)
-      .eq('id', id)
+    
+    if (id) {
+      query.eq('id', id)
+    } else {
+      query.eq('prompt_id', prompt_id)
+    }
+
+    const { data, error } = await query
       .select()
       .single()
 
