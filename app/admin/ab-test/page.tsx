@@ -39,23 +39,31 @@ export default function ABTestDashboard() {
   const fetchABTests = async () => {
     try {
       setLoading(true)
+      console.log('A/Bテスト取得開始...')
       
       // A/Bテスト設定を取得
       const response = await fetch('/api/admin/ab-tests')
+      console.log('API応答ステータス:', response.status)
+      
       const data = await response.json()
+      console.log('取得データ:', data)
       
       if (response.ok) {
-        setABTests(data.tests)
+        console.log('テスト数:', data.tests?.length || 0)
+        setABTests(data.tests || [])
         
         // 各テストの統計を取得
         const statsData: { [promptId: string]: ABTestStats } = {}
-        for (const test of data.tests) {
+        for (const test of data.tests || []) {
+          console.log('統計取得中:', test.prompt_id)
           const testStats = await getABTestStats(test.prompt_id)
           if (testStats) {
             statsData[test.prompt_id] = testStats
           }
         }
         setStats(statsData)
+      } else {
+        console.error('API エラー:', data.error)
       }
     } catch (error) {
       console.error('A/Bテスト取得エラー:', error)
@@ -99,7 +107,7 @@ export default function ABTestDashboard() {
           <h1 className="text-2xl font-bold text-gray-900 mb-4">
             A/Bテスト管理画面
           </h1>
-          <p className="text-gray-600 mb-6">管理者権限が必要です</p>
+          <p className="text-gray-600 mb-6">ログインが必要です</p>
           <Link href="/" className="text-blue-600 hover:text-blue-800">
             ホームに戻る
           </Link>
@@ -107,6 +115,11 @@ export default function ABTestDashboard() {
       </div>
     )
   }
+
+  // デバッグ情報表示
+  console.log('現在のセッション:', session?.user?.email)
+  console.log('A/Bテスト数:', abTests.length)
+  console.log('ローディング状態:', loading)
 
   return (
     <div className="min-h-screen bg-gray-50">

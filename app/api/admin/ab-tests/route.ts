@@ -20,24 +20,33 @@ async function checkAdminPermission(session: any) {
 // A/Bテスト設定一覧取得
 export async function GET(request: NextRequest) {
   try {
+    console.log('A/Bテスト取得API開始')
     const session = await getServerSession()
+    console.log('セッション取得:', session?.user?.email)
     
     if (!await checkAdminPermission(session)) {
+      console.log('管理者権限チェック失敗')
       return NextResponse.json({ error: '管理者権限が必要です' }, { status: 403 })
     }
 
+    console.log('Supabaseからデータ取得開始')
     const { data: tests, error } = await supabase
       .from('prompt_ab_test_config')
       .select('*')
       .order('created_at', { ascending: false })
 
+    console.log('Supabaseクエリ結果:', { tests: tests?.length, error })
+
     if (error) throw error
 
-    return NextResponse.json({ tests })
+    return NextResponse.json({ tests: tests || [] })
 
   } catch (error) {
     console.error('A/Bテスト取得エラー:', error)
-    return NextResponse.json({ error: 'A/Bテスト設定の取得に失敗しました' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'A/Bテスト設定の取得に失敗しました',
+      details: error instanceof Error ? error.message : 'Unknown error'
+    }, { status: 500 })
   }
 }
 
