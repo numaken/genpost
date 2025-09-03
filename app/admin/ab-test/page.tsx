@@ -33,17 +33,11 @@ export default function ABTestDashboard() {
   const fetchABTests = useCallback(async () => {
     try {
       setLoading(true)
-      console.log('A/Bテスト取得開始...')
       
-      // A/Bテスト設定を取得
       const response = await fetch('/api/admin/ab-tests')
-      console.log('API応答ステータス:', response.status)
-      
       const data = await response.json()
-      console.log('取得データ:', data)
       
       if (response.ok) {
-        console.log('テスト数:', data.tests?.length || 0)
         setABTests(data.tests || [])
         
         // 統計は後でAPIから取得するようにする（一旦スキップ）
@@ -51,7 +45,7 @@ export default function ABTestDashboard() {
         // TODO: 統計データをAPIから取得する実装を追加
         setStats(statsData)
       } else {
-        console.error('API エラー:', data.error)
+        console.error('A/Bテスト取得エラー:', data.error)
       }
     } catch (error) {
       console.error('A/Bテスト取得エラー:', error)
@@ -119,10 +113,6 @@ export default function ABTestDashboard() {
     )
   }
 
-  // デバッグ情報表示
-  console.log('現在のセッション:', session?.user?.email)
-  console.log('A/Bテスト数:', abTests.length)
-  console.log('ローディング状態:', loading)
 
   return (
     <div className="min-h-screen bg-gray-50">
