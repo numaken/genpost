@@ -1,0 +1,59 @@
+name: CI (lint & package)
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  php-lint-phpcs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # PHPセットアップ
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, intl, json
+          tools: composer
+
+      # Composer があるなら依存導入（なければスキップ）
+      - name: Install dev tools
+        run: |
+          if [ -f composer.json ]; then
+            composer install --no-interaction --no-progress
+          else
+            echo '{"require-dev":{"wp-coding-standards/wpcs":"^3","dealerdirect/phpcodesniffer-composer-installer":"^1.0","phpcompatibility/php-compatibility":"*","phpcompatibility/phpcompatibility-wp":"*"},"scripts":{"lint":"phpcs","fix":"phpcbf"}}' > composer.json
+            composer install --no-interaction --no-progress
+          fi
+
+      # PHP構文チェック（致命的な文法エラー検出）
+      - name: PHP syntax check
+        run: |
+          find . -type f -name "*.php" -not -path "./vendor/*" -not -path "./node_modules/*" -print0 \
+          | xargs -0 -n1 -P4 php -l
+
+      # WordPress Coding Standards
+      - name: Run PHPCS (WPCS)
+        run: |
+          if [ -f phpcs.xml ]; then
+            vendor/bin/phpcs
+          else
+            vendor/bin/phpcs --standard=WordPress --ignore=vendor,node_modules .
+          fi
+
+  package-zip:
+    runs-on: ubuntu-latest
+    needs: php-lint-phpcs
+    steps:
+      - uses: actions/checkout@v4
+      - name: Make plugin zip
+        run: |
+          PLUG="$(basename $GITHUB_WORKSPACE)"
+          mkdir -p artifact
+          zip -r "artifact/${PLUG}.zip" . \
+            -x ".git/*" "node_modules/*" "vendor/*" ".github/*" "*.DS_Store" "tests/*" "coverage/*"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugin-zip
+          path: artifact/*.zip
