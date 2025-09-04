@@ -11,12 +11,15 @@ export const PLAN_LIMITS = {
     maxSharedApiArticles: 5, 
     dailyLimit: 1, 
     maxSites: 1, 
+    seats: 1,
+    softCap: false,
     name: 'フリープラン' 
   },
   starter: { 
     maxSharedApiArticles: 30, 
     dailyLimit: 1, 
     maxSites: 2, 
+    seats: 1,
     softCap: true,
     name: 'スターター' 
   },
@@ -24,6 +27,7 @@ export const PLAN_LIMITS = {
     maxSharedApiArticles: 120, 
     dailyLimit: 5, 
     maxSites: 5, 
+    seats: 1,
     softCap: true,
     name: 'プロプラン' 
   },
