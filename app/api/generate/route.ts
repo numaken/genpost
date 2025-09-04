@@ -1,3 +1,4 @@
+import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import OpenAI from 'openai'
@@ -7,6 +8,11 @@ import { canUseSharedApiKey, incrementUsage } from '@/lib/usage-limits'
 import { getPromptVersion, recordABTestResult, calculateQualityScore } from '@/lib/prompt-versions'
 import { isDuplicate, saveEmbedding, slugify } from '@/lib/dedup'
 import { createClient } from '@supabase/supabase-js'
+
+// Runtime configuration for security
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic' // キャッシュ抑止
+export const maxDuration = 60 // Vercel実行時間上限
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
