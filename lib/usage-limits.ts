@@ -67,13 +67,15 @@ export async function getUserCurrentUsage(userId: string): Promise<UserUsage> {
   
   if (error) throw error
   
-  const usage = data[0] || { shared_api_count: 0, user_api_count: 0, total_count: 0 }
+  const usage = data[0] || { shared_api_count: 0, user_api_count: 0, total_count: 0, daily_count: 0, current_date: new Date().toISOString().split('T')[0] }
   
   return {
     sharedApiCount: usage.shared_api_count,
     userApiCount: usage.user_api_count,
     totalCount: usage.total_count,
-    currentMonth: usage.current_month
+    currentMonth: usage.current_month,
+    dailyCount: usage.daily_count || 0,
+    currentDate: usage.current_date || new Date().toISOString().split('T')[0]
   }
 }
 
@@ -88,16 +90,24 @@ export async function getUserSubscription(userId: string): Promise<UserSubscript
   
   if (error || !data) {
     // サブスクリプションが存在しない場合はフリープランとして扱う
+    const freeLimits = PLAN_LIMITS.free
     return {
       planType: 'free',
-      maxSharedApiArticles: PLAN_LIMITS.free.maxSharedApiArticles,
+      maxSharedApiArticles: freeLimits.maxSharedApiArticles,
+      dailyLimit: freeLimits.dailyLimit,
+      maxSites: freeLimits.maxSites,
       isActive: true
     }
   }
   
+  const planLimits = PLAN_LIMITS[data.plan_type as PlanType]
   return {
     planType: data.plan_type as PlanType,
     maxSharedApiArticles: data.max_shared_api_articles,
+    dailyLimit: data.daily_limit || planLimits.dailyLimit,
+    maxSites: data.max_sites || planLimits.maxSites,
+    seats: data.seats || planLimits.seats,
+    softCap: data.soft_cap || planLimits.softCap,
     isActive: data.is_active,
     endsAt: data.ends_at
   }
