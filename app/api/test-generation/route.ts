@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
     const { promptId, inputs, useImproved = false } = body
 
     // 改良版を使用する場合
-    let systemPrompt, userPromptTemplate, genConfig
+    let systemPrompt, userPromptTemplate, genConfig, promptName
     
     console.log('Debug:', { useImproved, promptId, hasImprovedPrompt: !!(IMPROVED_PROMPTS as any)[promptId] })
     
@@ -156,6 +156,7 @@ export async function POST(request: NextRequest) {
       systemPrompt = improvedPrompt.system_prompt
       userPromptTemplate = improvedPrompt.user_prompt_template
       genConfig = improvedPrompt.gen_config
+      promptName = `改良版: ${promptId}`
     } else {
       console.log('Using original prompt for:', promptId)
       // 通常版プロンプト取得
@@ -166,6 +167,7 @@ export async function POST(request: NextRequest) {
       systemPrompt = prompt.system_prompt
       userPromptTemplate = prompt.user_prompt_template
       genConfig = prompt.gen_config || {}
+      promptName = prompt.name
     }
 
     // OpenAI クライアント初期化
@@ -180,7 +182,7 @@ export async function POST(request: NextRequest) {
     const completion = await openai.chat.completions.create({
       model: genConfig.model || 'gpt-3.5-turbo',
       messages: [
-        { role: 'system', content: prompt.system_prompt },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: processedUserPrompt }
       ],
       temperature: genConfig.temperature || 0.5,
@@ -195,7 +197,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       promptId,
-      promptName: useImproved ? `改良版: ${promptId}` : prompt?.name || promptId,
+      promptName,
       systemPrompt,
       userPrompt: processedUserPrompt,
       generatedContent: rawContent,
