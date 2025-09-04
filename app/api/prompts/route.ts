@@ -13,8 +13,24 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url)
     const page = Math.max(parseInt(searchParams.get('page') ?? '1', 10), 1)
     const limit = Math.min(Math.max(parseInt(searchParams.get('limit') ?? '30', 10), 1), 100)
+    const debug = searchParams.get('debug') === '1'
     const from = (page - 1) * limit
     const to = from + limit - 1
+
+    // デバッグ情報
+    if (debug) {
+      const { data: debugCount } = await supabase
+        .from('prompts')
+        .select('*', { count: 'exact', head: true })
+        .eq('is_active', true)
+      
+      return NextResponse.json({
+        debug: true,
+        supabaseHost: process.env.NEXT_PUBLIC_SUPABASE_URL?.split('//')[1]?.split('.')[0] || 'unknown',
+        activeCount: debugCount || 0,
+        requestParams: { page, limit, from, to }
+      })
+    }
 
     // 公開分のみ（未ログインでもOK） + 件数
     const { data, error, count } = await supabase
@@ -63,8 +79,16 @@ export async function GET(req: NextRequest) {
       created_at: p.created_at
     }))
 
+    // 既存UI互換のため、古い形式とあわせて新しい形式も返す
     return NextResponse.json(
-      { items, data: items, total: count ?? items.length, page, limit },
+      { 
+        items, 
+        data: items, 
+        prompts: items,  // 既存のUI互換用
+        total: count ?? items.length, 
+        page, 
+        limit 
+      },
       { status: 200, headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate' } }
     )
   } catch (e: any) {
