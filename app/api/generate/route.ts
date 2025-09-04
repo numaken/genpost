@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
         const usingSharedApiKey = !userApiKey
         
         if (usingSharedApiKey) {
-          const usageCheck = await canUseSharedApiKey(userId, userApiKey)
+          const usageCheck = await canUseSharedApiKey(userId, userApiKey || undefined)
           if (!usageCheck.canUse) {
             return NextResponse.json({ 
               error: usageCheck.reason || '共有APIキーの使用制限に達しました',
