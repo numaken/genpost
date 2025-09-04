@@ -146,7 +146,7 @@ export default function PricingTable() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
         {plans.map((plan) => (
           <div
             key={plan.id}
@@ -164,7 +164,7 @@ export default function PricingTable() {
               </div>
             )}
 
-            <div className="text-center">
+            <div className="text-center flex flex-col h-full">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 {plan.name}
               </h3>
