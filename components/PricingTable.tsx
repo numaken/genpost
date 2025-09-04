@@ -150,7 +150,7 @@ export default function PricingTable() {
         {plans.map((plan) => (
           <div
             key={plan.id}
-            className={`relative rounded-lg border-2 p-6 ${
+            className={`relative rounded-lg border-2 p-6 flex flex-col h-full ${
               plan.popular 
                 ? 'border-green-500 bg-green-50 transform scale-105' 
                 : 'border-gray-200 bg-white'
@@ -191,7 +191,7 @@ export default function PricingTable() {
                 <div className="text-sm text-gray-500">月間生成可能記事数</div>
               </div>
 
-              <ul className="text-left space-y-3 mb-6">
+              <ul className="text-left space-y-3 mb-6 flex-grow">
                 {plan.features.map((feature, index) => (
                   <li key={index} className="flex items-start">
                     <svg className="w-4 h-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -202,12 +202,14 @@ export default function PricingTable() {
                 ))}
               </ul>
 
-              <button
-                onClick={() => handlePlanSelect(plan.id)}
-                className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${plan.buttonColor}`}
-              >
-                {plan.buttonText}
-              </button>
+              <div className="mt-auto">
+                <button
+                  onClick={() => handlePlanSelect(plan.id)}
+                  className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${plan.buttonColor}`}
+                >
+                  {plan.buttonText}
+                </button>
+              </div>
             </div>
           </div>
         ))}
