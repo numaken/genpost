@@ -5,13 +5,36 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// プランの制限設定
+// プランの制限設定（現実的な月間上限に調整）
 export const PLAN_LIMITS = {
-  free: { maxSharedApiArticles: 5, name: 'フリープラン' },
-  lite: { maxSharedApiArticles: 15, name: 'ライトプラン' },
-  standard: { maxSharedApiArticles: 30, name: 'スタンダードプラン' },
-  pro: { maxSharedApiArticles: 100, name: 'プロプラン' },
-  enterprise: { maxSharedApiArticles: 999999, name: 'エンタープライズプラン' }
+  free: { 
+    maxSharedApiArticles: 5, 
+    dailyLimit: 1, 
+    maxSites: 1, 
+    name: 'フリープラン' 
+  },
+  starter: { 
+    maxSharedApiArticles: 30, 
+    dailyLimit: 1, 
+    maxSites: 2, 
+    softCap: true,
+    name: 'スターター' 
+  },
+  pro: { 
+    maxSharedApiArticles: 120, 
+    dailyLimit: 5, 
+    maxSites: 5, 
+    softCap: true,
+    name: 'プロプラン' 
+  },
+  agency: { 
+    maxSharedApiArticles: 500, 
+    dailyLimit: 20, 
+    maxSites: 20, 
+    seats: 5,
+    softCap: true,
+    name: 'エージェンシー' 
+  }
 } as const
 
 export type PlanType = keyof typeof PLAN_LIMITS
@@ -21,11 +44,17 @@ export interface UserUsage {
   userApiCount: number
   totalCount: number
   currentMonth: string
+  dailyCount: number
+  currentDate: string
 }
 
 export interface UserSubscription {
   planType: PlanType
   maxSharedApiArticles: number
+  dailyLimit: number
+  maxSites: number
+  seats?: number
+  softCap?: boolean
   isActive: boolean
   endsAt?: string
 }
@@ -74,12 +103,13 @@ export async function getUserSubscription(userId: string): Promise<UserSubscript
   }
 }
 
-// 共有APIキーでの生成が可能かチェック
-export async function canUseSharedApiKey(userId: string): Promise<{
+// 共有APIキーでの生成が可能かチェック（デイリー制限とソフトキャップ対応）
+export async function canUseSharedApiKey(userId: string, userApiKey?: string): Promise<{
   canUse: boolean
   reason?: string
   usage?: UserUsage
   subscription?: UserSubscription
+  bypassLimits?: boolean
 }> {
   try {
     const [usage, subscription] = await Promise.all([
@@ -87,10 +117,37 @@ export async function canUseSharedApiKey(userId: string): Promise<{
       getUserSubscription(userId)
     ])
     
-    if (usage.sharedApiCount >= subscription.maxSharedApiArticles) {
+    // BYOK（ユーザー自身のAPIキー）が設定されている場合は制限を緩和
+    if (userApiKey) {
+      return {
+        canUse: true,
+        usage,
+        subscription,
+        bypassLimits: true
+      }
+    }
+    
+    // デイリー制限チェック
+    if (usage.dailyCount >= subscription.dailyLimit) {
       return {
         canUse: false,
-        reason: `${subscription.maxSharedApiArticles}記事/月の制限に達しました。ユーザーAPIキーを設定するか、プランをアップグレードしてください。`,
+        reason: `デイリー上限${subscription.dailyLimit}記事/日に達しました。明日まで再試行してください。`,
+        usage,
+        subscription
+      }
+    }
+    
+    // 月間制限チェック（ソフトキャップ考慮）
+    const softCapLimit = subscription.softCap 
+      ? Math.floor(subscription.maxSharedApiArticles * 1.1) // +10%
+      : subscription.maxSharedApiArticles
+      
+    if (usage.sharedApiCount >= softCapLimit) {
+      return {
+        canUse: false,
+        reason: subscription.softCap 
+          ? `月間上限${subscription.maxSharedApiArticles}記事+ソフトキャップ10%の制限に達しました。ユーザーAPIキーを設定するか、プランをアップグレードしてください。`
+          : `${subscription.maxSharedApiArticles}記事/月の制限に達しました。ユーザーAPIキーを設定するか、プランをアップグレードしてください。`,
         usage,
         subscription
       }

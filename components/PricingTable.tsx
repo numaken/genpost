@@ -24,7 +24,7 @@ const plans: PricingPlan[] = [
     maxArticles: 5,
     features: [
       '月5記事まで生成可能',
-      '450+種類のプロンプト使用可能',
+      '2,880+種類のプロンプト使用可能',
       'WordPress自動投稿',
       '重複記事チェック',
       'コミュニティサポート'
@@ -33,80 +33,62 @@ const plans: PricingPlan[] = [
     buttonColor: 'bg-gray-500 hover:bg-gray-600'
   },
   {
-    id: 'lite',
-    name: 'ライトプラン',
-    price: 2980,
-    priceYearly: 29800,
-    maxArticles: 15,
+    id: 'starter',
+    name: 'スターター',
+    price: 2480,
+    priceYearly: 24800,
+    maxArticles: 25, // 20-30記事の中央値
     features: [
-      '月15記事まで生成可能',
-      '450+種類のプロンプト使用可能',
-      'WordPress自動投稿',
+      '月20-30記事まで生成可能（デイリー上限1本）',
+      '基本テンプレート使用可能',
+      'WordPress自動投稿（2サイト）',
       '重複記事チェック',
-      '予約投稿機能（7日間）',
+      'ソフトキャップ+10%（超過分翌月繰越可）',
+      'BYOK設定で上限緩和',
       'メールサポート'
     ],
-    buttonText: 'ライトプランを選ぶ',
+    buttonText: 'スタータープランを選ぶ',
     buttonColor: 'bg-blue-500 hover:bg-blue-600'
-  },
-  {
-    id: 'standard',
-    name: 'スタンダードプラン',
-    price: 4980,
-    priceYearly: 49800,
-    maxArticles: 30,
-    features: [
-      '月30記事まで生成可能',
-      '450+種類のプロンプト使用可能',
-      'WordPress自動投稿',
-      '重複記事チェック',
-      '予約投稿機能（30日間）',
-      '複数サイト管理（3サイト）',
-      '優先メールサポート'
-    ],
-    popular: true,
-    buttonText: 'スタンダードプランを選ぶ',
-    buttonColor: 'bg-green-500 hover:bg-green-600'
   },
   {
     id: 'pro',
     name: 'プロプラン',
-    price: 9800,
-    priceYearly: 98000,
-    maxArticles: 100,
+    price: 4980,
+    priceYearly: 49800,
+    maxArticles: 100, // 80-120記事の中央値
     features: [
-      '月100記事まで生成可能',
-      '450+種類のプロンプト使用可能',
-      'WordPress自動投稿',
+      '月80-120記事まで生成可能（デイリー上限5本）',
+      'カスタムプロンプト作成機能',
+      'WordPress自動投稿（5サイト）',
       '重複記事チェック',
-      '予約投稿機能（90日間）',
-      '複数サイト管理（10サイト）',
-      'GPT-4オプション利用可能',
-      '専用サポート（24時間以内返信）'
+      '予約投稿機能',
+      'ソフトキャップ+10%（超過分翌月繰越可）',
+      'BYOK設定で上限緩和',
+      '優先サポート'
     ],
+    popular: true,
     buttonText: 'プロプランを選ぶ',
-    buttonColor: 'bg-purple-500 hover:bg-purple-600'
+    buttonColor: 'bg-green-500 hover:bg-green-600'
   },
   {
-    id: 'enterprise',
-    name: 'エンタープライズプラン',
-    price: 19800,
-    priceYearly: 198000,
-    maxArticles: 999999,
+    id: 'agency',
+    name: 'エージェンシー',
+    price: 9800,
+    priceYearly: 98000,
+    maxArticles: 400, // 300-500記事の中央値
     features: [
-      '記事生成数無制限',
-      '450+種類のプロンプト使用可能',
-      'WordPress自動投稿',
+      '月300-500記事まで生成可能（デイリー上限20本）',
+      '5席まで利用可能',
+      'WordPress自動投稿（20サイト）',
       '重複記事チェック',
-      '予約投稿機能（無制限）',
-      '複数サイト管理（無制限）',
-      'GPT-4標準対応',
-      '専用カスタマーサクセス',
-      'API連携サポート',
-      '新機能優先アクセス'
+      '予約投稿機能',
+      'ソフトキャップ+10%（超過分翌月繰越可）',
+      'BYOK設定で上限緩和',
+      '従量アドオン対応',
+      '優先サポート（24時間以内返信）'
     ],
-    buttonText: 'エンタープライズプランを選ぶ',
-    buttonColor: 'bg-indigo-600 hover:bg-indigo-700'
+    buttonText: 'エージェンシープランを選ぶ',
+    buttonColor: 'bg-purple-500 hover:bg-purple-600'
   }
 ]
 

@@ -153,17 +153,18 @@ export async function POST(request: NextRequest) {
         // 使用履歴記録
         await recordPromptUsage(userId, promptId)
 
-        // 共有APIキーを使用する場合は制限をチェック
+        // APIキーと制限チェック
         const userApiKey = await getUserApiKey(userId, 'openai')
         const usingSharedApiKey = !userApiKey
         
         if (usingSharedApiKey) {
-          const usageCheck = await canUseSharedApiKey(userId)
+          const usageCheck = await canUseSharedApiKey(userId, userApiKey)
           if (!usageCheck.canUse) {
             return NextResponse.json({ 
               error: usageCheck.reason || '共有APIキーの使用制限に達しました',
               usage: usageCheck.usage,
-              subscription: usageCheck.subscription
+              subscription: usageCheck.subscription,
+              bypassWithBYOK: !usageCheck.bypassLimits
             }, { status: 403 })
           }
         }
