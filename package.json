@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "prebuild": "node scripts/require-env.mjs",
     "build": "next build",
+    "prestart": "node scripts/require-env.mjs",
     "start": "next start",
     "lint": "next lint"
   },
