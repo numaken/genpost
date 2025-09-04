@@ -4,17 +4,13 @@ import { getAllPrompts, getFreePrompts, hasUserPurchased } from '@/lib/prompts'
 
 export async function GET(request: NextRequest) {
   try {
-    // セッション取得
+    // セッション取得（任意）
     const session = await getServerSession()
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
-    }
+    const userId = session?.user?.email
 
     const { searchParams } = new URL(request.url)
     const filter = searchParams.get('filter') // 'free', 'purchased', 'all'
     const industry = searchParams.get('industry') // 業界フィルター
-    
-    const userId = session.user.email
 
     // 全プロンプトを取得
     let prompts = await getAllPrompts()
@@ -24,24 +20,34 @@ export async function GET(request: NextRequest) {
       prompts = prompts.filter(p => p.industry === industry)
     }
 
-    // 各プロンプトに購入状態を追加
-    const promptsWithStatus = await Promise.all(
-      prompts.map(async (prompt) => {
-        const purchased = await hasUserPurchased(userId, prompt.prompt_id)
-        return {
-          ...prompt,
-          purchased,
-          available: prompt.is_free || purchased
-        }
-      })
-    )
+    // ログイン済みの場合：購入状態を追加
+    // 未ログインの場合：基本情報のみ返す
+    const promptsWithStatus = userId ? 
+      await Promise.all(
+        prompts.map(async (prompt) => {
+          const purchased = await hasUserPurchased(userId, prompt.prompt_id)
+          return {
+            ...prompt,
+            purchased,
+            available: prompt.is_free || purchased
+          }
+        })
+      ) :
+      prompts.map(prompt => ({
+        ...prompt,
+        purchased: false,
+        available: prompt.is_free  // 未ログインは無料のみ利用可能
+      }))
 
     // フィルター適用
     let filteredPrompts = promptsWithStatus
     if (filter === 'free') {
       filteredPrompts = promptsWithStatus.filter(p => p.is_free)
     } else if (filter === 'purchased') {
-      // 購入済み = 有料で購入済みのプロンプトのみ（無料は除外）
+      // 購入済みフィルターはログイン必須
+      if (!userId) {
+        return NextResponse.json({ error: '購入済み確認にはログインが必要です' }, { status: 401 })
+      }
       filteredPrompts = promptsWithStatus.filter(p => !p.is_free && p.purchased)
     } else if (filter === 'available') {
       filteredPrompts = promptsWithStatus.filter(p => p.available)
