@@ -5,6 +5,13 @@ import { getPromptById, hasUserPurchased, recordPromptUsage, processPromptTempla
 import { getEffectiveApiKey, getUserApiKey } from '@/lib/api-keys'
 import { canUseSharedApiKey, incrementUsage } from '@/lib/usage-limits'
 import { getPromptVersion, recordABTestResult, calculateQualityScore } from '@/lib/prompt-versions'
+import { isDuplicate, saveEmbedding, slugify } from '@/lib/dedup'
+import { createClient } from '@supabase/supabase-js'
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 // 生成された記事からタイトルと本文を抽出・整形する関数
 function parseGeneratedArticle(rawContent: string, promptName: string): { title: string, content: string } {
@@ -194,48 +201,94 @@ export async function POST(request: NextRequest) {
         
         const generationTime = Date.now() - startTime
 
+        // 重複排除ループの実装
+        const MAX_RETRY = Number(process.env.REGEN_MAX || 5)
+        let title = ''
+        let content = ''
+        let finalRawContent = ''
+        let attempt = 0
         let rawContent = completion.choices[0].message.content?.trim() || ''
 
-        // 生成された記事からタイトルと内容を解析・抽出
-        console.log('Raw AI content:', rawContent)
-        console.log('Using prompt version:', promptVersion.version, promptVersion.version_name)
-        
-        const { title: extractedTitle, content: cleanContent } = parseGeneratedArticle(rawContent, promptVersion.version_name)
-        console.log('Extracted title:', extractedTitle)
-        console.log('Extracted content preview:', cleanContent.substring(0, 100) + '...')
+        while (attempt <= MAX_RETRY) {
+          // 生成された記事からタイトルと内容を解析・抽出
+          const parsed = parseGeneratedArticle(rawContent, promptVersion.version_name)
+          title = parsed.title
+          content = parsed.content
+          finalRawContent = rawContent
+          
+          // 主要キーワード抽出（プロンプトメタデータまたはタイトル先頭語）
+          const primaryKeyword = (promptVersion as any)?.metadata?.primaryKeyword || 
+                                  title.split(/\s+/)[0] || ''
+          
+          // 重複チェック（語句+意味類似）
+          const dupCheck = await isDuplicate(userId, title, primaryKeyword)
+          
+          if (!dupCheck.dup) {
+            console.log(`記事生成成功 (試行${attempt + 1}/${MAX_RETRY + 1}):`, title)
+            
+            // 記事をデータベースに保存（embedding付き）
+            try {
+              const { data: article } = await supabase
+                .from('articles')
+                .insert({
+                  user_id: userId,
+                  title,
+                  slug: slugify(title),
+                  markdown: content,
+                  meta: { primaryKeyword, promptId, promptVersion: promptVersion.version }
+                })
+                .select()
+                .single()
+              
+              if (article) {
+                await saveEmbedding(userId, article.id, title, primaryKeyword)
+              }
+            } catch (dbError) {
+              console.warn('DB保存エラー（処理継続）:', dbError)
+            }
+            
+            break
+          }
+
+          attempt++
+          if (attempt > MAX_RETRY) {
+            console.warn(`重複回避失敗 (${MAX_RETRY + 1}回試行):`, title, `類似度: ${dupCheck.sim || 0}`)
+            break
+          }
+
+          // 再生成のための回避指示
+          const avoidanceInstruction = `\n\n【重要】以下のテーマ・キーワードは避けて、異なる角度から記事を作成してください: "${title}"`
+          const modifiedUserPrompt = processedUserPrompt + avoidanceInstruction
+
+          console.log(`重複検出、再生成中 (試行${attempt + 1}/${MAX_RETRY + 1}):`, title)
+
+          // 再生成
+          const regenCompletion = await userOpenAI.chat.completions.create({
+            model: genConfig.model || 'gpt-3.5-turbo',
+            messages: [
+              { role: 'system', content: promptVersion.system_prompt },
+              { role: 'user', content: modifiedUserPrompt }
+            ],
+            temperature: Math.min(genConfig.temperature + 0.1, 1.0), // 創造性を少し上げる
+            max_tokens: genConfig.max_tokens || 2000,
+            top_p: genConfig.top_p || 0.9,
+            presence_penalty: genConfig.presence_penalty || 0.1,
+            frequency_penalty: genConfig.frequency_penalty || 0.1
+          })
+
+          rawContent = regenCompletion.choices[0].message.content?.trim() || ''
+        }
+
+        console.log('最終タイトル:', title)
+        console.log('最終コンテンツプレビュー:', content.substring(0, 100) + '...')
         
         // 品質スコア計算（A/Bテスト用）
-        const qualityScore = await calculateQualityScore(rawContent, promptVersion.quality_settings)
-
-        // 重複チェック: 同じタイトルの記事が存在するかチェック
-        const duplicateCheckUrl = `${config.wpSiteUrl}/wp-json/wp/v2/posts?search=${encodeURIComponent(extractedTitle)}&per_page=5`
-        const duplicateResponse = await fetch(duplicateCheckUrl, {
-          headers: {
-            'Authorization': `Basic ${Buffer.from(`${config.wpUser}:${config.wpAppPass}`).toString('base64')}`,
-          }
-        })
-
-        if (duplicateResponse.ok) {
-          const existingPosts = await duplicateResponse.json()
-          const duplicateFound = existingPosts.some((post: any) => 
-            post.title.rendered.toLowerCase().trim() === extractedTitle.toLowerCase().trim()
-          )
-
-          if (duplicateFound) {
-            console.log(`Duplicate title found, skipping: ${extractedTitle}`)
-            articles.push({
-              title: extractedTitle,
-              status: 'skipped',
-              reason: '同じタイトルの記事が既に存在します'
-            })
-            continue
-          }
-        }
+        const qualityScore = await calculateQualityScore(finalRawContent, promptVersion.quality_settings)
 
         // 予約投稿の場合、各記事の投稿日時を計算
         let postData: any = {
-          title: extractedTitle,
-          content: cleanContent,
+          title: title,
+          content: content,
           status: postStatus === 'scheduled' ? 'future' : postStatus,
           categories: [parseInt(config.categoryId) || 1],
           meta: {
@@ -274,13 +327,13 @@ export async function POST(request: NextRequest) {
             user_id: userId,
             prompt_id: promptId,
             version_used: promptVersion.version,
-            article_generated: rawContent,
+            article_generated: finalRawContent,
             generation_time_ms: generationTime,
             quality_score: qualityScore,
             metrics: {
-              title_extracted: !!extractedTitle,
-              content_length: cleanContent.length,
-              has_structure: rawContent.includes('##'),
+              title_extracted: !!title,
+              content_length: content.length,
+              has_structure: finalRawContent.includes('##'),
               wordpress_post_id: wpData.id
             }
           })

@@ -24,11 +24,16 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# local env files
-.env*.local
+# local env files - SECURITY: All env files excluded
+.env*
 
 # vercel
 .vercel
+
+# logs
+*.log
+coverage/
+dist/
 
 # typescript
 *.tsbuildinfo

@@ -6,17 +6,22 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// 暗号化キー（環境変数から取得）
-const ENCRYPTION_KEY = process.env.API_KEY_ENCRYPTION_SECRET || 'default-secret-key-change-in-production'
+// 暗号化キー（環境変数から必須取得）
+const ENCRYPTION_KEY = process.env.API_KEY_ENCRYPTION_SECRET
+
+// セキュリティチェック：暗号化キーが必須
+if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length < 16) {
+  throw new Error('API_KEY_ENCRYPTION_SECRET is required and must be >=16 chars')
+}
 
 // APIキーを暗号化
 function encryptApiKey(apiKey: string): string {
-  return CryptoJS.AES.encrypt(apiKey, ENCRYPTION_KEY).toString()
+  return CryptoJS.AES.encrypt(apiKey, ENCRYPTION_KEY!).toString()
 }
 
 // APIキーを復号化
 function decryptApiKey(encryptedApiKey: string): string {
-  const bytes = CryptoJS.AES.decrypt(encryptedApiKey, ENCRYPTION_KEY)
+  const bytes = CryptoJS.AES.decrypt(encryptedApiKey, ENCRYPTION_KEY!)
   return bytes.toString(CryptoJS.enc.Utf8)
 }
 
