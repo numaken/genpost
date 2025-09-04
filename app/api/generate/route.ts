@@ -8,6 +8,7 @@ import { canUseSharedApiKey, incrementUsage } from '@/lib/usage-limits'
 import { getPromptVersion, recordABTestResult, calculateQualityScore } from '@/lib/prompt-versions'
 import { isDuplicate, saveEmbedding, slugify } from '@/lib/dedup'
 import { createClient } from '@supabase/supabase-js'
+import { redact } from '@/lib/redact'
 
 // Runtime configuration for security
 export const runtime = 'nodejs'
@@ -107,15 +108,28 @@ function parseGeneratedArticle(rawContent: string, promptName: string): { title:
 }
 
 export async function POST(request: NextRequest) {
+  // Kill switch for emergency stop
+  if (process.env.DISABLE_GENERATION === 'true') {
+    return NextResponse.json({ error: 'temporarily_disabled' }, { status: 503 })
+  }
+  
+  // Feature flags
+  const USE_DEDUP = process.env.FEATURE_DEDUP !== 'false' // 既定ON
+  
+  let session: any // スコープ拡大（エラーハンドラーで使用）
+  let promptId: string | undefined
+  
   try {
     // セッション取得
-    const session = await getServerSession()
+    session = await getServerSession()
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
     }
 
     const body = await request.json()
-    const { config, promptId, count, postStatus = 'draft', scheduledStartDate, scheduledInterval = 1, inputs } = body
+    const params = body
+    promptId = params.promptId
+    const { config, count, postStatus = 'draft', scheduledStartDate, scheduledInterval = 1, inputs } = params
 
     if (!config.wpSiteUrl || !config.wpUser || !config.wpAppPass) {
       return NextResponse.json({ error: 'WordPress設定が不完全です' }, { status: 400 })
@@ -124,10 +138,10 @@ export async function POST(request: NextRequest) {
     const userId = session.user.email
 
     // プロンプトバージョン取得（A/Bテスト対応）
-    let promptVersion = await getPromptVersion(promptId, userId)
+    let promptVersion = await getPromptVersion(promptId!, userId)
     if (!promptVersion) {
       // フォールバック: 従来版プロンプト取得
-      const prompt = await getPromptById(promptId)
+      const prompt = await getPromptById(promptId!)
       if (!prompt) {
         return NextResponse.json({ error: '無効なプロンプトです' }, { status: 400 })
       }
@@ -147,9 +161,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 購入確認（従来版との互換性のため）
-    const originalPrompt = await getPromptById(promptId)
+    const originalPrompt = await getPromptById(promptId!)
     if (originalPrompt) {
-      const canUse = originalPrompt.is_free || await hasUserPurchased(userId, promptId)
+      const canUse = originalPrompt.is_free || await hasUserPurchased(userId, promptId!)
       if (!canUse) {
         return NextResponse.json({ error: 'このプロンプトは購入されていません' }, { status: 403 })
       }
@@ -164,7 +178,7 @@ export async function POST(request: NextRequest) {
     for (let i = 0; i < count; i++) {
       try {
         // 使用履歴記録
-        await recordPromptUsage(userId, promptId)
+        await recordPromptUsage(userId, promptId!)
 
         // APIキーと制限チェック
         const userApiKey = await getUserApiKey(userId, 'openai')
@@ -226,8 +240,10 @@ export async function POST(request: NextRequest) {
           const primaryKeyword = (promptVersion as any)?.metadata?.primaryKeyword || 
                                   title.split(/\s+/)[0] || ''
           
-          // 重複チェック（語句+意味類似）
-          const dupCheck = await isDuplicate(userId, title, primaryKeyword)
+          // 重複チェック（語句+意味類似）- フィーチャーフラグで制御
+          const dupCheck = USE_DEDUP 
+            ? await isDuplicate(userId, title, primaryKeyword)
+            : { dup: false, sim: 0 }
           
           if (!dupCheck.dup) {
             console.log(`記事生成成功 (試行${attempt + 1}/${MAX_RETRY + 1}):`, title)
@@ -331,7 +347,7 @@ export async function POST(request: NextRequest) {
           // A/Bテスト結果を記録
           await recordABTestResult({
             user_id: userId,
-            prompt_id: promptId,
+            prompt_id: promptId!,
             version_used: promptVersion.version,
             article_generated: finalRawContent,
             generation_time_ms: generationTime,
@@ -394,8 +410,12 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString()
     })
 
-  } catch (error) {
-    console.error('Generation error:', error)
-    return NextResponse.json({ error: '記事生成中にエラーが発生しました' }, { status: 500 })
+  } catch (error: any) {
+    console.error('[gen:error]', {
+      msg: redact(error?.message || String(error)),
+      stack: redact(error?.stack || ''),
+      ctx: { userId: session?.user?.email, promptId } // PIIは入れない
+    })
+    return NextResponse.json({ error: 'generation_failed' }, { status: 500 })
   }
 }
