@@ -148,11 +148,11 @@ export async function POST(request: NextRequest) {
     // 改良版を使用する場合
     let systemPrompt, userPromptTemplate, genConfig
     
-    console.log('Debug:', { useImproved, promptId, hasImprovedPrompt: !!IMPROVED_PROMPTS[promptId] })
+    console.log('Debug:', { useImproved, promptId, hasImprovedPrompt: !!(IMPROVED_PROMPTS as any)[promptId] })
     
-    if (useImproved && IMPROVED_PROMPTS[promptId]) {
+    if (useImproved && (IMPROVED_PROMPTS as any)[promptId]) {
       console.log('Using improved prompt for:', promptId)
-      const improvedPrompt = IMPROVED_PROMPTS[promptId]
+      const improvedPrompt = (IMPROVED_PROMPTS as any)[promptId]
       systemPrompt = improvedPrompt.system_prompt
       userPromptTemplate = improvedPrompt.user_prompt_template
       genConfig = improvedPrompt.gen_config
