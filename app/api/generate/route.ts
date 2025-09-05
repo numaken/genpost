@@ -119,7 +119,7 @@ export async function POST(request: NextRequest) {
   const USE_DEDUP = process.env.FEATURE_DEDUP !== 'false' // 既定ON
   
   let session: any // スコープ拡大（エラーハンドラーで使用）
-  let promptId: string | undefined
+  let promptId: string | undefined = 'v2-keywords' // v2では固定値
   
   try {
     // セッション取得
@@ -198,7 +198,7 @@ export async function POST(request: NextRequest) {
     const articles = []
 
     // プロンプトテンプレート処理
-    const processedUserPrompt = processPromptTemplate(promptVersion.user_prompt_template, inputs || {})
+    const processedUserPrompt = processPromptTemplate(promptVersion.user_prompt_template, { keywords: keywords || '' })
 
     // 指定された記事数分生成
     for (let i = 0; i < count; i++) {
