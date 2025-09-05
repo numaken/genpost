@@ -21,12 +21,14 @@ interface WordPressSite {
 
 interface Generation {
   id: string
-  promptId: string
-  promptName: string
+  keywords?: string
+  engine?: string
   count: number
   status: 'pending' | 'generating' | 'completed' | 'error'
   articles: any[]
   createdAt: string
+  success?: boolean
+  message?: string
 }
 
 export default function Home() {
@@ -90,10 +92,23 @@ export default function Home() {
       const result = await response.json()
       
       if (response.ok) {
-        setGenerations(prev => [result, ...prev])
-        alert(`${articleCount}記事の生成が完了しました！`)
+        // APIレスポンスを表示用のGeneration形式に変換
+        const generation: Generation = {
+          id: Date.now().toString(),
+          keywords: promptInputs.keywords,
+          engine: result.engine || 'v2-8plus1-simple',
+          count: articleCount,
+          status: result.success ? 'completed' : 'error',
+          articles: result.articles || [],
+          createdAt: new Date().toISOString(),
+          success: result.success,
+          message: result.message
+        }
+        
+        setGenerations(prev => [generation, ...prev])
+        alert(result.message || `${articleCount}記事の生成が完了しました！`)
       } else {
-        alert(`エラー: ${result.error}`)
+        alert(`エラー: ${result.error || result.message}`)
       }
     } catch (error) {
       alert('生成中にエラーが発生しました')
@@ -404,8 +419,15 @@ export default function Home() {
                 <div key={gen.id} className="p-6 border border-gray-200 rounded-xl hover:shadow-md transition-shadow">
                   <div className="flex justify-between items-center">
                     <div>
-                      <span className="font-semibold text-gray-800">{gen.promptName || gen.promptId}</span>
+                      <span className="font-semibold text-gray-800">
+                        {gen.keywords || gen.engine || 'AI記事生成'}
+                      </span>
                       <span className="ml-3 text-gray-500">({gen.count}記事)</span>
+                      {gen.engine && (
+                        <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">
+                          {gen.engine}
+                        </span>
+                      )}
                     </div>
                     <div className={`px-4 py-2 rounded-full text-sm font-medium ${
                       gen.status === 'completed' 
@@ -419,7 +441,12 @@ export default function Home() {
                     </div>
                   </div>
                   <div className="text-sm text-gray-500 mt-3">
-                    {new Date(gen.createdAt).toLocaleString('ja-JP')}
+                    {gen.createdAt ? new Date(gen.createdAt).toLocaleString('ja-JP') : '日時不明'}
+                    {gen.message && (
+                      <div className="mt-1 text-xs text-gray-400">
+                        {gen.message}
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
