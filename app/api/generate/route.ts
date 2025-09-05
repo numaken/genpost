@@ -161,12 +161,21 @@ export async function POST(request: NextRequest) {
     }
 
     // 購入確認（従来版との互換性のため）
-    const originalPrompt = await getPromptById(promptId!)
-    if (originalPrompt) {
-      const canUse = originalPrompt.is_free || await hasUserPurchased(userId, promptId!)
-      if (!canUse) {
-        return NextResponse.json({ error: 'このプロンプトは購入されていません' }, { status: 403 })
+    try {
+      const originalPrompt = await getPromptById(promptId!)
+      if (originalPrompt) {
+        const canUse = originalPrompt.is_free || await hasUserPurchased(userId, promptId!)
+        if (!canUse) {
+          return NextResponse.json({ 
+            error: 'このプロンプトは購入されていません',
+            error_code: 'NOT_PURCHASED',
+            prompt_id: promptId
+          }, { status: 403 })
+        }
       }
+    } catch (purchaseCheckError) {
+      console.error('Purchase check error:', purchaseCheckError)
+      // フォールバック：無料プロンプトとして扱う
     }
 
     const articles = []
@@ -185,14 +194,24 @@ export async function POST(request: NextRequest) {
         const usingSharedApiKey = !userApiKey
         
         if (usingSharedApiKey) {
-          const usageCheck = await canUseSharedApiKey(userId, userApiKey || undefined)
-          if (!usageCheck.canUse) {
+          try {
+            const usageCheck = await canUseSharedApiKey(userId, userApiKey || undefined)
+            if (!usageCheck.canUse) {
+              return NextResponse.json({ 
+                error: usageCheck.reason || '共有APIキーの使用制限に達しました',
+                error_code: 'USAGE_LIMIT_EXCEEDED',
+                usage: usageCheck.usage,
+                subscription: usageCheck.subscription,
+                bypassWithBYOK: !usageCheck.bypassLimits
+              }, { status: 403 })
+            }
+          } catch (usageCheckError) {
+            console.error('Usage check error:', usageCheckError)
             return NextResponse.json({ 
-              error: usageCheck.reason || '共有APIキーの使用制限に達しました',
-              usage: usageCheck.usage,
-              subscription: usageCheck.subscription,
-              bypassWithBYOK: !usageCheck.bypassLimits
-            }, { status: 403 })
+              error: '使用制限の確認に失敗しました',
+              error_code: 'USAGE_CHECK_FAILED',
+              message: usageCheckError instanceof Error ? usageCheckError.message : String(usageCheckError)
+            }, { status: 500 })
           }
         }
 

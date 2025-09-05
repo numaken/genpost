@@ -81,14 +81,22 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'サイトIDが必要です' }, { status: 400 })
     }
 
-    const site = await updateWordPressSite(session.user.email, site_id, updateData)
-
-    return NextResponse.json({ site })
+    try {
+      const site = await updateWordPressSite(session.user.email, site_id, updateData)
+      return NextResponse.json({ site })
+    } catch (updateError) {
+      console.error('WordPress site update function error:', updateError)
+      return NextResponse.json({ 
+        error: updateError instanceof Error ? updateError.message : 'サイトの更新に失敗しました',
+        details: updateError instanceof Error ? updateError.stack : undefined
+      }, { status: 500 })
+    }
 
   } catch (error) {
     console.error('WordPress site update error:', error)
     return NextResponse.json({ 
-      error: error instanceof Error ? error.message : 'サイトの更新に失敗しました' 
+      error: error instanceof Error ? error.message : 'サイトの更新に失敗しました',
+      message: error instanceof Error ? error.message : String(error)
     }, { status: 500 })
   }
 }

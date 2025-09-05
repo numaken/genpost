@@ -142,6 +142,9 @@ export default function ApiKeyManager() {
         </div>
 
         <form onSubmit={handleSave}>
+          {/* Hidden username field for accessibility */}
+          <input type="text" name="username" autoComplete="username" style={{ display: 'none' }} />
+          
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               OpenAI APIキー {!hasApiKey && <span className="text-red-500">*</span>}
@@ -149,6 +152,7 @@ export default function ApiKeyManager() {
             <div className="relative">
               <input
                 type={showKey ? 'text' : 'password'}
+                name="password"
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder="sk-************************"
