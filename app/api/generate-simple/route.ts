@@ -57,7 +57,7 @@ async function generateWithSimpleV2Engine(keywords: string, apiKey: string, coun
 - キーワードを自然に配置（SEO対応）`
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-3.5-turbo',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     const userEmail = session.user.email
 
     // 使用制限チェック
-    const usageResult = await canUse('gpt-4o-mini', userId)
+    const usageResult = await canUse('gpt-3.5-turbo', userId)
     if (!usageResult.ok) {
       return NextResponse.json({ 
         error: usageResult.reason === 'limit_reached' ? 'USAGE_LIMIT_EXCEEDED' : 'USAGE_CHECK_FAILED',
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 使用量記録
-    await recordUsage(userId, 'gpt-4o-mini', {
+    await recordUsage(userId, 'gpt-3.5-turbo', {
       keywords,
       articles_generated: result.articles?.length || count,
       engine: '8+1-simple',
@@ -300,7 +300,7 @@ export async function POST(request: NextRequest) {
     
     // 使用量記録（失敗時も記録）
     if (session?.user?.id) {
-      await recordUsage(session.user.id, 'gpt-4o-mini', {
+      await recordUsage(session.user.id, 'gpt-3.5-turbo', {
         error: error.message,
         failed: true
       })
