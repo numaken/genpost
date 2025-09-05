@@ -42,6 +42,8 @@ export default function Home() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [generations, setGenerations] = useState<Generation[]>([])
   const [keywordHistory, setKeywordHistory] = useState<string[]>([])
+  const [selectedModel, setSelectedModel] = useState<'gpt-3.5-turbo' | 'gpt-4o-mini' | 'gpt-4'>('gpt-3.5-turbo')
+  const [hasUserApiKey, setHasUserApiKey] = useState(false)
 
   // ローカルストレージからキーワード履歴を読み込み
   useEffect(() => {
@@ -55,6 +57,23 @@ export default function Home() {
       }
     }
   }, [])
+
+  // ユーザーAPIキーの設定状況をチェック
+  useEffect(() => {
+    if (session) {
+      checkUserApiKey()
+    }
+  }, [session])
+
+  const checkUserApiKey = async () => {
+    try {
+      const response = await fetch('/api/user-api-keys?service=openai')
+      const data = await response.json()
+      setHasUserApiKey(data.hasApiKey)
+    } catch (error) {
+      console.error('Failed to check API key:', error)
+    }
+  }
 
   // キーワード履歴を更新する関数
   const addToKeywordHistory = (keyword: string) => {
@@ -114,7 +133,8 @@ export default function Home() {
           count: articleCount,
           post_status: postStatus,
           scheduled_start_date: postStatus === 'scheduled' ? scheduledStartDate : undefined,
-          scheduled_interval: postStatus === 'scheduled' ? scheduledInterval : undefined
+          scheduled_interval: postStatus === 'scheduled' ? scheduledInterval : undefined,
+          model: hasUserApiKey ? selectedModel : 'gpt-3.5-turbo' // APIキー設定による条件分岐
         })
       })
 
@@ -339,6 +359,46 @@ export default function Home() {
                     </div>
                   )}
                 </div>
+
+                {/* モデル選択（独自APIキー設定時のみ表示） */}
+                {hasUserApiKey && (
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">
+                      AIモデル選択
+                      <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded">独自APIキー</span>
+                    </label>
+                    <select 
+                      className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors bg-white"
+                      value={selectedModel}
+                      onChange={(e) => setSelectedModel(e.target.value as 'gpt-3.5-turbo' | 'gpt-4o-mini' | 'gpt-4')}
+                    >
+                      <option value="gpt-3.5-turbo">GPT-3.5 Turbo（高速・低コスト）</option>
+                      <option value="gpt-4o-mini">GPT-4o Mini（高品質・バランス型）</option>
+                      <option value="gpt-4">GPT-4（最高品質・高コスト）</option>
+                    </select>
+                    <div className="text-xs text-gray-500 mt-2">
+                      独自APIキー使用時はお好みのモデルを選択できます
+                    </div>
+                  </div>
+                )}
+
+                {/* 共有APIキー使用時の表示 */}
+                {!hasUserApiKey && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-center">
+                      <div className="text-blue-600 mr-2">🚀</div>
+                      <div>
+                        <h4 className="font-medium text-blue-800">スタータープラン</h4>
+                        <p className="text-sm text-blue-700">
+                          GPT-3.5 Turboを使用中（弊社負担）
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1">
+                          より高性能なモデルをご希望の場合は、独自APIキーを設定してください
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">記事数</label>

@@ -2,7 +2,7 @@ import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { canUse, recordUsage } from '@/lib/usage-safe'
-import { getEffectiveApiKey } from '@/lib/api-keys'
+import { getEffectiveApiKey, getUserApiKey } from '@/lib/api-keys'
 import { authOptions } from '../auth/[...nextauth]/route'
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
@@ -17,7 +17,7 @@ const supabase = createClient(
 )
 
 // 簡易版v2エンジン（8+1システム）
-async function generateWithSimpleV2Engine(keywords: string, apiKey: string, count: number = 1) {
+async function generateWithSimpleV2Engine(keywords: string, apiKey: string, count: number = 1, model: string = 'gpt-3.5-turbo') {
   const openai = new OpenAI({ apiKey })
 
   // 8つの要素をAIが自動で最適化するシステムプロンプト
@@ -57,7 +57,7 @@ async function generateWithSimpleV2Engine(keywords: string, apiKey: string, coun
 - キーワードを自然に配置（SEO対応）`
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: model,
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPrompt }
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { keywords, site_url, category_slug, count = 1, post_status = 'draft', scheduled_start_date, scheduled_interval = 1 } = body
+    const { keywords, site_url, category_slug, count = 1, post_status = 'draft', scheduled_start_date, scheduled_interval = 1, model } = body
 
     // v2: キーワードが必須
     if (!keywords?.trim()) {
@@ -124,7 +124,7 @@ export async function POST(request: NextRequest) {
     const userEmail = session.user.email
 
     // 使用制限チェック
-    const usageResult = await canUse('gpt-3.5-turbo', userId)
+    const usageResult = await canUse(finalModel, userId)
     if (!usageResult.ok) {
       return NextResponse.json({ 
         error: usageResult.reason === 'limit_reached' ? 'USAGE_LIMIT_EXCEEDED' : 'USAGE_CHECK_FAILED',
@@ -137,11 +137,17 @@ export async function POST(request: NextRequest) {
       }, { status: 403 })
     }
 
-    // APIキー取得
+    // APIキー取得とモデル決定
     const apiKey = await getEffectiveApiKey(userId)
     if (!apiKey) {
       return NextResponse.json({ error: 'APIキーが設定されていません。OpenAI APIキーを設定するか、共有APIキーをご利用ください。' }, { status: 400 })
     }
+
+    // モデル選択ロジック
+    const userApiKey = await getUserApiKey(userEmail || '', 'openai')
+    const finalModel = userApiKey ? (model || 'gpt-3.5-turbo') : 'gpt-3.5-turbo'
+    
+    console.log(`[generate-simple] Using model: ${finalModel}, User API Key: ${!!userApiKey}`)
 
     // WordPress サイト情報取得（投稿に必要）
     let wpSite = null
@@ -183,7 +189,7 @@ export async function POST(request: NextRequest) {
     }
 
     // v2 エンジンで記事生成
-    const result = await generateWithSimpleV2Engine(keywords.trim(), apiKey, count)
+    const result = await generateWithSimpleV2Engine(keywords.trim(), apiKey, count, finalModel)
 
     // WordPress投稿処理
     const publishResults = []
@@ -253,7 +259,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 使用量記録
-    await recordUsage(userId, 'gpt-3.5-turbo', {
+    await recordUsage(userId, finalModel, {
       keywords,
       articles_generated: result.articles?.length || count,
       engine: '8+1-simple',
