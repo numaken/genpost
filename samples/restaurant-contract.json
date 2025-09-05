@@ -1,0 +1,104 @@
+{
+  "contract_id": "restaurant-repeat-customer-strategy",
+  "name": "飲食店向け：常連化戦略で売上アップ",
+  "speaker": {
+    "role": "飲食店経営コンサルタント",
+    "brand": "レストラン経営アドバイザー",
+    "credibility": [
+      "100店舗以上の売上改善実績",
+      "外食産業歴15年",
+      "中小企業診断士資格保有"
+    ],
+    "voice": "実践的で親しみやすく、具体的な数字を交える"
+  },
+  "claim": {
+    "headline": "{{business_type}}における「{{strategy_name}}」で{{period}}後に{{improvement_metric}}を{{improvement_rate}}向上させる方法",
+    "subpoints": [
+      "顧客心理を活用した{{tactic_1}}の仕組み作り",
+      "コストを抑えた{{tactic_2}}の運用方法", 
+      "効果測定と改善のための{{tactic_3}}システム"
+    ],
+    "uniqueness": "心理学に基づく顧客行動分析と、小規模店舗でも実践できる低コスト運用の組み合わせ"
+  },
+  "audience": {
+    "persona": "売上に悩む個人経営・小規模飲食店オーナー（開業1-10年、従業員5名以下）",
+    "jobs_to_be_done": [
+      "月次売上を安定させたい",
+      "新規集客に頼らず既存客の来店頻度を上げたい",
+      "コストをかけずに効果的な施策を知りたい"
+    ],
+    "objections": [
+      "忙しくて新しい取り組みの時間がない",
+      "資金に余裕がない",
+      "ITツールが苦手で難しそう"
+    ],
+    "knowledge_level": 2
+  },
+  "benefit": {
+    "outcome": [
+      "{{period}}以内に{{target_metric}}が{{target_rate}}改善",
+      "新規集客コストを{{cost_reduction}}削減",
+      "顧客満足度とリピート率の同時向上"
+    ],
+    "emotional": [
+      "経営への不安が軽減される",
+      "お客様との関係が深まる喜び",
+      "安定した経営への自信"
+    ],
+    "functional": [
+      "売上予測が立てやすくなる",
+      "効率的な仕入れ・人員配置",
+      "マーケティング費用の最適化"
+    ],
+    "social": [
+      "地域に愛される店として認知",
+      "口コミでの評判向上",
+      "従業員のモチベーション向上"
+    ]
+  },
+  "proof": {
+    "evidence_type": "case_study",
+    "sources": [
+      "実施店舗の売上データ比較",
+      "顧客アンケート結果",
+      "業界統計との比較分析"
+    ],
+    "metrics": [
+      "平均リピート率：{{before_rate}}% → {{after_rate}}%",
+      "客単価：{{before_price}}円 → {{after_price}}円",
+      "月次売上：{{improvement_percentage}}%向上"
+    ],
+    "case_studies": [
+      "{{location_1}}の{{restaurant_type_1}}：{{result_1}}",
+      "{{location_2}}の{{restaurant_type_2}}：{{result_2}}",
+      "{{location_3}}の{{restaurant_type_3}}：{{result_3}}"
+    ]
+  },
+  "constraints": {
+    "max_chars": 3000,
+    "min_chars": 2200,
+    "tone": {
+      "formality": 2,
+      "energy": 4,
+      "expertise": 3,
+      "metaphor": 2
+    },
+    "banned_words": [
+      "絶対",
+      "100%確実",
+      "誰でも簡単",
+      "魔法の"
+    ],
+    "required_elements": [
+      "具体的な数値事例",
+      "実践ステップ",
+      "よくある失敗例",
+      "無料でできる方法"
+    ],
+    "cta_type": "contact",
+    "cta_copy": "個別相談で{{business_type}}に最適な戦略を設計しませんか？"
+  },
+  "price": 2980,
+  "is_free": false,
+  "is_active": true
+}
