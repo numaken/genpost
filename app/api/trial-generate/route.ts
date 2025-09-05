@@ -106,10 +106,22 @@ export async function POST(request: NextRequest) {
       messages: [
         { 
           role: 'system', 
-          content: `${writerText}、${readerText}記事を作成します。
+          content: `あなたはpanolabo AI エンジンです。8つの要素を自動最適化してキーワードから高品質記事を生成します。
+
+${writerText}、${readerText}記事を作成します。
 
 【記事の目的】
 ${goalText}内容にしてください。
+
+【panolabo AI エンジンの8要素最適化】
+1. ターゲット読者（Who）- 読者層を明確化
+2. 問題・課題（What）- 読者の抱える課題を特定  
+3. 解決策・提案（How）- 具体的な解決方法を提示
+4. 根拠・証拠（Why）- 信頼できる理由と根拠を提供
+5. ベネフィット（Benefit）- 読者が得られる明確な利益
+6. 感情的フック（Emotion）- 読者の心を掴む表現
+7. 行動喚起（Call-to-Action）- 具体的な次のアクション
+8. SEOキーワード配置（SEO）- 自然なキーワード配置
 
 【記事作成のポイント】
 - 実践的で具体的な内容

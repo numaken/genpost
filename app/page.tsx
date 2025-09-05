@@ -232,23 +232,25 @@ export default function Home() {
             {/* お試しセクション */}
             <div className="bg-white rounded-2xl shadow-xl p-8 mb-16 border border-gray-100">
               <div className="text-center mb-8">
-                <h2 className="text-4xl font-bold text-gray-800 mb-4">
+                <h2 className="text-4xl font-bold text-gray-800 mb-4 flex items-center justify-center">
+                  <img src="/panolabo-ai-icon.svg" alt="panolabo AI" className="w-10 h-10 mr-4" />
                   <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                     無料で体験
                   </span>
                 </h2>
                 <p className="text-xl text-gray-600">
-                  AIが作る記事の品質を今すぐ確認してください
+                  panolabo AI エンジンが作る記事の品質を今すぐ確認してください
                 </p>
               </div>
 
               <div className="max-w-4xl mx-auto">
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-6">
-                  <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                    📈 リピーター獲得記事作成
+                  <h3 className="text-2xl font-bold text-gray-800 mb-2 flex items-center">
+                    <img src="/panolabo-ai-icon.svg" alt="panolabo AI" className="w-6 h-6 mr-2" />
+                    panolabo AI エンジン 無料体験
                   </h3>
                   <p className="text-gray-600">
-                    客単価アップとリピーター増加を実現する実践的な記事を作成します
+                    8つの要素を自動最適化してキーワードから高品質記事を生成します
                   </p>
                 </div>
 
