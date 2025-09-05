@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useSession } from 'next-auth/react'
+import Link from 'next/link'
 
 interface PricingPlan {
   id: string
@@ -24,12 +25,12 @@ const plans: PricingPlan[] = [
     maxArticles: 25, // 20-30記事の中央値
     features: [
       '月20-30記事まで生成可能（デイリー上限1本/日）',
-      '基本テンプレート使用可能',
+      '当社キーでGPT-3.5 Turbo使用',
       'WordPress自動投稿（2サイト）',
       '重複記事チェック',
       'ソフトキャップ+10%',
       '超過分翌月繰越 or 従量アドオン',
-      'BYOK設定で上限緩和',
+      '独自APIキー設定時は当社月間上限の対象外*',
       'メールサポート'
     ],
     buttonText: 'スタータープランを選ぶ',
@@ -43,13 +44,14 @@ const plans: PricingPlan[] = [
     maxArticles: 100, // 80-120記事の中央値
     features: [
       '月80-120記事まで生成可能（デイリー上限5本/日）',
-      'カスタムプロンプト作成機能',
+      '当社キーでGPT-4o-mini使用',
       'WordPress自動投稿（5サイト）',
+      'カスタムプロンプト作成機能',
       '重複記事チェック',
       '予約投稿機能',
       'ソフトキャップ+10%',
       '超過分翌月繰越 or 従量アドオン',
-      'BYOK設定で上限緩和',
+      '独自APIキー設定時は当社月間上限の対象外*',
       '優先サポート'
     ],
     popular: true,
@@ -64,13 +66,14 @@ const plans: PricingPlan[] = [
     maxArticles: 400, // 300-500記事の中央値
     features: [
       '月300-500記事まで生成可能（デイリー上限20本/日）',
-      '5席まで利用可能',
+      '当社キーでGPT-4o-mini使用',
       'WordPress自動投稿（20サイト）',
+      '5席まで利用可能',
       '重複記事チェック',
       '予約投稿機能',
       'ソフトキャップ+10%',
       '超過分翌月繰越 or 従量アドオン',
-      'BYOK設定で上限緩和',
+      '独自APIキー設定時は当社月間上限の対象外*',
       '優先サポート（24時間以内返信）'
     ],
     buttonText: 'エージェンシープランを選ぶ',
@@ -126,7 +129,7 @@ export default function PricingTable() {
           </span>
           {isYearly && (
             <span className="ml-2 px-2 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
-              2ヶ月分お得!
+              2ヶ月分お得（年額¥4,960-¥23,520お得）
             </span>
           )}
         </div>
@@ -205,15 +208,75 @@ export default function PricingTable() {
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
           <h4 className="font-semibold text-blue-800 mb-3">💡 独自APIキーオプション</h4>
           <div className="text-sm text-blue-700 space-y-2">
-            <p>どのプランでも、独自のOpenAI APIキーを設定することで<strong>記事生成数無制限</strong>でご利用いただけます。</p>
-            <p>OpenAI API の使用料金は直接OpenAIにお支払いいただきます。</p>
-            <p>APIキー設定により、より高度なGPT-4モデルも利用可能になります。</p>
+            <p>どのプランでも、独自のOpenAI APIキーを設定することで<strong>当社側の月間上限の対象外</strong>となります。</p>
+            <p>OpenAI API の使用料金は直接OpenAIにお支払いいただきます。公正利用（レート制限・同時実行制限）は適用されます。</p>
+            <p>APIキー設定により、GPT-4、GPT-4o等の高性能モデルもご利用いただけます。</p>
           </div>
         </div>
       </div>
 
+      {/* FAQ セクション */}
+      <div className="mt-12 bg-gray-50 border border-gray-200 rounded-lg p-8">
+        <h3 className="text-2xl font-bold text-center text-gray-900 mb-6">よくあるご質問</h3>
+        <div className="grid md:grid-cols-2 gap-6 text-sm">
+          
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. BYOK（独自APIキー）だと本当に上限なし？</h4>
+              <p className="text-gray-600">A. 当社側の月間上限の対象外になります。公正利用（レート制限・同時実行の制限）は適用されます。料金はお客様のOpenAI契約に準拠します。</p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. どのAIモデルが使えますか？</h4>
+              <p className="text-gray-600">A. スターターは当社キーでGPT-3.5、プロ/エージェンシーは当社キーでGPT-4o-miniまで。BYOKではGPT-4、GPT-4o等の高性能モデルも選択可能です。</p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. WordPress接続サイト数は？</h4>
+              <p className="text-gray-600">A. スターター=2サイト、プロ=5サイト、エージェンシー=20サイトまで接続可能です。</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 記事生成のコスト目安（BYOK/GPT-3.5）</h4>
+              <p className="text-gray-600">A. 記事長により変動します。短文想定（1,000-2,000トークン）で1記事あたり約1–3円の目安。最新のOpenAI価格に準拠します。</p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 月間上限を超えた場合は？</h4>
+              <p className="text-gray-600">A. ソフトキャップ+10%まで利用可能。超過分は翌月繰越または従量アドオン（10記事ごと¥200）でご利用いただけます。</p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 無料で試せますか？</h4>
+              <p className="text-gray-600">A. はい！登録後すぐに5記事まで無料生成でき、WordPress自動投稿もお試しいただけます。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* CTA セクション */}
+      <div className="mt-8 text-center bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-6">
+        <h4 className="text-xl font-bold text-gray-900 mb-2">🚀 今すぐ無料で始めよう</h4>
+        <p className="text-gray-600 mb-4">5記事無料生成 → WordPress自動投稿まで体験できます</p>
+        {!session ? (
+          <button
+            onClick={() => alert('無料アカウント作成機能は準備中です')}
+            className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-colors"
+          >
+            無料でアカウント作成
+          </button>
+        ) : (
+          <Link href="/" className="inline-block bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-colors">
+            ダッシュボードへ
+          </Link>
+        )}
+      </div>
+
       <div className="mt-6 text-center text-xs text-gray-500">
         <p>※価格は税込みです。※プランはいつでも変更・解約が可能です。</p>
+        <p>*独自APIキー使用時も公正利用・レート制限は適用されます。</p>
       </div>
     </div>
   )

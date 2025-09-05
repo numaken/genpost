@@ -16,12 +16,12 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// 簡易版v2エンジン（8+1システム）
+// 簡易版v2エンジン（panolabo AI システム）
 async function generateWithSimpleV2Engine(keywords: string, apiKey: string, count: number = 1, model: string = 'gpt-3.5-turbo') {
   const openai = new OpenAI({ apiKey })
 
   // 8つの要素をAIが自動で最適化するシステムプロンプト
-  const systemPrompt = `あなたは8+1 AIエンジンです。ユーザーが提供するキーワードから、以下の8要素を自動で最適化し、高品質なブログ記事を生成します：
+  const systemPrompt = `あなたはpanolabo AIエンジンです。ユーザーが提供するキーワードから、以下の8要素を自動で最適化し、高品質なブログ記事を生成します：
 
 1. ターゲット読者（Who）- キーワードから最適な読者層を判定
 2. 問題・課題（What）- 読者の抱える課題を特定
@@ -77,7 +77,7 @@ async function generateWithSimpleV2Engine(keywords: string, apiKey: string, coun
         content: contentMatch ? contentMatch[1].trim() : content.replace(/【タイトル】[\s\S]*?\n+/, ''),
         keywords: keywords,
         generated_at: new Date().toISOString(),
-        engine: '8+1 AI Engine',
+        engine: 'panolabo AI Engine',
         word_count: (contentMatch ? contentMatch[1].trim() : content).length
       })
     }
@@ -87,7 +87,7 @@ async function generateWithSimpleV2Engine(keywords: string, apiKey: string, coun
     articles,
     verification: {
       total_score: 0.85,
-      details: '8+1 AI エンジンにより自動最適化済み',
+      details: 'panolabo AI エンジンにより自動最適化済み',
       optimized_elements: [
         'ターゲット読者',
         '問題・課題',
@@ -262,7 +262,7 @@ export async function POST(request: NextRequest) {
     await recordUsage(userId, finalModel, {
       keywords,
       articles_generated: result.articles?.length || count,
-      engine: '8+1-simple',
+      engine: 'panolabo-ai-simple',
       wp_published: publishResults.filter(r => r.success).length
     })
 
@@ -270,7 +270,7 @@ export async function POST(request: NextRequest) {
     const publishedCount = publishResults.filter(r => r.success).length
     const publishErrors = publishResults.filter(r => !r.success)
     
-    let message = `${result.articles.length}件の記事生成が完了しました（8+1 AI エンジン）`
+    let message = `${result.articles.length}件の記事生成が完了しました（panolabo AI エンジン）`
     if (wpSite) {
       if (publishedCount > 0) {
         message += `\n${publishedCount}件をWordPressに投稿しました`

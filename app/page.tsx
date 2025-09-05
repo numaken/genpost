@@ -258,7 +258,7 @@ export default function Home() {
 
             {/* ログイン促進セクション */}
             <div className="text-center py-16">
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">8+1 AI エンジンで無制限記事生成をはじめませんか？</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">panolabo AI エンジンで無制限記事生成をはじめませんか？</h2>
               <p className="text-gray-600 mb-8">AI が自動で最適化。あなたはキーワードを入力するだけで高品質記事を量産できます。</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
@@ -281,7 +281,7 @@ export default function Home() {
             {/* プロンプト購入案内 */}
             <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-8 border border-purple-200">
               <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                ✨ 8+1 AI エンジンで記事生成開始
+                ✨ panolabo AI エンジンで記事生成開始
               </h3>
               <p className="text-gray-600 mb-4">
                 AI が 8つの要素を自動最適化。あなたはキーワードを入力するだけで高品質記事を無制限生成。<br/>
@@ -321,7 +321,7 @@ export default function Home() {
               <div className="space-y-6">
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
                   <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center">
-                    ✨ 8+1 AI エンジン
+                    ✨ panolabo AI エンジン
                     <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">自動最適化</span>
                   </h3>
                   <p className="text-sm text-gray-600">
