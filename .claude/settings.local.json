@@ -12,7 +12,9 @@
       "Bash(git commit:*)",
       "Bash(git push:*)",
       "Bash(git pull:*)",
-      "Bash(export API_KEY_ENCRYPTION_SECRET=\"test1234567890123456\")"
+      "Bash(export API_KEY_ENCRYPTION_SECRET=\"test1234567890123456\")",
+      "WebFetch(domain:genpost-dm32w6yem-numakens-projects.vercel.app)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

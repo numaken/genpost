@@ -49,12 +49,14 @@ export default function PricingPage() {
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
               GenPost 料金プラン
             </h1>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
               AI駆動のWordPress記事自動生成で、あなたのコンテンツマーケティングを加速させましょう
             </p>
           </div>
 
-          <PricingTable />
+          <div className="flex justify-center">
+            <PricingTable />
+          </div>
 
           {/* FAQ セクション */}
           <div className="mt-16 max-w-4xl mx-auto">

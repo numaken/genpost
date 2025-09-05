@@ -99,7 +99,7 @@ export default function PricingTable() {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8">
+    <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 w-full max-w-6xl">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">料金プラン</h2>
         <p className="text-gray-600 mb-6">あなたのニーズに合ったプランをお選びください</p>
@@ -132,14 +132,14 @@ export default function PricingTable() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 items-stretch">
+      <div className="flex flex-wrap justify-center gap-6 items-stretch max-w-6xl mx-auto">
         {plans.map((plan) => (
           <div
             key={plan.id}
-            className={`relative rounded-lg border-2 p-6 flex flex-col h-full ${
+            className={`relative rounded-lg border-2 p-6 flex flex-col h-full w-full max-w-sm ${
               plan.popular 
-                ? 'border-green-500 bg-green-50 transform scale-105' 
-                : 'border-gray-200 bg-white'
+                ? 'border-green-500 bg-green-50 transform scale-105 shadow-lg' 
+                : 'border-gray-200 bg-white shadow-md hover:shadow-lg transition-shadow'
             }`}
           >
             {plan.popular && (
