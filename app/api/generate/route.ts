@@ -129,12 +129,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const params = body
-    promptId = params.promptId
-    const { config, count, postStatus = 'draft', scheduledStartDate, scheduledInterval = 1, inputs } = params
+    const { keywords, site_url, category_slug, count = 1, post_status = 'draft', scheduled_start_date, scheduled_interval = 1 } = body
 
-    if (!config.wpSiteUrl || !config.wpUser || !config.wpAppPass) {
-      return NextResponse.json({ error: 'WordPress設定が不完全です' }, { status: 400 })
+    // v2: キーワードとサイトURLが必須
+    if (!keywords?.trim()) {
+      return NextResponse.json({ error: 'キーワードを入力してください' }, { status: 400 })
+    }
+    
+    if (!site_url?.trim()) {
+      return NextResponse.json({ error: 'WordPressサイトURLが必要です' }, { status: 400 })
     }
 
     const userId = session.user.id
