@@ -158,7 +158,7 @@ export async function POST(req: NextRequest) {
     const promptData = PromptEngine.generatePrompt(contract, user_inputs)
 
     // Generate article
-    let article = await callOpenAI(promptData.user_prompt, promptData.system_prompt, apiKey)
+    let article = await callOpenAI(promptData.user_prompt || '', promptData.system_prompt || '', apiKey)
 
     // Verify article quality
     const verification = await verifyArticle(contract, article, apiKey)
