@@ -41,6 +41,36 @@ export default function Home() {
   const [scheduledInterval, setScheduledInterval] = useState(1) // 間隔（日）
   const [isGenerating, setIsGenerating] = useState(false)
   const [generations, setGenerations] = useState<Generation[]>([])
+  const [keywordHistory, setKeywordHistory] = useState<string[]>([])
+
+  // ローカルストレージからキーワード履歴を読み込み
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('genpost-keyword-history')
+    if (savedHistory) {
+      try {
+        const parsed = JSON.parse(savedHistory)
+        setKeywordHistory(Array.isArray(parsed) ? parsed.slice(0, 10) : []) // 最大10件
+      } catch (error) {
+        console.error('Failed to parse keyword history:', error)
+      }
+    }
+  }, [])
+
+  // キーワード履歴を更新する関数
+  const addToKeywordHistory = (keyword: string) => {
+    const trimmedKeyword = keyword.trim()
+    if (!trimmedKeyword) return
+
+    setKeywordHistory(prev => {
+      // 重複を除去し、最新を先頭に追加
+      const newHistory = [trimmedKeyword, ...prev.filter(k => k !== trimmedKeyword)].slice(0, 10)
+      
+      // ローカルストレージに保存
+      localStorage.setItem('genpost-keyword-history', JSON.stringify(newHistory))
+      
+      return newHistory
+    })
+  }
 
   // サイト選択時の処理
   const handleSiteSelect = (site: WordPressSite | null) => {
@@ -105,6 +135,10 @@ export default function Home() {
         }
         
         setGenerations(prev => [generation, ...prev])
+        
+        // キーワード履歴に追加
+        addToKeywordHistory(promptInputs.keywords || '')
+        
         alert(result.message || `${articleCount}記事の生成が完了しました！`)
       } else {
         alert(`エラー: ${result.error || result.message}`)
@@ -286,6 +320,24 @@ export default function Home() {
                     onChange={(e) => setPromptInputs(prev => ({ ...prev, keywords: e.target.value }))}
                     className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
                   />
+                  
+                  {/* キーワード履歴 */}
+                  {keywordHistory.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-xs text-gray-500 mb-2">最近使用したキーワード:</div>
+                      <div className="flex flex-wrap gap-2">
+                        {keywordHistory.map((keyword, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setPromptInputs(prev => ({ ...prev, keywords: keyword }))}
+                            className="px-3 py-1 bg-gray-100 hover:bg-purple-100 text-gray-700 hover:text-purple-700 text-sm rounded-full transition-colors cursor-pointer border border-gray-200 hover:border-purple-300"
+                          >
+                            {keyword}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div>
