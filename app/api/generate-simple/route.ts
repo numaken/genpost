@@ -69,12 +69,12 @@ async function generateWithSimpleV2Engine(keywords: string, apiKey: string, coun
     const content = response.choices[0]?.message?.content
     if (content) {
       // タイトルと本文を抽出
-      const titleMatch = content.match(/【タイトル】\s*\n+(.*?)(?=\n|$)/s)
-      const contentMatch = content.match(/【記事内容】\s*\n+(.*?)$/s)
+      const titleMatch = content.match(/【タイトル】\s*\n+([\s\S]*?)(?=\n|$)/)
+      const contentMatch = content.match(/【記事内容】\s*\n+([\s\S]*?)$/)
       
       articles.push({
         title: titleMatch ? titleMatch[1].trim() : `${keywords}に関する専門記事 ${i + 1}`,
-        content: contentMatch ? contentMatch[1].trim() : content.replace(/【タイトル】.*?\n+/s, ''),
+        content: contentMatch ? contentMatch[1].trim() : content.replace(/【タイトル】[\s\S]*?\n+/, ''),
         keywords: keywords,
         generated_at: new Date().toISOString(),
         engine: '8+1 AI Engine',
