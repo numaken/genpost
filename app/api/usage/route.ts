@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       const hasApiKey = hasUserApiKey.status === 'fulfilled' ? hasUserApiKey.value : false
 
       // プラン名を安全に取得
-      const planName = PLAN_LIMITS[subscriptionData.planType]?.name || 'スタータープラン'
+      const planName = PLAN_LIMITS[subscriptionData.planType as keyof typeof PLAN_LIMITS]?.name || 'スタータープラン'
 
       return NextResponse.json({
         sharedApiCount: usageData.sharedApiCount || 0,
