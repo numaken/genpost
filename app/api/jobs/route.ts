@@ -231,7 +231,7 @@ export async function POST(req: NextRequest) {
           return NextResponse.json({ error: 'Job not found' }, { status: 404 })
         }
 
-        if (!isAdmin && job.schedules.user_id !== userId) {
+        if (!isAdmin && job.schedules[0].user_id !== userId) {
           return NextResponse.json({ error: 'Access denied' }, { status: 403 })
         }
 
