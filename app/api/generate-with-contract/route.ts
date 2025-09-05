@@ -157,11 +157,15 @@ export async function POST(req: NextRequest) {
     // Generate dynamic prompt
     const promptData = PromptEngine.generatePrompt(contract, user_inputs)
 
+    if (!apiKey) {
+      return NextResponse.json({ error: 'No API key available' }, { status: 500 })
+    }
+
     // Generate article
     let article = await callOpenAI(promptData.user_prompt || '', promptData.system_prompt || '', apiKey)
 
     // Verify article quality
-    const verification = await verifyArticle(contract, article, apiKey)
+    const verification = await verifyArticle(contract, article, apiKey || process.env.OPENAI_API_KEY || '')
 
     // Regenerate once if needed and score is too low
     if (verification.needs_regeneration && verification.score < 70) {
