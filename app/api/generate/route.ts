@@ -9,6 +9,8 @@ import { getPromptVersion, recordABTestResult, calculateQualityScore } from '@/l
 import { isDuplicate, saveEmbedding, slugify } from '@/lib/dedup'
 import { createClient } from '@supabase/supabase-js'
 import { redact } from '@/lib/redact'
+import { canUse } from '@/lib/usage-safe'
+import { authOptions } from '../auth/[...nextauth]/route'
 
 // Runtime configuration for security
 export const runtime = 'nodejs'
@@ -121,9 +123,9 @@ export async function POST(request: NextRequest) {
   
   try {
     // セッション取得
-    session = await getServerSession()
-    if (!session?.user?.email) {
-      return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
+    session = await getServerSession(authOptions)
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     }
 
     const body = await request.json()
@@ -135,7 +137,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'WordPress設定が不完全です' }, { status: 400 })
     }
 
-    const userId = session.user.email
+    const userId = session.user.id
+
+    // 堅牢な使用制限チェック
+    const usageResult = await canUse('gpt-4o-mini', userId)
+    if (!usageResult.ok) {
+      return NextResponse.json({ 
+        error: 'forbidden', 
+        reason: usageResult.reason,
+        used: usageResult.used,
+        limit: usageResult.limit,
+        plan: usageResult.plan
+      }, { status: 403 })
+    }
 
     // プロンプトバージョン取得（A/Bテスト対応）
     let promptVersion = await getPromptVersion(promptId!, userId)

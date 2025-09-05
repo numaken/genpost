@@ -143,7 +143,7 @@ export default function ApiKeyManager() {
 
         <form onSubmit={handleSave}>
           {/* Hidden username field for accessibility */}
-          <input type="text" name="username" autoComplete="username" style={{ display: 'none' }} />
+          <input type="text" name="username" autoComplete="username" className="sr-only" tabIndex={-1} />
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
