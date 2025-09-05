@@ -145,14 +145,40 @@ export async function POST(request: NextRequest) {
     // WordPress サイト情報取得（投稿に必要）
     let wpSite = null
     if (site_url) {
-      const { data: siteData } = await supabase
+      console.log(`[generate-simple] Searching for site: ${site_url} for user: ${userId}`)
+      
+      const { data: siteData, error: siteError } = await supabase
         .from('wordpress_sites')
         .select('*')
         .eq('user_id', userId)
         .eq('site_url', site_url)
         .single()
       
-      wpSite = siteData
+      if (siteError) {
+        console.error(`[generate-simple] Site lookup error:`, siteError)
+        
+        // 部分一致で再試行
+        const { data: allSites } = await supabase
+          .from('wordpress_sites')
+          .select('*')
+          .eq('user_id', userId)
+        
+        console.log(`[generate-simple] Available sites for user:`, allSites?.map(s => s.site_url))
+        
+        // URLの正規化を試行
+        const normalizedSiteUrl = site_url.replace(/^https?:\/\//, '').replace(/\/$/, '')
+        const matchingSite = allSites?.find(s => 
+          s.site_url.replace(/^https?:\/\//, '').replace(/\/$/, '') === normalizedSiteUrl
+        )
+        
+        wpSite = matchingSite || null
+        if (matchingSite) {
+          console.log(`[generate-simple] Found matching site via normalization:`, matchingSite.site_name)
+        }
+      } else {
+        wpSite = siteData
+        console.log(`[generate-simple] Found site:`, siteData?.site_name)
+      }
     }
 
     // v2 エンジンで記事生成
