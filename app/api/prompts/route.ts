@@ -49,6 +49,7 @@ export async function GET(req: NextRequest) {
           'price',
           'is_free',
           'is_active',
+          'user_prompt_template',
           'created_at'
         ].join(','),
         { count: 'exact' }

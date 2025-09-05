@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { getUserCurrentUsage, getUserSubscription, PLAN_LIMITS } from '@/lib/usage-limits'
 import { getUserApiKey } from '@/lib/api-keys'
+import { authOptions } from '../auth/[...nextauth]/route'
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
     }

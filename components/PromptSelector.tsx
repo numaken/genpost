@@ -293,7 +293,7 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
 
   const renderInputFields = () => {
     const prompt = prompts.find(p => p.prompt_id === selectedPrompt)
-    if (!prompt) return null
+    if (!prompt || !prompt.user_prompt_template) return null
 
     // プロンプトテンプレートから{key}を抽出
     const template = prompt.user_prompt_template

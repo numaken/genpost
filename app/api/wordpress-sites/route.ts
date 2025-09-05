@@ -7,11 +7,12 @@ import {
   updateWordPressSite,
   deleteWordPressSite 
 } from '@/lib/wordpress-sites'
+import { authOptions } from '../auth/[...nextauth]/route'
 
 // WordPress サイト一覧取得
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
     }
@@ -35,7 +36,7 @@ export async function GET(request: NextRequest) {
 // WordPress サイト追加
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
     }
@@ -68,7 +69,7 @@ export async function POST(request: NextRequest) {
 // WordPress サイト更新
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
     }
@@ -95,7 +96,7 @@ export async function PUT(request: NextRequest) {
 // WordPress サイト削除
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession()
+    const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
     }
