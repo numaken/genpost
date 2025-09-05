@@ -211,8 +211,8 @@ export async function POST(request: NextRequest) {
 
           // 成功した場合は記事にWordPress情報を追加
           if (wpResponse.ok) {
-            article.wp_post_id = wpResult.id
-            article.wp_url = wpResult.link
+            ;(article as any).wp_post_id = wpResult.id
+            ;(article as any).wp_url = wpResult.link
           }
 
         } catch (publishError) {
