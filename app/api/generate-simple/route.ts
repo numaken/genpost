@@ -121,6 +121,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = session.user.id
+    const userEmail = session.user.email
 
     // 使用制限チェック
     const usageResult = await canUse('gpt-4o-mini', userId)
@@ -144,13 +145,13 @@ export async function POST(request: NextRequest) {
 
     // WordPress サイト情報取得（投稿に必要）
     let wpSite = null
-    if (site_url) {
-      console.log(`[generate-simple] Searching for site: ${site_url} for user: ${userId}`)
+    if (site_url && userEmail) {
+      console.log(`[generate-simple] Searching for site: ${site_url} for user: ${userEmail}`)
       
       const { data: siteData, error: siteError } = await supabase
         .from('wordpress_sites')
         .select('*')
-        .eq('user_id', userId)
+        .eq('user_email', userEmail)
         .eq('site_url', site_url)
         .single()
       
@@ -161,7 +162,7 @@ export async function POST(request: NextRequest) {
         const { data: allSites } = await supabase
           .from('wordpress_sites')
           .select('*')
-          .eq('user_id', userId)
+          .eq('user_email', userEmail)
         
         console.log(`[generate-simple] Available sites for user:`, allSites?.map(s => s.site_url))
         
