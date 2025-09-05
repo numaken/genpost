@@ -28,7 +28,9 @@ export default function ApiKeyManager() {
     }
   }
 
-  const handleSave = async () => {
+  const handleSave = async (e?: React.FormEvent) => {
+    e?.preventDefault()
+    
     if (!apiKey.trim()) {
       setMessage({ type: 'error', text: 'APIキーを入力してください' })
       return
@@ -139,42 +141,46 @@ export default function ApiKeyManager() {
           )}
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            OpenAI APIキー {!hasApiKey && <span className="text-red-500">*</span>}
-          </label>
-          <div className="relative">
-            <input
-              type={showKey ? 'text' : 'password'}
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-20"
-            />
-            <button
-              type="button"
-              onClick={() => setShowKey(!showKey)}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
-            >
-              {showKey ? '🙈' : '👁️'}
-            </button>
-          </div>
-        </div>
-
-        <button
-          onClick={handleSave}
-          disabled={saving || !apiKey.trim()}
-          className="w-full px-4 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {saving ? (
-            <div className="flex items-center justify-center">
-              <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-              保存中...
+        <form onSubmit={handleSave}>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              OpenAI APIキー {!hasApiKey && <span className="text-red-500">*</span>}
+            </label>
+            <div className="relative">
+              <input
+                type={showKey ? 'text' : 'password'}
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                placeholder="sk-************************"
+                autoComplete="current-password"
+                className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 pr-20"
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowKey(!showKey)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showKey ? '🙈' : '👁️'}
+              </button>
             </div>
-          ) : (
-            hasApiKey ? 'APIキーを更新' : 'APIキーを保存'
-          )}
-        </button>
+          </div>
+
+          <button
+            type="submit"
+            disabled={saving || !apiKey.trim()}
+            className="w-full px-4 py-3 bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+          >
+            {saving ? (
+              <div className="flex items-center justify-center">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                保存中...
+              </div>
+            ) : (
+              hasApiKey ? 'APIキーを更新' : 'APIキーを保存'
+            )}
+          </button>
+        </form>
 
         {message && (
           <div className={`rounded-lg p-3 ${

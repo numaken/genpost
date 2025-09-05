@@ -19,23 +19,54 @@ export default function UsageDisplay() {
   const { data: session } = useSession()
   const [usage, setUsage] = useState<UsageInfo | null>(null)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchUsage()
-  }, [session])
+  }, []) // 依存配列を空にして無限ループ回避
 
   const fetchUsage = async () => {
-    if (!session) return
+    if (!session) {
+      setUsage(null)
+      setError(null)
+      return
+    }
 
     setLoading(true)
+    setError(null)
+    
     try {
-      const response = await fetch('/api/usage')
-      if (response.ok) {
-        const data = await response.json()
-        setUsage(data)
+      const response = await fetch('/api/usage', { credentials: 'include' })
+      
+      if (response.status === 401) {
+        // 未ログイン状態 - 黙って非表示
+        setUsage(null)
+        setError(null)
+        return
       }
-    } catch (error) {
-      console.error('Usage fetch error:', error)
+      
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data?.message || `HTTP ${response.status}`)
+      }
+      
+      setUsage(data)
+      setError(null)
+    } catch (fetchError: any) {
+      console.error('[usage] failed:', fetchError.message)
+      setError('使用量の取得に失敗しました')
+      // フォールバック用の最小データ
+      setUsage({
+        sharedApiCount: 0,
+        userApiCount: 0,
+        totalCount: 0,
+        currentMonth: new Date().toISOString().slice(0, 7),
+        maxSharedApiArticles: 25,
+        planType: 'starter',
+        planName: 'スタータープラン',
+        hasUserApiKey: false
+      })
     } finally {
       setLoading(false)
     }
@@ -69,6 +100,12 @@ export default function UsageDisplay() {
         <div className="w-3 h-3 bg-blue-500 rounded-full mr-3"></div>
         <h3 className="text-lg font-semibold text-gray-800">使用状況</h3>
       </div>
+
+      {error && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mb-4">
+          <div className="text-yellow-800 text-sm">{error}</div>
+        </div>
+      )}
 
       <div className="space-y-4">
         <div className="bg-gray-50 rounded-lg p-4">

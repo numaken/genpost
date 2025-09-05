@@ -8,34 +8,77 @@ export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
     if (!session?.user?.email) {
-      return NextResponse.json({ error: 'ログインが必要です' }, { status: 401 })
+      return NextResponse.json({ error: 'unauthorized' }, { status: 401 })
     }
 
     const userId = session.user.email
 
-    // 使用量とサブスクリプション情報を並列取得
-    const [usage, subscription, hasUserApiKey] = await Promise.all([
-      getUserCurrentUsage(userId),
-      getUserSubscription(userId),
-      getUserApiKey(userId, 'openai').then(key => !!key)
-    ])
+    try {
+      // 使用量とサブスクリプション情報を並列取得（個別エラーハンドリング）
+      const [usage, subscription, hasUserApiKey] = await Promise.allSettled([
+        getUserCurrentUsage(userId).catch(() => ({
+          sharedApiCount: 0,
+          userApiCount: 0,
+          totalCount: 0,
+          currentMonth: new Date().toISOString().slice(0, 7)
+        })),
+        getUserSubscription(userId).catch(() => ({
+          planType: 'starter',
+          maxSharedApiArticles: 25
+        })),
+        getUserApiKey(userId, 'openai').then(key => !!key).catch(() => false)
+      ])
 
-    // プラン名を取得
-    const planName = PLAN_LIMITS[subscription.planType]?.name || 'スタータープラン'
+      // 結果を安全に取得
+      const usageData = usage.status === 'fulfilled' ? usage.value : {
+        sharedApiCount: 0,
+        userApiCount: 0,
+        totalCount: 0,
+        currentMonth: new Date().toISOString().slice(0, 7)
+      }
 
-    return NextResponse.json({
-      sharedApiCount: usage.sharedApiCount,
-      userApiCount: usage.userApiCount,
-      totalCount: usage.totalCount,
-      currentMonth: usage.currentMonth,
-      maxSharedApiArticles: subscription.maxSharedApiArticles,
-      planType: subscription.planType,
-      planName,
-      hasUserApiKey
-    })
+      const subscriptionData = subscription.status === 'fulfilled' ? subscription.value : {
+        planType: 'starter',
+        maxSharedApiArticles: 25
+      }
 
-  } catch (error) {
+      const hasApiKey = hasUserApiKey.status === 'fulfilled' ? hasUserApiKey.value : false
+
+      // プラン名を安全に取得
+      const planName = PLAN_LIMITS[subscriptionData.planType]?.name || 'スタータープラン'
+
+      return NextResponse.json({
+        sharedApiCount: usageData.sharedApiCount || 0,
+        userApiCount: usageData.userApiCount || 0,
+        totalCount: usageData.totalCount || 0,
+        currentMonth: usageData.currentMonth || new Date().toISOString().slice(0, 7),
+        maxSharedApiArticles: subscriptionData.maxSharedApiArticles || 25,
+        planType: subscriptionData.planType || 'starter',
+        planName,
+        hasUserApiKey: hasApiKey
+      })
+
+    } catch (dataError) {
+      // データ取得エラーでも基本構造は返す
+      console.error('Usage API data error:', dataError)
+      return NextResponse.json({
+        sharedApiCount: 0,
+        userApiCount: 0,
+        totalCount: 0,
+        currentMonth: new Date().toISOString().slice(0, 7),
+        maxSharedApiArticles: 25,
+        planType: 'starter',
+        planName: 'スタータープラン',
+        hasUserApiKey: false,
+        warning: 'fallback: data unavailable'
+      })
+    }
+
+  } catch (error: any) {
     console.error('Usage API error:', error)
-    return NextResponse.json({ error: '使用状況の取得に失敗しました' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'internal_error', 
+      message: error?.message || String(error) 
+    }, { status: 500 })
   }
 }
