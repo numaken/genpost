@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useSession, signIn, signOut } from 'next-auth/react'
 import Link from 'next/link'
-import PromptSelector from '@/components/PromptSelector'
 import TrialPromptForm from '@/components/TrialPromptForm'
 import WordPressSiteManager from '@/components/WordPressSiteManager'
 import ApiKeyManager from '@/components/ApiKeyManager'
@@ -32,7 +31,6 @@ interface Generation {
 export default function Home() {
   const { data: session } = useSession()
   const [selectedSite, setSelectedSite] = useState<WordPressSite | null>(null)
-  const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null)
   const [promptInputs, setPromptInputs] = useState<Record<string, string>>({})
   const [articleCount, setArticleCount] = useState(1)
   const [postStatus, setPostStatus] = useState<'draft' | 'publish' | 'pending' | 'scheduled'>('draft')
@@ -44,45 +42,8 @@ export default function Home() {
   // サイト選択時の処理
   const handleSiteSelect = (site: WordPressSite | null) => {
     setSelectedSite(site)
-    
-    // サイトに保存されているプロンプトがあれば自動選択
-    if (site?.selected_prompt_id) {
-      setSelectedPrompt(site.selected_prompt_id)
-    } else {
-      setSelectedPrompt(null)
-      setPromptInputs({})
-    }
-  }
-
-  // プロンプト選択時の処理（サイトにも保存）
-  const handlePromptSelect = (promptId: string) => {
-    setSelectedPrompt(promptId)
-    
-    // 選択されたサイトにプロンプトIDを保存
-    if (selectedSite) {
-      updateSitePrompt(selectedSite.id, promptId)
-    }
-  }
-
-  // サイトのプロンプト選択を更新
-  const updateSitePrompt = async (siteId: string, promptId: string) => {
-    try {
-      const response = await fetch('/api/wordpress-sites', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          site_id: siteId,
-          selected_prompt_id: promptId
-        })
-      })
-
-      if (response.ok) {
-        // サイト情報を更新
-        setSelectedSite(prev => prev ? { ...prev, selected_prompt_id: promptId } : null)
-      }
-    } catch (error) {
-      console.error('Failed to update site prompt:', error)
-    }
+    // キーワード入力欄をリセット
+    setPromptInputs({})
   }
 
   const handleGenerate = async () => {
@@ -96,8 +57,8 @@ export default function Home() {
       return
     }
     
-    if (!selectedPrompt) {
-      alert('プロンプトを選択してください')
+    if (!promptInputs.keywords?.trim()) {
+      alert('キーワードを入力してください')
       return
     }
 
@@ -115,18 +76,13 @@ export default function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          config: {
-            wpSiteUrl: selectedSite.site_url,
-            wpUser: selectedSite.wp_username,
-            wpAppPass: selectedSite.wp_app_password,
-            categoryId: selectedSite.default_category_id.toString()
-          },
-          promptId: selectedPrompt,
+          keywords: promptInputs.keywords?.trim(),
+          site_url: selectedSite.site_url,
+          category_slug: selectedSite.category_slug,
           count: articleCount,
-          postStatus: postStatus,
-          scheduledStartDate: postStatus === 'scheduled' ? scheduledStartDate : undefined,
-          scheduledInterval: postStatus === 'scheduled' ? scheduledInterval : undefined,
-          inputs: promptInputs
+          post_status: postStatus,
+          scheduled_start_date: postStatus === 'scheduled' ? scheduledStartDate : undefined,
+          scheduled_interval: postStatus === 'scheduled' ? scheduledInterval : undefined
         })
       })
 
@@ -155,9 +111,6 @@ export default function Home() {
           <div className="container mx-auto flex justify-between items-center">
             <div className="text-xl font-bold">gen<span className="text-purple-200">post</span></div>
             <div className="flex items-center space-x-6">
-              <Link href="/prompts" className="text-white hover:text-purple-200 transition-colors">
-                プロンプト一覧
-              </Link>
               <Link href="/pricing" className="text-white hover:text-purple-200 transition-colors">
                 料金表
               </Link>
@@ -236,8 +189,8 @@ export default function Home() {
 
             {/* ログイン促進セクション */}
             <div className="text-center py-16">
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">さらに多くの業界特化プロンプトを使いませんか？</h2>
-              <p className="text-gray-600 mb-8">不動産、IT、美容、飲食など480+のプロフェッショナルプロンプトをご利用いただけます。</p>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4">8+1 AI エンジンで無制限記事生成をはじめませんか？</h2>
+              <p className="text-gray-600 mb-8">AI が自動で最適化。あなたはキーワードを入力するだけで高品質記事を量産できます。</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={() => signIn()}
@@ -246,10 +199,10 @@ export default function Home() {
                   無料でアカウント作成
                 </button>
                 <Link 
-                  href="/prompts"
+                  href="/pricing"
                   className="border border-gray-300 text-gray-700 px-8 py-3 rounded-lg font-medium hover:bg-gray-50 transition-colors inline-block"
                 >
-                  全プロンプトを見る
+                  料金を見る
                 </Link>
               </div>
             </div>
@@ -259,14 +212,14 @@ export default function Home() {
             {/* プロンプト購入案内 */}
             <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-8 border border-purple-200">
               <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                🎯 無制限記事生成を開始
+                ✨ 8+1 AI エンジンで記事生成開始
               </h3>
               <p className="text-gray-600 mb-4">
-                プロンプトを購入して、業界特化のプロフェッショナル記事を無制限生成できます。<br/>
+                AI が 8つの要素を自動最適化。あなたはキーワードを入力するだけで高品質記事を無制限生成。<br/>
                 WordPress自動投稿機能で効率的なコンテンツマーケティングを実現。
               </p>
               <div className="flex gap-4 text-sm text-gray-500">
-                <span>✓ 480+業界特化プロンプト</span>
+                <span>✓ AI自動最適化</span>
                 <span>✓ WordPress自動投稿</span>
                 <span>✓ 無制限記事生成</span>
               </div>
@@ -288,23 +241,35 @@ export default function Home() {
             <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-100">
               <div className="flex items-center mb-6">
                 <div className="w-3 h-3 bg-purple-500 rounded-full mr-3"></div>
-                <h2 className="text-2xl font-semibold text-gray-800">プロンプト選択・購入</h2>
+                <h2 className="text-2xl font-semibold text-gray-800">記事生成</h2>
+                {selectedSite && (
+                  <span className="text-xs text-gray-500 ml-2">
+                    ({selectedSite.site_name})
+                  </span>
+                )}
               </div>
               
               <div className="space-y-6">
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center">
+                    ✨ 8+1 AI エンジン
+                    <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">自動最適化</span>
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    AIが8つの要素を自動で最適化します。あなたはキーワードを入力するだけ。
+                  </p>
+                </div>
+                
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">
-                    プロンプト選択
-                    {selectedSite && (
-                      <span className="text-xs text-gray-500 ml-2">
-                        ({selectedSite.site_name}専用)
-                      </span>
-                    )}
+                    キーワード（業界・商品・サービス名など）
                   </label>
-                  <PromptSelector
-                    selectedPrompt={selectedPrompt}
-                    onPromptSelect={handlePromptSelect}
-                    onInputsChange={setPromptInputs}
+                  <input
+                    type="text"
+                    placeholder="例：不動産投資、美容サロン、ITコンサルティング"
+                    value={promptInputs.keywords || ''}
+                    onChange={(e) => setPromptInputs(prev => ({ ...prev, keywords: e.target.value }))}
+                    className="w-full p-4 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-purple-500 transition-colors"
                   />
                 </div>
                 
@@ -391,9 +356,9 @@ export default function Home() {
                 
                 <button
                   onClick={handleGenerate}
-                  disabled={isGenerating || !selectedPrompt || !selectedSite}
+                  disabled={isGenerating || !promptInputs.keywords?.trim() || !selectedSite}
                   className={`w-full py-5 text-white font-bold rounded-xl text-lg shadow-lg transform transition-all duration-200 ${
-                    isGenerating || !selectedPrompt || !selectedSite
+                    isGenerating || !promptInputs.keywords?.trim() || !selectedSite
                       ? 'bg-gray-400 cursor-not-allowed' 
                       : 'bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 hover:shadow-xl hover:-translate-y-0.5'
                   }`}

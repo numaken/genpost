@@ -82,35 +82,66 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json().catch(() => ({}))
-    const { site_name, site_url, category_slug, wp_api_key, status = 'active' } = body || {}
+    const { site_id, site_name, site_url, category_slug, wp_api_key, status = 'active', selected_prompt_id } = body || {}
 
-    if (!site_name || !site_url) {
-      return NextResponse.json({ error: 'invalid_params' }, { status: 400 })
+    // site_idが指定されている場合は既存サイトの更新、そうでなければ新規作成
+    if (site_id) {
+      // 既存サイト更新の場合はsite_idのみ必須
+      if (!site_id) {
+        return NextResponse.json({ error: 'site_id_required' }, { status: 400 })
+      }
+    } else {
+      // 新規作成の場合はsite_nameとsite_urlが必須
+      if (!site_name || !site_url) {
+        return NextResponse.json({ error: 'site_name_and_url_required' }, { status: 400 })
+      }
     }
 
     try {
-      // upsert by site_url + user_id
-      const { data: existing } = await supabase
-        .from('wordpress_sites')
-        .select('id')
-        .eq('user_id', session.user.id)
-        .eq('site_url', site_url)
-        .maybeSingle()
+      let result: any;
+      
+      if (site_id) {
+        // 既存サイトの更新（site_idベース）
+        const updatePayload: any = {
+          updated_at: new Date().toISOString(),
+        }
+        
+        // 更新可能なフィールドのみ設定
+        if (category_slug !== undefined) updatePayload.category_slug = category_slug
+        if (wp_api_key !== undefined) updatePayload.wp_api_key = wp_api_key
+        if (status !== undefined) updatePayload.status = status
+        if (selected_prompt_id !== undefined) updatePayload.selected_prompt_id = selected_prompt_id
+        
+        result = await supabase
+          .from('wordpress_sites')
+          .update(updatePayload)
+          .eq('id', site_id)
+          .eq('user_id', session.user.id)
+          .select()
+          .single()
+      } else {
+        // 新規サイト作成 (site_url + user_idでupsert)
+        const { data: existing } = await supabase
+          .from('wordpress_sites')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .eq('site_url', site_url)
+          .maybeSingle()
 
-      let q = supabase.from('wordpress_sites')
-      const payload = {
-        user_id: session.user.id,
-        site_name,
-        site_url,
-        category_slug: category_slug ?? null,
-        wp_api_key: wp_api_key ?? null,
-        status,
-        updated_at: new Date().toISOString(),
+        const payload = {
+          user_id: session.user.id,
+          site_name,
+          site_url,
+          category_slug: category_slug ?? null,
+          wp_api_key: wp_api_key ?? null,
+          status,
+          updated_at: new Date().toISOString(),
+        }
+
+        result = existing?.id
+          ? await supabase.from('wordpress_sites').update(payload).eq('id', existing.id).select().single()
+          : await supabase.from('wordpress_sites').insert(payload).select().single()
       }
-
-      const result = existing?.id
-        ? await q.update(payload).eq('id', existing.id).select().single()
-        : await q.insert(payload).select().single()
 
       if (result.error) {
         // ここで握りつぶさずJSONで返す
