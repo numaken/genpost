@@ -123,6 +123,18 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id
     const userEmail = session.user.email
 
+    // APIキー取得とモデル決定
+    const apiKey = await getEffectiveApiKey(userId)
+    if (!apiKey) {
+      return NextResponse.json({ error: 'APIキーが設定されていません。OpenAI APIキーを設定するか、共有APIキーをご利用ください。' }, { status: 400 })
+    }
+
+    // モデル選択ロジック
+    const userApiKey = await getUserApiKey(userEmail || '', 'openai')
+    const finalModel = userApiKey ? (model || 'gpt-3.5-turbo') : 'gpt-3.5-turbo'
+    
+    console.log(`[generate-simple] Using model: ${finalModel}, User API Key: ${!!userApiKey}`)
+
     // 使用制限チェック
     const usageResult = await canUse(finalModel, userId)
     if (!usageResult.ok) {
@@ -136,18 +148,6 @@ export async function POST(request: NextRequest) {
         plan: usageResult.plan
       }, { status: 403 })
     }
-
-    // APIキー取得とモデル決定
-    const apiKey = await getEffectiveApiKey(userId)
-    if (!apiKey) {
-      return NextResponse.json({ error: 'APIキーが設定されていません。OpenAI APIキーを設定するか、共有APIキーをご利用ください。' }, { status: 400 })
-    }
-
-    // モデル選択ロジック
-    const userApiKey = await getUserApiKey(userEmail || '', 'openai')
-    const finalModel = userApiKey ? (model || 'gpt-3.5-turbo') : 'gpt-3.5-turbo'
-    
-    console.log(`[generate-simple] Using model: ${finalModel}, User API Key: ${!!userApiKey}`)
 
     // WordPress サイト情報取得（投稿に必要）
     let wpSite = null
