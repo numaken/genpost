@@ -3,17 +3,9 @@
 import { useState, useEffect } from 'react'
 import { useSession, signIn } from 'next-auth/react'
 import Link from 'next/link'
+import { normalizePromptsResponse, type Prompt } from '@/lib/marketplace'
 
-interface PromptWithStatus {
-  id: string
-  prompt_id: string
-  industry: string
-  name: string
-  description: string
-  price: number
-  is_free: boolean
-  purpose: string
-  format: string
+interface PromptWithStatus extends Prompt {
   purchased?: boolean
   available?: boolean
 }
@@ -38,39 +30,43 @@ export default function PricingPage() {
   const fetchPrompts = async () => {
     try {
       setLoading(true)
-      // 新しいAPIを最初に試し、フォールバック対応（大きなlimitで多くのデータを取得）
+      // 正規化ユーティリティで安全にデータを取得
       const response = await fetch(`/api/prompts?page=1&limit=1000&t=${Date.now()}`, { 
-        cache: 'no-store' 
+        cache: 'no-store',
+        headers: { 'Accept': 'application/json' }
       })
-      const data = await response.json()
       
-      if (response.ok) {
-        // 新旧API互換：items ?? prompts ?? data ?? [] でフォールバック
-        const items = data.items ?? data.prompts ?? data.data ?? []
-        const promptsWithStatus = items.map((p: any) => ({
-          ...p,
-          purchased: false, // デフォルト値（認証後にアップデート可能）
-          available: p.is_free || false
-        }))
-        
-        setPrompts(promptsWithStatus)
-        setFilteredPrompts(promptsWithStatus)
-        
-        // 業界別グループ化
-        const grouped = promptsWithStatus.reduce((acc: Record<string, PromptWithStatus[]>, prompt: PromptWithStatus) => {
-          if (!acc[prompt.industry]) {
-            acc[prompt.industry] = []
-          }
-          acc[prompt.industry].push(prompt)
-          return acc
-        }, {})
-        
-        setGroupedPrompts(grouped)
-      } else {
-        console.error('API Error:', data)
-      }
+      // レスポンスを正規化（エラー時も空配列で続行）
+      const json = await response.json().catch(() => ({}))
+      const normalized = normalizePromptsResponse(json)
+      
+      // PromptWithStatus型にマッピング
+      const promptsWithStatus: PromptWithStatus[] = normalized.items.map(p => ({
+        ...p,
+        purchased: false, // デフォルト値（認証後にアップデート可能）
+        available: p.is_free || false
+      }))
+      
+      setPrompts(promptsWithStatus)
+      setFilteredPrompts(promptsWithStatus)
+      
+      // 業界別グループ化（industryが存在するものだけ）
+      const grouped = promptsWithStatus.reduce((acc: Record<string, PromptWithStatus[]>, prompt: PromptWithStatus) => {
+        const industry = prompt.industry || 'その他'
+        if (!acc[industry]) {
+          acc[industry] = []
+        }
+        acc[industry].push(prompt)
+        return acc
+      }, {})
+      
+      setGroupedPrompts(grouped)
     } catch (error) {
+      // エラーでもUIを壊さない
       console.error('Error fetching prompts:', error)
+      setPrompts([])
+      setFilteredPrompts([])
+      setGroupedPrompts({})
     } finally {
       setLoading(false)
     }
@@ -108,15 +104,15 @@ export default function PricingPage() {
   useEffect(() => {
     let filtered = [...prompts]
     
-    // 検索フィルター
+    // 検索フィルター（descriptionが未定義でも安全）
     if (searchTerm.trim()) {
       filtered = filtered.filter(p => 
         p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchTerm.toLowerCase())
+        (p.description?.toLowerCase() || '').includes(searchTerm.toLowerCase())
       )
     }
     
-    // 業界フィルター
+    // 業界フィルター（industryが未定義でも安全）
     if (selectedIndustry !== 'all') {
       filtered = filtered.filter(p => p.industry === selectedIndustry)
     }
@@ -138,19 +134,21 @@ export default function PricingPage() {
     
     setFilteredPrompts(filtered)
     
-    // フィルター済みプロンプトをグループ化
+    // フィルター済みプロンプトをグループ化（industryが無い場合は「その他」に）
     const grouped = filtered.reduce((acc, prompt) => {
-      if (!acc[prompt.industry]) {
-        acc[prompt.industry] = []
+      const industry = prompt.industry || 'その他'
+      if (!acc[industry]) {
+        acc[industry] = []
       }
-      acc[prompt.industry].push(prompt)
+      acc[industry].push(prompt)
       return acc
     }, {} as Record<string, PromptWithStatus[]>)
     
     setGroupedPrompts(grouped)
   }, [prompts, searchTerm, selectedIndustry, selectedPurpose, selectedFormat, showOnlyAvailable])
 
-  const getIndustryIcon = (industry: string) => {
+  const getIndustryIcon = (industry?: string) => {
+    if (!industry) return '📋'
     const icons: Record<string, string> = {
       'real-estate': '🏠',
       'restaurant': '🍽️',
@@ -174,7 +172,8 @@ export default function PricingPage() {
     return icons[industry] || '📄'
   }
 
-  const getIndustryName = (industry: string) => {
+  const getIndustryName = (industry?: string) => {
+    if (!industry) return 'その他'
     const names: Record<string, string> = {
       'real-estate': '不動産',
       'restaurant': '飲食店',
@@ -198,7 +197,8 @@ export default function PricingPage() {
     return names[industry] || industry
   }
 
-  const getPurposeName = (purpose: string) => {
+  const getPurposeName = (purpose?: string) => {
+    if (!purpose) return ''
     const names: Record<string, string> = {
       'customer-acquisition': '新規顧客獲得',
       'repeat-customer': 'リピーター獲得',
@@ -209,7 +209,8 @@ export default function PricingPage() {
     return names[purpose] || purpose
   }
 
-  const getFormatName = (format: string) => {
+  const getFormatName = (format?: string) => {
+    if (!format) return ''
     const names: Record<string, string> = {
       'how-to': 'ハウツー記事',
       'case-study': '事例紹介',
@@ -553,20 +554,20 @@ export default function PricingPage() {
                               </span>
                             ) : (
                               <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-medium rounded">
-                                ¥{prompt.price.toLocaleString()}
+                                ¥{(prompt.price ?? 0).toLocaleString()}
                               </span>
                             )}
                           </div>
                         </div>
                         
-                        <p className="text-sm text-gray-600 mb-3">{prompt.description}</p>
+                        <p className="text-sm text-gray-600 mb-3">{prompt.description || '説明は準備中です。'}</p>
                         <div className="text-xs text-gray-500 mb-4">
-                          {getPurposeName(prompt.purpose)} / {getFormatName(prompt.format)}
+                          {[getPurposeName(prompt.purpose), getFormatName(prompt.format)].filter(Boolean).join(' / ') || '詳細'}
                         </div>
                         
-                        {!prompt.is_free && !prompt.purchased && (
+                        {!prompt.is_free && !prompt.purchased && prompt.prompt_id && (
                           <button
-                            onClick={() => handlePurchase(prompt.prompt_id)}
+                            onClick={() => handlePurchase(prompt.prompt_id!)}
                             disabled={purchasing === prompt.prompt_id}
                             className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                           >
