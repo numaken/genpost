@@ -197,7 +197,7 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
   const [prompts, setPrompts] = useState<PromptWithStatus[]>([])
   const [groupedPrompts, setGroupedPrompts] = useState<Record<string, PromptWithStatus[]>>({})
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState<'all' | 'available' | 'free' | 'purchased'>('purchased')
+  const [filter, setFilter] = useState<'all' | 'available' | 'free' | 'purchased'>('available')
   const [selectedIndustry, setSelectedIndustry] = useState<string>('all')
   const [inputs, setInputs] = useState<Record<string, string>>({})
   const [purchasing, setPurchasing] = useState<string | null>(null)
@@ -218,8 +218,8 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
       
       if (response.ok) {
         console.log('Fetched prompts data:', data) // デバッグ用
-        setPrompts(data.prompts)
-        setGroupedPrompts(data.grouped)
+        setPrompts(data.prompts || [])
+        setGroupedPrompts(data.grouped || {})
       } else {
         console.error('Failed to fetch prompts:', data.error)
       }
@@ -344,7 +344,7 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
       {/* フィルター */}
       <div className="flex flex-wrap gap-4">
         <div className="flex items-center justify-between w-full">
-          <div className="text-lg font-semibold text-gray-800">購入済みプロンプト</div>
+          <div className="text-lg font-semibold text-gray-800">利用可能プロンプト</div>
           <Link 
             href="/prompts" 
             className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-2 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-colors text-sm"
@@ -359,7 +359,7 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
           className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
         >
           <option value="all">全業界</option>
-          {Object.keys(groupedPrompts).map(industry => (
+          {groupedPrompts && Object.keys(groupedPrompts).map(industry => (
             <option key={industry} value={industry}>
               {getIndustryIcon(industry)} {getIndustryName(industry)}
             </option>
@@ -368,7 +368,7 @@ export default function PromptSelector({ selectedPrompt, onPromptSelect, onInput
       </div>
 
       {/* プロンプト一覧 */}
-      {Object.entries(groupedPrompts).map(([industry, industryPrompts]) => (
+      {groupedPrompts && Object.entries(groupedPrompts).map(([industry, industryPrompts]) => (
         <div key={industry} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
             <h3 className="font-semibold text-gray-800 flex items-center gap-2">

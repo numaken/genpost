@@ -1,7 +1,9 @@
 import 'server-only'
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth/next'
 import { createClient } from '@supabase/supabase-js'
 import { redact } from '@/lib/redact'
+import { hasUserPurchased } from '@/lib/prompts'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,24 +62,53 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ items: [], error: 'fetch_failed' }, { status: 500 })
     }
 
+    // セッション確認（購入状況チェックのため）
+    const session = await getServerSession()
+    const userId = session?.user?.email
+
     // UI互換のため、足りないフィールドを補完（price_jpy/version/tags/is_published）
-    const items = (data ?? []).map((p: any) => ({
-      id: p.id,
-      prompt_id: p.prompt_id,
-      name: p.name,
-      industry: p.industry,
-      purpose: p.purpose,
-      format: p.format,
-      description: p.description,
-      is_free: !!p.is_free,
-      is_active: !!p.is_active,
-      is_published: !!p.is_active,      // ← UIが is_published を見る場合の互換
-      price: Number(p.price ?? 0),
-      price_jpy: Number(p.price ?? 0),   // ← UIが price_jpy を見る場合の互換
-      version: 'v1.0',                   // ← CSVになくても表示用の既定値
-      tags: [p.industry, p.format].filter(Boolean), // ← 簡易タグ
-      created_at: p.created_at
+    const items = await Promise.all((data ?? []).map(async (p: any) => {
+      let purchased = false
+      let available = true
+
+      if (userId) {
+        // ユーザーがログインしている場合、購入状況をチェック
+        purchased = await hasUserPurchased(userId, p.prompt_id)
+      }
+
+      // プロンプトが利用可能かどうか（無料 or 購入済み）
+      available = p.is_free || purchased
+
+      return {
+        id: p.id,
+        prompt_id: p.prompt_id,
+        name: p.name,
+        industry: p.industry,
+        purpose: p.purpose,
+        format: p.format,
+        description: p.description,
+        is_free: !!p.is_free,
+        is_active: !!p.is_active,
+        is_published: !!p.is_active,      // ← UIが is_published を見る場合の互換
+        price: Number(p.price ?? 0),
+        price_jpy: Number(p.price ?? 0),   // ← UIが price_jpy を見る場合の互換
+        version: 'v1.0',                   // ← CSVになくても表示用の既定値
+        tags: [p.industry, p.format].filter(Boolean), // ← 簡易タグ
+        purchased,                         // 購入状況
+        available,                         // 利用可能状況
+        created_at: p.created_at
+      }
     }))
+
+    // 業界別グループ化（UI互換のため）
+    const grouped = items.reduce((acc: any, prompt: any) => {
+      const industry = prompt.industry || 'その他'
+      if (!acc[industry]) {
+        acc[industry] = []
+      }
+      acc[industry].push(prompt)
+      return acc
+    }, {})
 
     // 既存UI互換のため、古い形式とあわせて新しい形式も返す
     return NextResponse.json(
@@ -85,6 +116,7 @@ export async function GET(req: NextRequest) {
         items, 
         data: items, 
         prompts: items,  // 既存のUI互換用
+        grouped,         // 業界別グループ化
         total: count ?? items.length, 
         page, 
         limit 

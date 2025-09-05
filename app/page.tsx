@@ -413,8 +413,8 @@ export default function Home() {
                 <div className="flex items-start">
                   <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2 mr-4"></div>
                   <div className="text-sm text-gray-700 space-y-1">
-                    <p className="font-medium">🛒 プロンプト購入後、無制限生成が可能です</p>
-                    <p>🏠 WordPressサイトの登録・管理（2サイトまで無料）</p>
+                    <p className="font-medium">🛒 プロンプト購入後、記事生成が可能です（プランに応じた制限あり）</p>
+                    <p>🏠 WordPressサイトの登録・管理（プランに応じて2-20サイト）</p>
                     <p>✨ 投稿ステータス（下書き/公開/予約投稿）を選択できます</p>
                     <p>📅 予約投稿で1ヶ月分の記事を自動分散投稿</p>
                     <p>⚡ 生成には30秒～2分程度かかります</p>

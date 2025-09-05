@@ -93,13 +93,12 @@ export async function getUserSubscription(userId: string): Promise<UserSubscript
     .single()
   
   if (error || !data) {
-    // サブスクリプションが存在しない場合はフリープランとして扱う
-    const freeLimits = PLAN_LIMITS.free
+    // サブスクリプションが存在しない場合はスターター制限を適用（トライアル扱い）
     return {
-      planType: 'free',
-      maxSharedApiArticles: freeLimits.maxSharedApiArticles,
-      dailyLimit: freeLimits.dailyLimit,
-      maxSites: freeLimits.maxSites,
+      planType: 'starter',
+      maxSharedApiArticles: 5, // トライアル期間は5記事まで
+      dailyLimit: 1,
+      maxSites: 1,
       isActive: true
     }
   }

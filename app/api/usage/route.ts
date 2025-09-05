@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     ])
 
     // プラン名を取得
-    const planName = PLAN_LIMITS[subscription.planType]?.name || 'フリープラン'
+    const planName = PLAN_LIMITS[subscription.planType]?.name || 'スタータープラン'
 
     return NextResponse.json({
       sharedApiCount: usage.sharedApiCount,
