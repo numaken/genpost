@@ -38,13 +38,36 @@ export default function PricingPage() {
   const fetchPrompts = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/prompts?filter=all')
+      // 新しいAPIを最初に試し、フォールバック対応（大きなlimitで多くのデータを取得）
+      const response = await fetch(`/api/prompts?page=1&limit=1000&t=${Date.now()}`, { 
+        cache: 'no-store' 
+      })
       const data = await response.json()
       
       if (response.ok) {
-        setPrompts(data.prompts)
-        setFilteredPrompts(data.prompts)
-        setGroupedPrompts(data.grouped)
+        // 新旧API互換：items ?? prompts ?? data ?? [] でフォールバック
+        const items = data.items ?? data.prompts ?? data.data ?? []
+        const promptsWithStatus = items.map((p: any) => ({
+          ...p,
+          purchased: false, // デフォルト値（認証後にアップデート可能）
+          available: p.is_free || false
+        }))
+        
+        setPrompts(promptsWithStatus)
+        setFilteredPrompts(promptsWithStatus)
+        
+        // 業界別グループ化
+        const grouped = promptsWithStatus.reduce((acc: Record<string, PromptWithStatus[]>, prompt: PromptWithStatus) => {
+          if (!acc[prompt.industry]) {
+            acc[prompt.industry] = []
+          }
+          acc[prompt.industry].push(prompt)
+          return acc
+        }, {})
+        
+        setGroupedPrompts(grouped)
+      } else {
+        console.error('API Error:', data)
       }
     } catch (error) {
       console.error('Error fetching prompts:', error)
