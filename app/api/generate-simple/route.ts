@@ -181,14 +181,17 @@ export async function POST(request: NextRequest) {
               'Content-Type': 'application/json',
               'Authorization': wpSite.wp_api_key ? 
                 `Bearer ${wpSite.wp_api_key}` : 
-                `Basic ${Buffer.from(`admin:password`).toString('base64')}`
+                wpSite.wp_username && wpSite.wp_app_password ?
+                  `Basic ${Buffer.from(`${wpSite.wp_username}:${wpSite.wp_app_password}`).toString('base64')}` :
+                  `Basic ${Buffer.from(`admin:password`).toString('base64')}`
             },
             body: JSON.stringify({
               title: article.title,
               content: article.content,
               status: post_status === 'scheduled' ? 'future' : post_status,
               date: publishDate,
-              categories: category_slug ? [category_slug] : undefined,
+              categories: category_slug ? [category_slug] : 
+                          wpSite.default_category_id ? [wpSite.default_category_id] : undefined,
               meta: {
                 'genpost_generated': true,
                 'genpost_keywords': keywords,
