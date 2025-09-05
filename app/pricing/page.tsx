@@ -88,7 +88,7 @@ export default function PricingPage() {
                   Q. WordPress サイトは何個まで接続できますか？
                 </h3>
                 <p className="text-gray-600">
-                  A. フリープランでは2サイトまで、有料プランでは無制限でWordPressサイトを接続できます。
+                  A. Starter=2サイト、Pro=5サイト、Agency=20サイトです（フリープランは2サイト）。必要に応じて上位プランや追加オプションをご検討ください。
                 </p>
               </div>
 

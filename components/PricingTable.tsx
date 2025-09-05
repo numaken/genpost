@@ -206,11 +206,10 @@ export default function PricingTable() {
 
       <div className="mt-8 text-center">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h4 className="font-semibold text-blue-800 mb-3">💡 独自APIキーオプション</h4>
+          <h4 className="font-semibold text-blue-800 mb-3">💡 独自APIキー（BYOK）オプション</h4>
           <div className="text-sm text-blue-700 space-y-2">
-            <p>どのプランでも、独自のOpenAI APIキーを設定することで<strong>当社側の月間上限の対象外</strong>となります。</p>
-            <p>OpenAI API の使用料金は直接OpenAIにお支払いいただきます。公正利用（レート制限・同時実行制限）は適用されます。</p>
-            <p>APIキー設定により、GPT-4、GPT-4o等の高性能モデルもご利用いただけます。</p>
+            <p>どのプランでも、独自の OpenAI API キーを設定すると、<strong>当社の月間上限の対象外</strong>でご利用いただけます（※公正利用ポリシーに基づきレート制限・同時実行の上限あり）。</p>
+            <p>OpenAI API の料金はお客様に直接請求されます。BYOKでは GPT-4o/4o-mini 等の上位モデルも選択可能です（提供状況に準拠）。</p>
           </div>
         </div>
       </div>
@@ -239,8 +238,8 @@ export default function PricingTable() {
 
           <div className="space-y-4">
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 記事生成のコスト目安（BYOK/GPT-3.5）</h4>
-              <p className="text-gray-600">A. 記事長により変動します。短文想定（1,000-2,000トークン）で1記事あたり約1–3円の目安。最新のOpenAI価格に準拠します。</p>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 独自APIキーを使用する場合の費用は？</h4>
+              <p className="text-gray-600">A. GenPostのプラン料金に加えて、OpenAIの利用料が発生します。短文（約1,000–2,000トークン）想定で GPT-3.5 は1–3円/記事が目安ですが、入出力トークン量により変動します。料金はOpenAIの最新価格に準拠します。</p>
             </div>
             
             <div>

@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Flask container -->
+  <path d="M160 64h192v32H160z" fill="#2C5F5F"/>
+  <path d="M176 96h160v64L416 352c16 32 0 64-32 64H128c-32 0-48-32-32-64l80-192V96z" fill="#2C5F5F" stroke="#fff" stroke-width="8"/>
+  
+  <!-- Inner circle background -->
+  <circle cx="256" cy="256" r="144" fill="#fff"/>
+  
+  <!-- Quadrants -->
+  <!-- Top left - AI/Brain (cyan) -->
+  <path d="M256 256 L148 148 A144 144 0 0 1 256 112 Z" fill="#4FC3F7"/>
+  
+  <!-- Top right - Infinity/Link (magenta) -->
+  <path d="M256 256 L364 148 A144 144 0 0 0 256 112 Z" fill="#E91E63"/>
+  
+  <!-- Bottom left - Mobile/Device (green) -->
+  <path d="M256 256 L148 364 A144 144 0 0 0 256 400 Z" fill="#66BB6A"/>
+  
+  <!-- Bottom right - Globe/Web (orange) -->
+  <path d="M256 256 L364 364 A144 144 0 0 1 256 400 Z" fill="#FF9800"/>
+  
+  <!-- Icons -->
+  <!-- AI Brain icon -->
+  <g transform="translate(180, 180)">
+    <circle cx="24" cy="24" r="20" fill="none" stroke="#fff" stroke-width="3"/>
+    <path d="M16 32c0-4 4-8 8-8s8 4 8 8" fill="none" stroke="#fff" stroke-width="3"/>
+    <circle cx="24" cy="20" r="3" fill="#fff"/>
+  </g>
+  
+  <!-- Infinity icon -->
+  <g transform="translate(308, 180)">
+    <path d="M12 24c0-6 6-12 12-12s12 6 12 12-6 12-12 12c-6 0-12-6-12-12zm12 0c6 0 12-6 12-12s-6-12-12-12-12 6-12 12 6 12 12 12z" fill="#fff"/>
+  </g>
+  
+  <!-- Mobile device icon -->
+  <g transform="translate(180, 308)">
+    <rect x="16" y="8" width="16" height="32" rx="2" fill="#fff"/>
+    <circle cx="24" cy="36" r="1" fill="#2C5F5F"/>
+  </g>
+  
+  <!-- Globe icon -->
+  <g transform="translate(308, 308)">
+    <circle cx="24" cy="24" r="16" fill="none" stroke="#fff" stroke-width="3"/>
+    <path d="M8 24h32M24 8c-8 0-16 7-16 16s8 16 16 16M24 8c8 0 16 7 16 16s-8 16-16 16" fill="none" stroke="#fff" stroke-width="2"/>
+  </g>
+  
+  <!-- Center circle -->
+  <circle cx="256" cy="256" r="20" fill="#2C5F5F"/>
+</svg>

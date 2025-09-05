@@ -258,7 +258,10 @@ export default function Home() {
 
             {/* ログイン促進セクション */}
             <div className="text-center py-16">
-              <h2 className="text-3xl font-bold text-gray-800 mb-4">panolabo AI エンジンで無制限記事生成をはじめませんか？</h2>
+              <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center justify-center">
+                <img src="/panolabo-ai-icon.svg" alt="panolabo AI" className="w-8 h-8 mr-3" />
+                panolabo AI エンジンで無制限記事生成をはじめませんか？
+              </h2>
               <p className="text-gray-600 mb-8">AI が自動で最適化。あなたはキーワードを入力するだけで高品質記事を量産できます。</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
@@ -280,8 +283,9 @@ export default function Home() {
           <div>
             {/* プロンプト購入案内 */}
             <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-8 border border-purple-200">
-              <h3 className="text-2xl font-bold text-gray-800 mb-3">
-                ✨ panolabo AI エンジンで記事生成開始
+              <h3 className="text-2xl font-bold text-gray-800 mb-3 flex items-center">
+                <img src="/panolabo-ai-icon.svg" alt="panolabo AI" className="w-6 h-6 mr-2" />
+                panolabo AI エンジンで記事生成開始
               </h3>
               <p className="text-gray-600 mb-4">
                 AI が 8つの要素を自動最適化。あなたはキーワードを入力するだけで高品質記事を無制限生成。<br/>
@@ -321,7 +325,8 @@ export default function Home() {
               <div className="space-y-6">
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
                   <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center">
-                    ✨ panolabo AI エンジン
+                    <img src="/panolabo-ai-icon.svg" alt="panolabo AI" className="w-5 h-5 mr-2" />
+                    panolabo AI エンジン
                     <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">自動最適化</span>
                   </h3>
                   <p className="text-sm text-gray-600">
@@ -382,18 +387,18 @@ export default function Home() {
                   </div>
                 )}
 
-                {/* 共有APIキー使用時の表示 */}
-                {!hasUserApiKey && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                {/* 独自APIキー使用時の表示 */}
+                {hasUserApiKey && (
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                     <div className="flex items-center">
-                      <div className="text-blue-600 mr-2">🚀</div>
+                      <div className="text-green-600 mr-2">🔑</div>
                       <div>
-                        <h4 className="font-medium text-blue-800">スタータープラン</h4>
-                        <p className="text-sm text-blue-700">
-                          GPT-3.5 Turboを使用中（弊社負担）
+                        <h4 className="font-medium text-green-800">独自APIキー使用中</h4>
+                        <p className="text-sm text-green-700">
+                          お客様のOpenAI APIキーで生成中
                         </p>
-                        <p className="text-xs text-blue-600 mt-1">
-                          より高性能なモデルをご希望の場合は、独自APIキーを設定してください
+                        <p className="text-xs text-green-600 mt-1">
+                          当社月間上限の対象外・高性能モデル選択可能
                         </p>
                       </div>
                     </div>
