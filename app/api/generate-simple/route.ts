@@ -142,21 +142,120 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'APIキーが設定されていません。OpenAI APIキーを設定するか、共有APIキーをご利用ください。' }, { status: 400 })
     }
 
+    // WordPress サイト情報取得（投稿に必要）
+    let wpSite = null
+    if (site_url) {
+      const { data: siteData } = await supabase
+        .from('wordpress_sites')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('site_url', site_url)
+        .single()
+      
+      wpSite = siteData
+    }
+
     // v2 エンジンで記事生成
     const result = await generateWithSimpleV2Engine(keywords.trim(), apiKey, count)
+
+    // WordPress投稿処理
+    const publishResults = []
+    if (wpSite && result.articles && result.articles.length > 0) {
+      for (let i = 0; i < result.articles.length; i++) {
+        const article = result.articles[i]
+        
+        // 投稿日時計算（予約投稿の場合）
+        let publishDate = undefined
+        if (post_status === 'scheduled' && scheduled_start_date) {
+          const baseDate = new Date(scheduled_start_date)
+          baseDate.setDate(baseDate.getDate() + (i * (scheduled_interval || 1)))
+          publishDate = baseDate.toISOString()
+        }
+
+        try {
+          // WordPress REST API で投稿
+          const wpApiUrl = `${site_url.replace(/\/$/, '')}/wp-json/wp/v2/posts`
+          const wpResponse = await fetch(wpApiUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': wpSite.wp_api_key ? 
+                `Bearer ${wpSite.wp_api_key}` : 
+                `Basic ${Buffer.from(`admin:password`).toString('base64')}`
+            },
+            body: JSON.stringify({
+              title: article.title,
+              content: article.content,
+              status: post_status === 'scheduled' ? 'future' : post_status,
+              date: publishDate,
+              categories: category_slug ? [category_slug] : undefined,
+              meta: {
+                'genpost_generated': true,
+                'genpost_keywords': keywords,
+                'genpost_engine': 'v2-8plus1-simple'
+              }
+            })
+          })
+
+          const wpResult = await wpResponse.json()
+          publishResults.push({
+            success: wpResponse.ok,
+            post_id: wpResult.id,
+            url: wpResult.link,
+            scheduled_for: publishDate,
+            error: wpResponse.ok ? null : wpResult.message || wpResult.code
+          })
+
+          // 成功した場合は記事にWordPress情報を追加
+          if (wpResponse.ok) {
+            article.wp_post_id = wpResult.id
+            article.wp_url = wpResult.link
+          }
+
+        } catch (publishError) {
+          console.error('WordPress publish error:', publishError)
+          publishResults.push({
+            success: false,
+            error: publishError instanceof Error ? publishError.message : 'WordPress投稿に失敗しました'
+          })
+        }
+      }
+    }
 
     // 使用量記録
     await recordUsage(userId, 'gpt-4o-mini', {
       keywords,
       articles_generated: result.articles?.length || count,
-      engine: '8+1-simple'
+      engine: '8+1-simple',
+      wp_published: publishResults.filter(r => r.success).length
     })
+
+    // 投稿結果のサマリー
+    const publishedCount = publishResults.filter(r => r.success).length
+    const publishErrors = publishResults.filter(r => !r.success)
+    
+    let message = `${result.articles.length}件の記事生成が完了しました（8+1 AI エンジン）`
+    if (wpSite) {
+      if (publishedCount > 0) {
+        message += `\n${publishedCount}件をWordPressに投稿しました`
+      }
+      if (publishErrors.length > 0) {
+        message += `\n${publishErrors.length}件の投稿に失敗しました`
+      }
+    } else if (site_url) {
+      message += '\nWordPressサイトが見つからないため、投稿をスキップしました'
+    }
 
     return NextResponse.json({
       success: true,
-      message: `${result.articles.length}件の記事生成が完了しました（8+1 AI エンジン）`,
+      message,
       articles: result.articles,
       verification: result.verification,
+      publish_results: publishResults,
+      wp_site: wpSite ? {
+        name: wpSite.site_name,
+        url: wpSite.site_url
+      } : null,
       usage: {
         used: (usageResult.used || 0) + count,
         limit: usageResult.limit || 0,
