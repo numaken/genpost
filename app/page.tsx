@@ -15,6 +15,7 @@ interface WordPressSite {
   wp_username: string
   wp_app_password: string
   default_category_id: number
+  category_slug?: string
   selected_prompt_id?: string
 }
 
