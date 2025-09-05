@@ -229,12 +229,13 @@ ${article}
   }
 
   private static getToneDescription(tone: any): string {
-    const personality = {
+    const personalityMap: { [key: string]: string } = {
       'friendly': '親しみやすく',
       'professional': '専門的で',
       'enthusiastic': '熱意を込めて',
       'authoritative': '権威的に'
-    }[tone.personality] || '親しみやすく';
+    }
+    const personality = personalityMap[tone.personality] || '親しみやすく';
 
     return `${personality}、フォーマル度${tone.formality}/5、熱量${tone.energy}/5で`;
   }
