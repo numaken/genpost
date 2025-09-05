@@ -3,6 +3,7 @@ export type HeadingMap = Record<string, string>;
 
 // デフォルト置換マップ（必要に応じて編集可能）
 export const defaultHeadingMap: HeadingMap = {
+  // 基本フレームワーク見出し
   '読者の抱える課題': 'こんな悩み、ありませんか？',
   '解決策と提案': 'アプリでやることはこの3つ',
   '根拠と証拠': '数字でわかる効果',
@@ -11,25 +12,24 @@ export const defaultHeadingMap: HeadingMap = {
   '行動喚起': 'まずはここから',
   'まとめ': 'まとめ',
   
-  // panolabo AI エンジンの8要素対応
+  // panolabo AI エンジンの8要素対応（重複を避けて別の表現を使用）
   'ターゲット読者': 'こんな方におすすめ',
   '問題・課題': 'よくあるお悩み',
   '解決策・提案': '解決のポイント',
   '根拠・証拠': 'なぜ効果的なのか',
-  'ベネフィット': 'こんな変化が期待できます',
-  '感情的フック': '実感できるメリット',
-  '行動喚起': '今すぐ始めてみませんか',
+  '感情的フック（Emotion）': '実感できるメリット',
+  '行動喚起（Call-to-Action）': '今すぐ始めてみませんか',
   'SEOキーワード配置': 'キーポイント',
   
   // 英語系の見出しにも対応
-  'Call-to-Action': 'まずはここから',
-  'Benefit': '導入すると、ここが変わる',
-  'Why': '数字でわかる効果',
-  'How': 'やることはこの3つ',
-  'What': 'こんな悩み、ありませんか？',
-  'Who': 'こんな方におすすめ',
-  'Emotion': '実感できるメリット',
-  'SEO': 'キーポイント',
+  'Call-to-Action': '行動のきっかけ',
+  'Benefit': 'こんな変化が期待できます',
+  'Why': 'その理由とは',
+  'How': '具体的な方法',
+  'What': 'このような課題はありませんか',
+  'Who': 'このような方に最適',
+  'Emotion': '心に響くポイント',
+  'SEO': '重要なキーワード',
 };
 
 const buildPattern = (base: string) =>
@@ -37,7 +37,7 @@ const buildPattern = (base: string) =>
     '^\\s*' +
       base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + // escape special regex chars
       '\\s*(?:[:：]?\\s*(?:（[^）]*）|\\([^)]*\\)))?\\s*$',
-    'u'
+    'i' // case insensitive instead of unicode flag
   );
 
 const slugify = (text: string) =>
@@ -54,7 +54,7 @@ const slugify = (text: string) =>
 const transformMarkdown = (md: string, map: HeadingMap) => {
   const entries = Object.entries(map).map(([k, v]) => [buildPattern(k), v] as const);
 
-  return md.replace(/^(#{1,6})\s*(.+)$/gmu, (_, sharp: string, text: string) => {
+  return md.replace(/^(#{1,6})\s*(.+)$/gm, (_, sharp: string, text: string) => {
     const clean = text.trim();
     for (const [pat, natural] of entries) {
       if (pat.test(clean)) return `${sharp} ${natural}`;
@@ -67,7 +67,7 @@ const transformMarkdown = (md: string, map: HeadingMap) => {
 const transformHtml = (html: string, map: HeadingMap) => {
   const entries = Object.entries(map).map(([k, v]) => [buildPattern(k), v] as const);
 
-  return html.replace(/<(h[1-6])(\s[^>]*)?>([\s\S]*?)<\/\1>/gimu, (m, tag, attrs = '', inner) => {
+  return html.replace(/<(h[1-6])(\s[^>]*)?>([\s\S]*?)<\/\1>/gim, (m, tag, attrs = '', inner) => {
     const plain = inner.replace(/<[^>]+>/g, '').trim(); // 中の装飾は取り除いて判定
     for (const [pat, natural] of entries) {
       if (pat.test(plain)) {
