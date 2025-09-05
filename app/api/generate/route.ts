@@ -347,8 +347,8 @@ export async function POST(request: NextRequest) {
         let postData: any = {
           title: title,
           content: content,
-          status: postStatus === 'scheduled' ? 'future' : postStatus,
-          categories: [parseInt(config.categoryId) || 1],
+          status: post_status === 'scheduled' ? 'future' : post_status,
+          categories: category_slug ? [category_slug] : [1],
           meta: {
             'genpost_prompt_id': promptId,
             'genpost_generated': true
@@ -356,17 +356,17 @@ export async function POST(request: NextRequest) {
         }
 
         // 予約投稿の場合、日時を設定
-        if (postStatus === 'scheduled' && scheduledStartDate) {
-          const baseDate = new Date(scheduledStartDate)
-          const publishDate = new Date(baseDate.getTime() + (i * scheduledInterval * 24 * 60 * 60 * 1000))
+        if (post_status === 'scheduled' && scheduled_start_date) {
+          const baseDate = new Date(scheduled_start_date)
+          const publishDate = new Date(baseDate.getTime() + (i * (scheduled_interval || 1) * 24 * 60 * 60 * 1000))
           postData.date = publishDate.toISOString()
         }
 
         // WordPress REST APIで投稿
-        const wpResponse = await fetch(`${config.wpSiteUrl}/wp-json/wp/v2/posts`, {
+        const wpResponse = await fetch(`${site_url}/wp-json/wp/v2/posts`, {
           method: 'POST',
           headers: {
-            'Authorization': `Basic ${Buffer.from(`${config.wpUser}:${config.wpAppPass}`).toString('base64')}`,
+            'Authorization': `Basic ${Buffer.from(`admin:password`).toString('base64')}`,
             'Content-Type': 'application/json',
           },
           body: JSON.stringify(postData)
@@ -404,8 +404,8 @@ export async function POST(request: NextRequest) {
             version: promptVersion.version,
             version_name: promptVersion.version_name,
             quality_score: qualityScore,
-            publishDate: postStatus === 'scheduled' && scheduledStartDate ? 
-              new Date(new Date(scheduledStartDate).getTime() + (i * scheduledInterval * 24 * 60 * 60 * 1000)).toLocaleString('ja-JP') : 
+            publishDate: post_status === 'scheduled' && scheduled_start_date ? 
+              new Date(new Date(scheduled_start_date).getTime() + (i * (scheduled_interval || 1) * 24 * 60 * 60 * 1000)).toLocaleString('ja-JP') : 
               undefined
           })
         } else {
@@ -414,8 +414,8 @@ export async function POST(request: NextRequest) {
             status: wpResponse.status,
             statusText: wpResponse.statusText,
             response: errorText,
-            requestUrl: `${config.wpSiteUrl}/wp-json/wp/v2/posts`,
-            user: config.wpUser
+            requestUrl: `${site_url}/wp-json/wp/v2/posts`,
+            user: 'admin'
           })
           articles.push({
             error: `WordPress投稿に失敗しました (${wpResponse.status}): ${errorText}`,
