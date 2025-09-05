@@ -45,8 +45,7 @@ export default function Home() {
   // サイト選択時の処理
   const handleSiteSelect = (site: WordPressSite | null) => {
     setSelectedSite(site)
-    // キーワード入力欄をリセット
-    setPromptInputs({})
+    // キーワード入力欄は保持する（リセットしない）
   }
 
   const handleGenerate = async () => {
