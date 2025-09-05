@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { canUse, recordUsage } from '@/lib/usage-safe'
 import { getEffectiveApiKey, getUserApiKey } from '@/lib/api-keys'
+import { naturalizeHeadings } from '@/lib/naturalizeHeadings'
 import { authOptions } from '../auth/[...nextauth]/route'
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
@@ -113,7 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { keywords, site_url, category_slug, count = 1, post_status = 'draft', scheduled_start_date, scheduled_interval = 1, model } = body
+    const { keywords, site_url, category_slug, count = 1, post_status = 'draft', scheduled_start_date, scheduled_interval = 1, model, naturalize = true } = body
 
     // v2: キーワードが必須
     if (!keywords?.trim()) {
@@ -206,6 +207,10 @@ export async function POST(request: NextRequest) {
         }
 
         try {
+          // 見出し自動変換（デフォルトON）
+          const finalTitle = naturalize ? naturalizeHeadings(article.title) : article.title
+          const finalContent = naturalize ? naturalizeHeadings(article.content) : article.content
+          
           // WordPress REST API で投稿
           const wpApiUrl = `${site_url.replace(/\/$/, '')}/wp-json/wp/v2/posts`
           const wpResponse = await fetch(wpApiUrl, {
@@ -219,8 +224,8 @@ export async function POST(request: NextRequest) {
                   `Basic ${Buffer.from(`admin:password`).toString('base64')}`
             },
             body: JSON.stringify({
-              title: article.title,
-              content: article.content,
+              title: finalTitle,
+              content: finalContent,
               status: post_status === 'scheduled' ? 'future' : post_status,
               date: publishDate,
               categories: category_slug ? [category_slug] : 
@@ -244,8 +249,12 @@ export async function POST(request: NextRequest) {
 
           // 成功した場合は記事にWordPress情報を追加
           if (wpResponse.ok) {
+            // 変換後のタイトルと内容を記事データに反映
+            article.title = finalTitle
+            article.content = finalContent
             ;(article as any).wp_post_id = wpResult.id
             ;(article as any).wp_url = wpResult.link
+            ;(article as any).naturalized = naturalize // 変換フラグも保存
           }
 
         } catch (publishError) {

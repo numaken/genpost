@@ -44,6 +44,7 @@ export default function Home() {
   const [keywordHistory, setKeywordHistory] = useState<string[]>([])
   const [selectedModel, setSelectedModel] = useState<'gpt-3.5-turbo' | 'gpt-4o-mini' | 'gpt-4'>('gpt-3.5-turbo')
   const [hasUserApiKey, setHasUserApiKey] = useState(false)
+  const [naturalizeHeadings, setNaturalizeHeadings] = useState(true) // デフォルトON
 
   // ローカルストレージからキーワード履歴を読み込み
   useEffect(() => {
@@ -134,7 +135,8 @@ export default function Home() {
           post_status: postStatus,
           scheduled_start_date: postStatus === 'scheduled' ? scheduledStartDate : undefined,
           scheduled_interval: postStatus === 'scheduled' ? scheduledInterval : undefined,
-          model: hasUserApiKey ? selectedModel : 'gpt-3.5-turbo' // APIキー設定による条件分岐
+          model: hasUserApiKey ? selectedModel : 'gpt-3.5-turbo', // APIキー設定による条件分岐
+          naturalize: naturalizeHeadings // 見出し自動変換オプション
         })
       })
 
@@ -418,6 +420,25 @@ export default function Home() {
                     <option value={3}>3記事</option>
                     <option value={5}>5記事</option>
                   </select>
+                </div>
+
+                {/* 見出し自動変換設定 */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <label className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={naturalizeHeadings}
+                      onChange={(e) => setNaturalizeHeadings(e.target.checked)}
+                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <div>
+                      <span className="text-sm font-semibold text-blue-800">見出し自動変換</span>
+                      <div className="text-xs text-blue-600 mt-1">
+                        「What/How/Why」→「読者向け自然見出し」に自動変換<br/>
+                        例：「読者の抱える課題」→「こんな悩み、ありませんか？」
+                      </div>
+                    </div>
+                  </label>
                 </div>
 
                 <div>
