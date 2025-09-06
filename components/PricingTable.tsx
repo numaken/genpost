@@ -10,71 +10,97 @@ interface PricingPlan {
   price: number
   priceYearly: number
   maxArticles: number
+  maxSites: number
+  seats: number
   features: string[]
   popular?: boolean
   buttonText: string
   buttonColor: string
+  target: string
+  badge?: string
 }
 
 const plans: PricingPlan[] = [
   {
-    id: 'starter',
-    name: 'スターター',
-    price: 2480,
-    priceYearly: 24800,
-    maxArticles: 25, // 20-30記事の中央値
+    id: 'solo-basic',
+    name: 'Solo Basic',
+    price: 1480,
+    priceYearly: 14800,
+    maxArticles: 30,
+    maxSites: 1,
+    seats: 1,
+    target: '小規模オーナー向け',
     features: [
-      '月20-30記事まで生成可能（デイリー上限1本/日）',
-      'WordPress自動投稿（2サイト）',
-      '重複記事チェック',
-      'ソフトキャップ+10%',
-      '超過分翌月繰越 or 従量アドオン',
-      '独自APIキー設定時は当社月間上限の対象外*',
-      'メールサポート'
+      'Common Pack（基本ボイス・見出し・人肌フィルタ）',
+      '見出し自然化（業種別対応）',
+      '人肌フィルタ（AIらしさ除去）',
+      'WordPress下書き・予約投稿',
+      'メールサポート（48時間）'
     ],
-    buttonText: 'スタータープランを選ぶ',
+    buttonText: '始める',
     buttonColor: 'bg-blue-500 hover:bg-blue-600'
   },
   {
-    id: 'pro',
-    name: 'プロプラン',
-    price: 4980,
-    priceYearly: 49800,
-    maxArticles: 100, // 80-120記事の中央値
-    features: [
-      '月80-120記事まで生成可能（デイリー上限5本/日）',
-      'WordPress自動投稿（5サイト）',
-      'カスタムプロンプト作成機能',
-      '重複記事チェック',
-      '予約投稿機能',
-      'ソフトキャップ+10%',
-      '超過分翌月繰越 or 従量アドオン',
-      '独自APIキー設定時は当社月間上限の対象外*',
-      '優先サポート'
-    ],
+    id: 'solo-plus',
+    name: 'Solo Plus',
+    price: 2980,
+    priceYearly: 29800,
+    maxArticles: 80,
+    maxSites: 2,
+    seats: 1,
+    target: '本格運用向け',
+    badge: '人気',
     popular: true,
-    buttonText: 'プロプランを選ぶ',
+    features: [
+      '業種Pack最大3つ（専門性向上）',
+      '推敲ON（Draft→Critique→Revise）',
+      'タイトル自然化',
+      '見出し・人肌フィルタ強化版',
+      'WordPress自動投稿（2サイト）',
+      'メールサポート（24時間）'
+    ],
+    buttonText: 'このプランにする',
     buttonColor: 'bg-green-500 hover:bg-green-600'
   },
   {
-    id: 'agency',
-    name: 'エージェンシー',
+    id: 'agency-starter',
+    name: 'Agency Starter',
     price: 9800,
     priceYearly: 98000,
-    maxArticles: 400, // 300-500記事の中央値
+    maxArticles: 500,
+    maxSites: 10,
+    seats: 2,
+    target: '記事代行・制作向け',
     features: [
-      '月300-500記事まで生成可能（デイリー上限20本/日）',
-      'WordPress自動投稿（20サイト）',
-      '5席まで利用可能',
-      '重複記事チェック',
-      '予約投稿機能',
-      'ソフトキャップ+10%',
-      '超過分翌月繰越 or 従量アドオン',
-      '独自APIキー設定時は当社月間上限の対象外*',
-      '優先サポート（24時間以内返信）'
+      'Packライブラリ10種（飲食/美容/SaaS他）',
+      'SimHash重複検知',
+      'A/B最適化（UCB1バンディット）',
+      'ホワイトラベル（ロゴ差し替え可）',
+      '推敲・自然化・人肌フィルタ全ON',
+      'チャットサポート（36時間）'
     ],
-    buttonText: 'エージェンシープランを選ぶ',
+    buttonText: '申し込む',
     buttonColor: 'bg-purple-500 hover:bg-purple-600'
+  },
+  {
+    id: 'agency-pro',
+    name: 'Agency Pro',
+    price: 19800,
+    priceYearly: 198000,
+    maxArticles: 2000,
+    maxSites: 30,
+    seats: 5,
+    target: 'エンタープライズ',
+    features: [
+      '全Pack + 内部RAG連携',
+      'A/B拡張・最適化レポート',
+      '構造化データ自動注入（FAQ/HowTo）',
+      '優先サポート（平日当日返信）',
+      'カスタムPack作成相談',
+      'APIアクセス（予定）'
+    ],
+    buttonText: '相談して始める',
+    buttonColor: 'bg-indigo-500 hover:bg-indigo-600'
   }
 ]
 
@@ -88,14 +114,30 @@ export default function PricingTable() {
       return
     }
 
-    if (planId === 'free') {
-      alert('フリープランは既に利用中です')
-      return
-    }
+    try {
+      const response = await fetch('/api/subscribe-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          planId,
+          isYearly
+        })
+      })
 
-    // Stripe決済の実装はここに追加
-    console.log(`Selected plan: ${planId}, yearly: ${isYearly}`)
-    alert('決済機能は準備中です。お問い合わせください。')
+      const result = await response.json()
+
+      if (result.success && result.checkoutUrl) {
+        // Stripe Checkoutページにリダイレクト
+        window.location.href = result.checkoutUrl
+      } else {
+        alert(result.error || 'プラン選択に失敗しました')
+      }
+    } catch (error) {
+      console.error('Plan selection error:', error)
+      alert('プラン選択中にエラーが発生しました')
+    }
   }
 
   return (
@@ -132,29 +174,34 @@ export default function PricingTable() {
         </div>
       </div>
 
-      <div className="flex flex-wrap justify-center gap-6 items-stretch max-w-6xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto">
         {plans.map((plan) => (
           <div
             key={plan.id}
-            className={`relative rounded-lg border-2 p-6 flex flex-col h-full w-full max-w-sm ${
+            className={`relative rounded-xl border-2 p-6 flex flex-col h-full ${
               plan.popular 
-                ? 'border-green-500 bg-green-50 transform scale-105 shadow-lg' 
-                : 'border-gray-200 bg-white shadow-md hover:shadow-lg transition-shadow'
+                ? 'border-green-500 bg-gradient-to-b from-green-50 to-white transform scale-105 shadow-xl' 
+                : 'border-gray-200 bg-white shadow-lg hover:shadow-xl transition-all duration-300 hover:border-gray-300'
             }`}
           >
-            {plan.popular && (
+            {plan.badge && (
               <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <span className="bg-green-500 text-white px-3 py-1 text-xs font-medium rounded-full">
-                  人気
+                <span className="bg-green-500 text-white px-3 py-1 text-xs font-bold rounded-full shadow-md">
+                  {plan.badge}
                 </span>
               </div>
             )}
 
             <div className="text-center flex flex-col h-full">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {plan.name}
-              </h3>
+              {/* プラン名とターゲット */}
+              <div className="mb-4">
+                <h3 className="text-xl font-bold text-gray-900 mb-1">
+                  {plan.name}
+                </h3>
+                <p className="text-sm text-gray-500">{plan.target}</p>
+              </div>
               
+              {/* 価格 */}
               <div className="mb-4">
                 <span className="text-3xl font-bold text-gray-900">
                   ¥{isYearly ? plan.priceYearly.toLocaleString() : plan.price.toLocaleString()}
@@ -162,36 +209,48 @@ export default function PricingTable() {
                 <span className="text-gray-500 text-sm ml-1">
                   /{isYearly ? '年' : '月'}
                 </span>
+                {isYearly && plan.price > 0 && (
+                  <div className="text-sm text-gray-600 mt-1">
+                    月額換算: ¥{Math.floor(plan.priceYearly / 12).toLocaleString()}
+                  </div>
+                )}
               </div>
 
-              {isYearly && plan.price > 0 && (
-                <div className="text-sm text-gray-600 mb-4">
-                  月額換算: ¥{Math.floor(plan.priceYearly / 12).toLocaleString()}
+              {/* スペック表示 */}
+              <div className="mb-6 p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-1 gap-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">記事数:</span>
+                    <span className="font-semibold text-blue-600">{plan.maxArticles}/月</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">サイト:</span>
+                    <span className="font-semibold">{plan.maxSites}サイト</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">席数:</span>
+                    <span className="font-semibold">{plan.seats}席</span>
+                  </div>
                 </div>
-              )}
-
-              <div className="mb-6">
-                <div className="text-2xl font-bold text-blue-600 mb-1">
-                  {plan.maxArticles === 999999 ? '無制限' : `${plan.maxArticles}記事`}
-                </div>
-                <div className="text-sm text-gray-500">月間生成可能記事数</div>
               </div>
 
+              {/* 機能一覧 */}
               <ul className="text-left space-y-3 mb-6 flex-grow">
                 {plan.features.map((feature, index) => (
                   <li key={index} className="flex items-start">
                     <svg className="w-4 h-4 text-green-500 mt-0.5 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
-                    <span className="text-sm text-gray-600">{feature}</span>
+                    <span className="text-xs text-gray-700">{feature}</span>
                   </li>
                 ))}
               </ul>
 
+              {/* ボタン */}
               <div className="mt-auto">
                 <button
                   onClick={() => handlePlanSelect(plan.id)}
-                  className={`w-full py-3 px-4 rounded-lg font-medium text-white transition-colors ${plan.buttonColor}`}
+                  className={`w-full py-3 px-4 rounded-lg font-semibold text-white transition-all duration-300 transform hover:scale-105 ${plan.buttonColor}`}
                 >
                   {plan.buttonText}
                 </button>
@@ -201,12 +260,29 @@ export default function PricingTable() {
         ))}
       </div>
 
-      <div className="mt-8 text-center">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-          <h4 className="font-semibold text-blue-800 mb-3">💡 独自APIキー（BYOK）オプション</h4>
-          <div className="text-sm text-blue-700 space-y-2">
-            <p>どのプランでも、独自の OpenAI API キーを設定すると、<strong>当社の月間上限の対象外</strong>でご利用いただけます（※公正利用ポリシーに基づきレート制限・同時実行の上限あり）。</p>
-            <p>OpenAI API の料金はお客様に直接請求されます。BYOKでは GPT-4o/4o-mini 等の上位モデルも選択可能です（提供状況に準拠）。</p>
+      {/* アドオンセクション */}
+      <div className="mt-12">
+        <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">アドオン</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+            <h4 className="font-semibold text-gray-800 mb-2">RAG Data Pack</h4>
+            <p className="text-2xl font-bold text-blue-600 mb-2">¥3,980</p>
+            <p className="text-sm text-gray-600">業種別テンプレート（買い切り）</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+            <h4 className="font-semibold text-gray-800 mb-2">追加席</h4>
+            <p className="text-2xl font-bold text-blue-600 mb-2">¥980/月</p>
+            <p className="text-sm text-gray-600">チームメンバー追加</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+            <h4 className="font-semibold text-gray-800 mb-2">追加サイト</h4>
+            <p className="text-2xl font-bold text-blue-600 mb-2">¥1,480/月</p>
+            <p className="text-sm text-gray-600">WordPress接続サイト追加</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-lg p-4 text-center">
+            <h4 className="font-semibold text-gray-800 mb-2">導入支援</h4>
+            <p className="text-2xl font-bold text-blue-600 mb-2">¥29,800</p>
+            <p className="text-sm text-gray-600">90分の初期設定サポート</p>
           </div>
         </div>
       </div>
@@ -218,35 +294,45 @@ export default function PricingTable() {
           
           <div className="space-y-4">
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. BYOK（独自APIキー）だと本当に上限なし？</h4>
-              <p className="text-gray-600">A. 当社側の月間上限の対象外になります。公正利用（レート制限・同時実行の制限）は適用されます。料金はお客様のOpenAI契約に準拠します。</p>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 途中でプラン変更できますか？</h4>
+              <p className="text-gray-600">A. 可能です。差額は日割りで精算します。</p>
             </div>
             
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. どのAIモデルが使えますか？</h4>
-              <p className="text-gray-600">A. 独自APIキー（BYOK）設定時は、GPT-4、GPT-4o等の高性能モデルも選択可能です。当社共有キー利用時のモデルについてはお問い合わせください。</p>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 上限を超えた場合は？</h4>
+              <p className="text-gray-600">A. 新規投稿はキュー待機。追加購入または翌月リセットで再開します。</p>
             </div>
             
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. WordPress接続サイト数は？</h4>
-              <p className="text-gray-600">A. スターター=2サイト、プロ=5サイト、エージェンシー=20サイトまで接続可能です。</p>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. Packの中身は公開されますか？</h4>
+              <p className="text-gray-600">A. いいえ。サーバー側適用のため非公開です。</p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 無料で試せますか？</h4>
+              <p className="text-gray-600">A. はい！登録後すぐに基本機能をお試しいただけます。</p>
             </div>
           </div>
 
           <div className="space-y-4">
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 独自APIキーを使用する場合の費用は？</h4>
-              <p className="text-gray-600">A. GenPostのプラン料金に加えて、OpenAIの利用料が発生します。短文（約1,000–2,000トークン）想定で GPT-3.5 は1–3円/記事が目安ですが、入出力トークン量により変動します。料金はOpenAIの最新価格に準拠します。</p>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 既存WPに接続できますか？</h4>
+              <p className="text-gray-600">A. はい。Basic認証／Application Passwordsに対応しています。</p>
             </div>
             
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 月間上限を超えた場合は？</h4>
-              <p className="text-gray-600">A. ソフトキャップ+10%まで利用可能。超過分は翌月繰越または従量アドオン（10記事ごと¥200）でご利用いただけます。</p>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. A/B最適化とは？</h4>
+              <p className="text-gray-600">A. UCB1バンディットアルゴリズムで複数パターンの記事を自動比較し、最適な生成方法を学習します（Agency以上）。</p>
             </div>
             
             <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 無料で試せますか？</h4>
-              <p className="text-gray-600">A. はい！登録後すぐに5記事まで無料生成でき、WordPress自動投稿もお試しいただけます。</p>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 重複検知の仕組みは？</h4>
+              <p className="text-gray-600">A. SimHashアルゴリズムで既存記事との類似度をチェックし、重複コンテンツを防ぎます。</p>
+            </div>
+
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. RAG Data Packとは？</h4>
+              <p className="text-gray-600">A. 業種別の専門知識データベースで、より具体的で専門性の高い記事を生成できます。</p>
             </div>
           </div>
         </div>

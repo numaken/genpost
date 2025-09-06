@@ -16,7 +16,9 @@
       "WebFetch(domain:genpost-dm32w6yem-numakens-projects.vercel.app)",
       "Bash(curl:*)",
       "Bash(git checkout:*)",
-      "WebFetch(domain:genpost-4bwjzcr6b-numakens-projects.vercel.app)"
+      "WebFetch(domain:genpost-4bwjzcr6b-numakens-projects.vercel.app)",
+      "Bash(SKIP_ENV_VALIDATION=true npm run build)",
+      "Bash(npx next:*)"
     ],
     "deny": [],
     "ask": []

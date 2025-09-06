@@ -153,7 +153,7 @@ export async function POST(request: NextRequest) {
     
     console.log(`[generate-simple] Using model: ${finalModel}, User API Key: ${!!userApiKey}`)
 
-    // 使用制限チェック
+    // 既存の使用制限チェック
     const usageResult = await canUse(finalModel, userId)
     if (!usageResult.ok) {
       return NextResponse.json({ 
@@ -164,6 +164,19 @@ export async function POST(request: NextRequest) {
         used: usageResult.used,
         limit: usageResult.limit,
         plan: usageResult.plan
+      }, { status: 403 })
+    }
+
+    // 新しいプラン制限チェック
+    const { checkPlanLimits } = await import('@/lib/subscription')
+    const planLimitCheck = await checkPlanLimits(userId, 'generate_article')
+    if (!planLimitCheck.allowed) {
+      return NextResponse.json({
+        error: 'PLAN_LIMIT_EXCEEDED',
+        message: `プランの月間記事生成上限（${planLimitCheck.limit}件）に達しました`,
+        used: planLimitCheck.used,
+        limit: planLimitCheck.limit,
+        planId: planLimitCheck.planId
       }, { status: 403 })
     }
 
@@ -295,13 +308,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // 使用量記録
+    // 既存の使用量記録
     await recordUsage(userId, finalModel, {
       keywords,
       articles_generated: result.articles?.length || count,
       engine: 'panolabo-ai-v2.1-powerup',
       wp_published: publishResults.filter(r => r.success).length
     })
+
+    // 新しいプラン使用量ログ記録
+    const { recordUsageLog } = await import('@/lib/subscription')
+    for (let i = 0; i < (result.articles?.length || count); i++) {
+      await recordUsageLog(userId, 'generate_article', {
+        keywords,
+        engine: 'panolabo-ai-v2.1-powerup',
+        packId: packId || null
+      })
+    }
 
     // 投稿結果のサマリー
     const publishedCount = publishResults.filter(r => r.success).length
