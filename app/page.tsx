@@ -623,7 +623,7 @@ export default function Home() {
             {getVersionInfo().fullName} - WordPress記事自動生成システム
           </div>
           <div className="text-xs text-gray-400">
-            Build: {getVersionInfo().buildInfo} | panolabo AI エンジン搭載
+            {getVersionInfo().buildInfo} • panolabo AI エンジン搭載
           </div>
         </div>
       </footer>
