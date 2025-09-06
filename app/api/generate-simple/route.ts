@@ -3,14 +3,14 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { canUse, recordUsage } from '@/lib/usage-safe'
 import { getEffectiveApiKey, getUserApiKey } from '@/lib/api-keys'
-import { createGenerator, smartCritiqueAndRevise } from '@/lib/critiqueAndRevise'
+import { safeGenerate } from '@/server/safeGenerate'
+import { searchContext } from '@/lib/embeddings'
 import { detectVertical } from '@/lib/detectVertical'
 import { naturalizeHeadingsByVertical } from '@/lib/naturalizeHeadingsByVertical'
 import { fullHumanize } from '@/lib/fullHumanize'
-import { DEFAULT_VOICE_PROMPT } from '@/lib/voicePrompt'
+import { logEvent } from '@/lib/telemetry'
 import { authOptions } from '../auth/[...nextauth]/route'
 import { createClient } from '@supabase/supabase-js'
-import OpenAI from 'openai'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -21,78 +21,85 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// パワーアップv2エンジン（panolabo AI パワーアップシステム）
-async function generateWithSimpleV2Engine(keywords: string, apiKey: string, count: number = 1, model: string = 'gpt-3.5-turbo', useCritique: boolean = true) {
-  const generator = createGenerator(apiKey, model)
+// パワーアップv2エンジン（panolabo AI パワーアップシステム + RAG + フォールバック）
+async function generateWithSimpleV2Engine(
+  keywords: string, 
+  apiKey: string, 
+  count: number = 1, 
+  model: string = 'gpt-3.5-turbo', 
+  useCritique: boolean = true,
+  siteId?: string,
+  userId?: string,
+  useRAG: boolean = true
+) {
+  // RAG コンテキスト取得
+  let ragContext = ''
+  let ragCards = 0
+  
+  if (useRAG && process.env.PANO_RAG === '1' && siteId) {
+    try {
+      const contextResults = await searchContext(siteId, keywords, 3)
+      if (contextResults.length > 0) {
+        ragCards = contextResults.length
+        ragContext = '\n\n# 参照可能な事実\n' + 
+          contextResults.map(item => 
+            `- ${item.title}: ${item.snippet} (出典: ${item.url})`
+          ).join('\n')
+        
+        // RAG使用ログ
+        if (userId) {
+          await logEvent('rag.search', {
+            userId,
+            siteId,
+            topic: keywords,
+            ragCards
+          })
+        }
+      }
+    } catch (error) {
+      console.log('RAG search failed, continuing without context:', error)
+    }
+  }
 
-  // 8つの要素をAIが自動で最適化するシステムプロンプト + 声質指定
-  const systemPrompt = `${DEFAULT_VOICE_PROMPT}
-
-あなたはpanolabo AIエンジンです。上記の声質を保ちながら、以下の8要素を自動で最適化し、高品質なブログ記事を生成します：
-
-1. ターゲット読者（Who）- キーワードから最適な読者層を判定
-2. 問題・課題（What）- 読者の抱える課題を特定
-3. 解決策・提案（How）- 具体的な解決方法を提示
-4. 根拠・証拠（Why）- 信頼できる理由と根拠を提供
-5. ベネフィット（Benefit）- 読者が得られる明確な利益
-6. 感情的フック（Emotion）- 読者の心を掴む表現
-7. 行動喚起（Call-to-Action）- 具体的な次のアクション
-8. SEOキーワード配置（SEO）- 自然なキーワード配置
-
-+1の魔法要素：キーワードから業界・分野を自動判定し、専門性の高いトーンと構成を選択
-
-記事は以下の形式で出力してください：
-
-【タイトル】
-[SEO最適化されたタイトル]
-
-【記事内容】
-[2000文字程度の高品質な記事本文。見出し、箇条書き、具体例を含む読みやすい構成]`
+  // 旧システムプロンプト（safeGenerateに移行済み）
 
   const articles = []
   
   for (let i = 0; i < count; i++) {
-    const userPrompt = `キーワード: ${keywords}
+    try {
+      // 安全な生成（フォールバック付き）
+      const result = await safeGenerate({
+        userId: userId || 'anonymous',
+        siteId,
+        topic: `記事 ${i + 1}`,
+        keywords,
+        model,
+        apiKey,
+        ragContext: ragContext || undefined,
+        useCritique
+      })
 
-上記キーワードから8つの要素を自動最適化し、専門性の高いブログ記事を生成してください。
-
-要件:
-- 読者にとって価値のある実用的な内容
-- 具体的な事例や数字を含める
-- 読みやすい見出し構成
-- 最後に具体的な行動喚起を含める
-- キーワードを自然に配置（SEO対応）`
-
-    let content: string
-    let critiqued = false
-
-    if (useCritique) {
-      // 二段生成（Draft → Critique → Revise）
-      const result = await smartCritiqueAndRevise(generator, userPrompt, systemPrompt)
-      content = result.content
-      critiqued = result.critiqued
-    } else {
-      // 従来の単段生成
-      content = await generator([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt }
-      ])
-    }
-    
-    if (content) {
       // タイトルと本文を抽出
-      const titleMatch = content.match(/【タイトル】\s*\n+([\s\S]*?)(?=\n|$)/)
-      const contentMatch = content.match(/【記事内容】\s*\n+([\s\S]*?)$/)
+      const titleMatch = result.content.match(/【タイトル】\s*\n+([\s\S]*?)(?=\n|$)/)
+      const contentMatch = result.content.match(/【記事内容】\s*\n+([\s\S]*?)$/)
       
       articles.push({
         title: titleMatch ? titleMatch[1].trim() : `${keywords}に関する専門記事 ${i + 1}`,
-        content: contentMatch ? contentMatch[1].trim() : content.replace(/【タイトル】[\s\S]*?\n+/, ''),
+        content: contentMatch ? contentMatch[1].trim() : result.content.replace(/【タイトル】[\s\S]*?\n+/, ''),
         keywords: keywords,
         generated_at: new Date().toISOString(),
-        engine: 'panolabo AI Engine v2.1',
-        word_count: (contentMatch ? contentMatch[1].trim() : content).length,
-        critiqued: critiqued // 批評・修正が適用されたかのフラグ
+        engine: 'panolabo AI Engine v2.1 + RAG',
+        word_count: (contentMatch ? contentMatch[1].trim() : result.content).length,
+        critiqued: result.critiqued,
+        mode: result.mode,
+        ms_elapsed: result.msElapsed,
+        rag_cards: ragCards
       })
+
+    } catch (error) {
+      console.error(`Failed to generate article ${i + 1}:`, error)
+      // エラーが発生した場合は空の記事を追加せず、次の記事生成を試行
+      continue
     }
   }
 
@@ -219,8 +226,17 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // v2 パワーアップエンジンで記事生成
-    const result = await generateWithSimpleV2Engine(keywords.trim(), apiKey, count, finalModel, true)
+    // v2 パワーアップエンジンで記事生成（RAG + フォールバック）
+    const result = await generateWithSimpleV2Engine(
+      keywords.trim(), 
+      apiKey, 
+      count, 
+      finalModel, 
+      true, // useCritique
+      site_url, // siteId for RAG
+      userId, // userId for logging
+      true // useRAG
+    )
 
     // WordPress投稿処理
     const publishResults = []

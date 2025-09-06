@@ -7,6 +7,7 @@ import TrialExperience from '@/components/TrialExperience'
 import WordPressSiteManager from '@/components/WordPressSiteManager'
 import ApiKeyManager from '@/components/ApiKeyManager'
 import UsageDisplay from '@/components/UsageDisplay'
+import MetricsCards from '@/components/MetricsCards'
 import { getVersionInfo } from '@/lib/version'
 
 interface WordPressSite {
@@ -307,6 +308,9 @@ export default function Home() {
               <ApiKeyManager />
               
               <UsageDisplay />
+              
+              {/* 生成メトリクス表示 */}
+              <MetricsCards />
             </div>
 
             <div className="grid lg:grid-cols-1 gap-8 mt-8">
