@@ -124,6 +124,19 @@ export default function TrialPromptForm() {
             </button>
           </div>
           
+          {/* 適用された機能の表示 */}
+          <div className="mb-4 flex flex-wrap gap-2">
+            <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs rounded-full font-medium">
+              panolabo AI エンジン v2.1.0
+            </span>
+            <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+              ✓ 声質プロンプト適用
+            </span>
+            <span className="px-3 py-1 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+              ✓ 人肌フィルタ適用
+            </span>
+          </div>
+          
           {/* タイトル */}
           <div className="mb-6">
             <label className="block text-sm font-medium text-gray-600 mb-2">記事タイトル</label>
@@ -285,6 +298,22 @@ export default function TrialPromptForm() {
           {error}
         </div>
       )}
+
+      {/* 適用される機能の説明 */}
+      <div className="bg-gradient-to-r from-purple-50 to-green-50 rounded-lg p-4 border border-purple-200">
+        <div className="text-sm font-medium text-gray-700 mb-2">自動適用される機能：</div>
+        <div className="flex flex-wrap gap-2">
+          <span className="px-2 py-1 bg-white text-purple-700 text-xs rounded border border-purple-300">
+            8要素自動最適化
+          </span>
+          <span className="px-2 py-1 bg-white text-green-700 text-xs rounded border border-green-300">
+            声質プロンプト
+          </span>
+          <span className="px-2 py-1 bg-white text-green-700 text-xs rounded border border-green-300">
+            人肌フィルタ
+          </span>
+        </div>
+      </div>
 
       {/* 生成ボタン */}
       <button
