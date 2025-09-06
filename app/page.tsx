@@ -240,11 +240,14 @@ export default function Home() {
                 <h2 className="text-4xl font-bold text-gray-800 mb-4 flex items-center justify-center">
                   <img src="/panolabo-ai-icon.svg" alt="" className="w-10 h-10 mr-4" />
                   <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                    無料で体験
+                    スピードはAI、読まれ方は人間
                   </span>
                 </h2>
                 <p className="text-xl text-gray-600">
-                  panolabo AI エンジンが作る記事の品質を今すぐ確認してください
+                  「AIっぽさ」を消して、"人が書いた質感"で量産 → WordPress自動投稿
+                </p>
+                <p className="text-lg text-gray-500 mt-2">
+                  無料で体験：panolabo AI エンジンの記事品質を今すぐ確認
                 </p>
               </div>
 
@@ -257,9 +260,9 @@ export default function Home() {
             <div className="text-center py-16">
               <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center justify-center">
                 <img src="/panolabo-ai-icon.svg" alt="" className="w-8 h-8 mr-3" />
-                panolabo AI エンジンで無制限記事生成をはじめませんか？
+                現場は"チェックして出すだけ"。始めませんか？
               </h2>
-              <p className="text-gray-600 mb-8">AI が自動で最適化。あなたはキーワードを入力するだけで高品質記事を量産できます。</p>
+              <p className="text-gray-600 mb-8">生成～公開まで自動実行。「速く作れるのに、人がちゃんと読める」状態で出せます。</p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <button
                   onClick={() => signIn()}
@@ -425,9 +428,9 @@ export default function Home() {
                       className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     <div>
-                      <span className="text-sm font-semibold text-blue-800">見出し自動変換</span>
+                      <span className="text-sm font-semibold text-blue-800">見出し自然化</span>
                       <div className="text-xs text-blue-600 mt-1">
-                        「What/How/Why」→「読者向け自然見出し」に自動変換<br/>
+                        フレームワーク感を消して読み進めやすさを向上<br/>
                         例：「読者の抱える課題」→「こんな悩み、ありませんか？」
                       </div>
                     </div>
@@ -446,7 +449,7 @@ export default function Home() {
                     <div>
                       <span className="text-sm font-semibold text-green-800">人肌フィルタ</span>
                       <div className="text-xs text-green-600 mt-1">
-                        AIっぽいフレーズを自然な表現に変換<br/>
+                        紋切り型の言い回しを数個だけ置換して人間味をプラス<br/>
                         例：「本記事では」→「今日は」「解説します」→「話をしよう」
                       </div>
                     </div>

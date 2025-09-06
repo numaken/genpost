@@ -110,11 +110,11 @@ export default function TrialExperience() {
 
         {/* CTA */}
         <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
-          <h4 className="font-bold text-gray-800 mb-3">👆 この品質の記事をWordPressに自動投稿しませんか？</h4>
+          <h4 className="font-bold text-gray-800 mb-3">👆 "AIっぽさが抜けた原稿"をWordPressに自動投稿しませんか？</h4>
           <p className="text-gray-600 mb-4 text-sm">
-            ・panolabo AI エンジンの8要素自動最適化<br/>
-            ・WordPress自動投稿機能<br/>
-            ・見出し自然化 + 人肌フィルタ搭載
+            ・見出し自然化：フレームワーク感を消して読み進めやすく<br/>
+            ・人肌フィルタ：最小コストで"人間味"をプラス<br/>
+            ・下書き/予約投稿まで一気通貫。明日から運用、いけます
           </p>
           <div className="flex gap-3">
             <button
@@ -152,7 +152,7 @@ export default function TrialExperience() {
             <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">自動最適化</span>
           </h3>
           <p className="text-sm text-gray-600">
-            AIが8つの要素を自動で最適化します。あなたはキーワードを入力するだけ。
+            たった1本の指示で記事を生成。見出しを人間向けへ言い換え、AIくささを落とすフィルタを軽くかける。
           </p>
         </div>
 
@@ -193,9 +193,9 @@ export default function TrialExperience() {
               className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
             />
             <div>
-              <span className="text-sm font-semibold text-blue-800">見出し自動変換</span>
+              <span className="text-sm font-semibold text-blue-800">見出し自然化</span>
               <div className="text-xs text-blue-600 mt-1">
-                「What/How/Why」→「読者向け自然見出し」に自動変換<br/>
+                フレームワーク感を消して読み進めやすさを向上<br/>
                 例：「読者の抱える課題」→「こんな悩み、ありませんか？」
               </div>
             </div>
@@ -214,7 +214,7 @@ export default function TrialExperience() {
             <div>
               <span className="text-sm font-semibold text-green-800">人肌フィルタ</span>
               <div className="text-xs text-green-600 mt-1">
-                AIっぽいフレーズを自然な表現に変換<br/>
+                紋切り型の言い回しを数個だけ置換して人間味をプラス<br/>
                 例：「本記事では」→「今日は」「解説します」→「話をしよう」
               </div>
             </div>
@@ -265,11 +265,11 @@ export default function TrialExperience() {
         <div className="flex items-start">
           <div className="flex-shrink-0 w-2 h-2 bg-blue-400 rounded-full mt-2 mr-4"></div>
           <div className="text-sm text-gray-700 space-y-1">
-            <p className="font-medium">🎯 体験版では1記事のみ生成可能です（1日1回まで）</p>
-            <p>✨ 見出し自動変換・人肌フィルタを体験できます</p>
-            <p>📝 ログイン後はWordPressへの自動投稿が可能</p>
-            <p>📅 予約投稿で1ヶ月分の記事を自動分散投稿</p>
-            <p>⚡ 生成には30秒～1分程度かかります</p>
+            <p className="font-medium">🎯 体験版：「AIっぽさが抜けた原稿」を実際に確認できます</p>
+            <p>⚡ 生成には30秒程度。スピードはAI、読まれ方は人間を実感</p>
+            <p>✨ 見出し自然化・人肌フィルタの効果を体験</p>
+            <p>📝 ログイン後：下書き→予約投稿まで自動。現場は"チェックして出すだけ"</p>
+            <p>📅 定期更新で継続的な来店きっかけを自動化</p>
           </div>
         </div>
       </div>
