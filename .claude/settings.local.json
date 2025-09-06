@@ -15,7 +15,8 @@
       "Bash(export API_KEY_ENCRYPTION_SECRET=\"test1234567890123456\")",
       "WebFetch(domain:genpost-dm32w6yem-numakens-projects.vercel.app)",
       "Bash(curl:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "WebFetch(domain:genpost-4bwjzcr6b-numakens-projects.vercel.app)"
     ],
     "deny": [],
     "ask": []
