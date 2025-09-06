@@ -147,9 +147,9 @@ export default function TrialPromptForm() {
           <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 border border-purple-200">
             <h4 className="font-bold text-gray-800 mb-3">👆 この品質の記事をWordPressに自動投稿しませんか？</h4>
             <p className="text-gray-600 mb-4 text-sm">
-              ・480種類以上の業界特化プロンプト<br/>
+              ・panolabo AI エンジンの8要素自動最適化<br/>
               ・WordPress自動投稿機能<br/>
-              ・無制限記事生成
+              ・見出し自然化 + 人肌フィルタ搭載
             </p>
             <div className="flex gap-3">
               <button
@@ -162,7 +162,7 @@ export default function TrialPromptForm() {
                 onClick={() => window.location.href = '/pricing'}
                 className="border border-gray-300 text-gray-700 px-6 py-2 rounded-lg font-medium hover:bg-gray-50 transition-colors text-sm"
               >
-                プロンプトを見る
+                料金プランを見る
               </button>
             </div>
           </div>
