@@ -238,7 +238,7 @@ export default function Home() {
             <div className="bg-white rounded-2xl shadow-xl p-8 mb-16 border border-gray-100">
               <div className="text-center mb-8">
                 <h2 className="text-4xl font-bold text-gray-800 mb-4 flex items-center justify-center">
-                  <img src="/panolabo-ai-icon.svg" alt="panolabo AI" className="w-10 h-10 mr-4" />
+                  <img src="/panolabo-ai-icon.svg" alt="" className="w-10 h-10 mr-4" />
                   <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
                     無料で体験
                   </span>
@@ -251,7 +251,7 @@ export default function Home() {
               <div className="max-w-4xl mx-auto">
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-6">
                   <h3 className="text-2xl font-bold text-gray-800 mb-2 flex items-center">
-                    <img src="/panolabo-ai-icon.svg" alt="panolabo AI" className="w-6 h-6 mr-2" />
+                    <img src="/panolabo-ai-icon.svg" alt="" className="w-6 h-6 mr-2" />
                     panolabo AI エンジン 無料体験
                   </h3>
                   <p className="text-gray-600">
@@ -266,7 +266,7 @@ export default function Home() {
             {/* ログイン促進セクション */}
             <div className="text-center py-16">
               <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center justify-center">
-                <img src="/panolabo-ai-icon.svg" alt="panolabo AI" className="w-8 h-8 mr-3" />
+                <img src="/panolabo-ai-icon.svg" alt="" className="w-8 h-8 mr-3" />
                 panolabo AI エンジンで無制限記事生成をはじめませんか？
               </h2>
               <p className="text-gray-600 mb-8">AI が自動で最適化。あなたはキーワードを入力するだけで高品質記事を量産できます。</p>
@@ -291,7 +291,7 @@ export default function Home() {
             {/* プロンプト購入案内 */}
             <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-xl p-6 mb-8 border border-purple-200">
               <h3 className="text-2xl font-bold text-gray-800 mb-3 flex items-center">
-                <img src="/panolabo-ai-icon.svg" alt="panolabo AI" className="w-6 h-6 mr-2" />
+                <img src="/panolabo-ai-icon.svg" alt="" className="w-6 h-6 mr-2" />
                 panolabo AI エンジンで記事生成開始
               </h3>
               <p className="text-gray-600 mb-4">
@@ -332,7 +332,7 @@ export default function Home() {
               <div className="space-y-6">
                 <div className="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4 border border-purple-200">
                   <h3 className="text-lg font-semibold text-gray-800 mb-2 flex items-center">
-                    <img src="/panolabo-ai-icon.svg" alt="panolabo AI" className="w-5 h-5 mr-2" />
+                    <img src="/panolabo-ai-icon.svg" alt="" className="w-5 h-5 mr-2" />
                     panolabo AI エンジン
                     <span className="ml-2 px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded">自動最適化</span>
                   </h3>
