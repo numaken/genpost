@@ -280,56 +280,6 @@ export default function PricingTable() {
         </div>
       </div>
 
-      {/* FAQ セクション */}
-      <div className="mt-12 bg-gray-50 border border-gray-200 rounded-lg p-8">
-        <h3 className="text-2xl font-bold text-center text-gray-900 mb-6">よくあるご質問</h3>
-        <div className="grid md:grid-cols-2 gap-6 text-sm">
-          
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 何が"AIくささ"を抑えるの？</h4>
-              <p className="text-gray-600">A. 見出しの自然化＋人肌フィルタ＋推敲フローが自動で適用されます。</p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. どのAIモデルが使えますか？</h4>
-              <p className="text-gray-600">A. 当社キーでは標準モデルを提供し、BYOKで上位モデルの利用が可能です。具体のモデルは提供状況に準拠します。</p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. BYOKだと本当に上限なし？</h4>
-              <p className="text-gray-600">A. 当社側の月間上限の対象外になります。公正利用（レート制限・同時実行の制限）は適用されます。料金はお客様のOpenAI契約に準拠します。</p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 途中でプラン変更できますか？</h4>
-              <p className="text-gray-600">A. 可能です。差額は日割りで精算します。</p>
-            </div>
-          </div>
-
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 独自APIキーを使用する場合の費用は？</h4>
-              <p className="text-gray-600">A. GenPostのプラン料金に加えて、OpenAIの利用料が発生します。短文想定で1–3円/記事が目安ですが、入出力トークン量により変動します。</p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 既存WPに接続できますか？</h4>
-              <p className="text-gray-600">A. はい。Basic認証／Application Passwordsに対応しています。</p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 上限を超えた場合は？</h4>
-              <p className="text-gray-600">A. 新規投稿はキュー待機。追加購入または翌月リセットで再開します。</p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 無料で試せますか？</h4>
-              <p className="text-gray-600">A. はい！登録後すぐに基本機能をお試しいただけます。</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* CTA セクション */}
       <div className="mt-8 text-center bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-6">

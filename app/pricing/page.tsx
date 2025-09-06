@@ -60,53 +60,71 @@ export default function PricingPage() {
 
           {/* FAQ セクション */}
           <div className="mt-16 max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-center text-gray-900 mb-8">
+            <h2 id="faq" className="text-2xl font-bold text-center text-gray-900 mb-8">
               よくあるご質問
             </h2>
             
             <div className="space-y-6">
               <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Q. 何が"AIっぽさ"を抑えるの？
+                </h3>
+                <p className="text-gray-600">
+                  A. 見出しの自然化（What/How/Why→読者の言葉）＋人肌フィルタ（紋切り表現の軽除去）＋推敲フロー（Draft→Critique→Revise）を自動適用します。
+                </p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
                   Q. プランの変更はいつでもできますか？
                 </h3>
                 <p className="text-gray-600">
-                  A. はい、いつでもプランの変更や解約が可能です。アップグレードは即座に反映され、ダウングレードは次の請求サイクルから適用されます。
+                  A. はい。いつでも変更・解約可能です。アップグレードは即時、ダウングレードは次回請求から反映されます。
                 </p>
               </div>
 
               <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Q. 独自APIキーを使用する場合の費用は？
+                  Q. 独自APIキー（BYOK）の費用は？
                 </h3>
                 <p className="text-gray-600">
-                  A. 独自のOpenAI APIキーを設定した場合、GenPostのプラン料金に加えて、OpenAI APIの使用料金が直接OpenAIから請求されます。標準モデルの場合、1記事あたり約1-3円程度の費用が目安です。
+                  A. GenPostの月額とは別に、OpenAIのAPI料金がOpenAIから直接請求されます。当社側の月間上限対象外でご利用いただけます（公正利用のレート制限あり）。
                 </p>
               </div>
 
               <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Q. WordPress サイトは何個まで接続できますか？
+                  Q. どのAIモデルが使えますか？
                 </h3>
                 <p className="text-gray-600">
-                  A. スターター=2サイト、プロ=5サイト、エージェンシー=20サイトです。必要に応じて上位プランや追加オプションをご検討ください。
+                  A. 当社提供の標準モデルに加え、BYOK設定時は上位モデルも利用可能です（提供状況に準拠）。
                 </p>
               </div>
 
               <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Q. 生成された記事の品質はどうですか？
+                  Q. WordPressは何サイトまで接続できますか？
                 </h3>
                 <p className="text-gray-600">
-                  A. 自然化エンジン＋Pack（業種オーバーレイ）により、業界特化型の高品質な記事を生成します。重複チェック機能により、既存記事との重複も防げます。
+                  A. スターター=2サイト、プロ=5サイト、エージェンシー=20サイトが目安です。追加サイトのアドオンも利用できます。
                 </p>
               </div>
 
               <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
                 <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                  Q. サポートはありますか？
+                  Q. 重複検知の仕組みは？
                 </h3>
                 <p className="text-gray-600">
-                  A. 全プランで基本サポートを提供しており、有料プランではより手厚いサポートをご利用いただけます。お問い合わせはメールまたはチャットでお気軽にどうぞ。
+                  A. SimHashで既存記事との類似度を確認し、重複コンテンツを防ぎます。
+                </p>
+              </div>
+
+              <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Q. 無料で試せますか？
+                </h3>
+                <p className="text-gray-600">
+                  A. はい。クレカ不要で5記事までお試しできます。
                 </p>
               </div>
             </div>
@@ -134,6 +152,43 @@ export default function PricingPage() {
           )}
         </div>
       </div>
+      
+      {/* 構造化データ (JSON-LD) */}
+      <script 
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "何が\"AIっぽさ\"を抑えるの？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "見出しの自然化（What/How/Why→読者の言葉）＋人肌フィルタ（紋切り表現の軽除去）＋推敲フロー（Draft→Critique→Revise）を自動適用します。"
+                }
+              },
+              {
+                "@type": "Question", 
+                "name": "独自APIキー（BYOK）の費用は？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "GenPostの月額とは別に、OpenAIのAPI料金がOpenAIから直接請求されます。当社側の月間上限対象外でご利用いただけます（公正利用のレート制限あり）。"
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "プランの変更はいつでもできますか？",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "はい。いつでも変更・解約可能です。アップグレードは即時、ダウングレードは次回請求から反映されます。"
+                }
+              }
+            ]
+          })
+        }}
+      />
     </div>
   )
 }
