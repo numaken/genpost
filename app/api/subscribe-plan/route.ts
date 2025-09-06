@@ -20,33 +20,26 @@ export const dynamic = 'force-dynamic'
 
 // プラン定義（料金表と一致）
 const PLANS = {
-  'solo-basic': {
-    name: 'Solo Basic',
-    price_monthly: 1480,
-    price_yearly: 14800,
-    limits: { sites: 1, posts_per_month: 30, seats: 1 },
-    features: ['Common Pack', '見出し自然化', '人肌フィルタ', 'WP下書き/予約']
+  'starter': {
+    name: 'スターター',
+    price_monthly: 2480,
+    price_yearly: 24800,
+    limits: { sites: 2, posts_per_month: 30, seats: 1 },
+    features: ['見出し自然化', '人肌フィルタ', 'WP自動投稿']
   },
-  'solo-plus': {
-    name: 'Solo Plus',
-    price_monthly: 2980,
-    price_yearly: 29800,
-    limits: { sites: 2, posts_per_month: 80, seats: 1 },
-    features: ['業種Pack最大3つ', '推敲ON', 'タイトル自然化']
+  'pro': {
+    name: 'プロプラン',
+    price_monthly: 4980,
+    price_yearly: 49800,
+    limits: { sites: 5, posts_per_month: 100, seats: 1 },
+    features: ['推敲フロー', 'タイトル自然化', '重複チェック']
   },
-  'agency-starter': {
-    name: 'Agency Starter',
+  'agency': {
+    name: 'エージェンシー',
     price_monthly: 9800,
     price_yearly: 98000,
-    limits: { sites: 10, posts_per_month: 500, seats: 2 },
-    features: ['Pack10種', 'SimHash重複検知', 'A/B最適化', 'ホワイトラベル']
-  },
-  'agency-pro': {
-    name: 'Agency Pro',
-    price_monthly: 19800,
-    price_yearly: 198000,
-    limits: { sites: 30, posts_per_month: 2000, seats: 5 },
-    features: ['全Pack', 'RAG連携', 'A/B拡張', '優先サポート']
+    limits: { sites: 20, posts_per_month: 500, seats: 5 },
+    features: ['Packライブラリ', 'A/B最適化', 'チーム機能']
   }
 } as const
 

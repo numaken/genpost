@@ -22,85 +22,63 @@ interface PricingPlan {
 
 const plans: PricingPlan[] = [
   {
-    id: 'solo-basic',
-    name: 'Solo Basic',
-    price: 1480,
-    priceYearly: 14800,
+    id: 'starter',
+    name: 'スターター',
+    price: 2480,
+    priceYearly: 24800,
     maxArticles: 30,
-    maxSites: 1,
+    maxSites: 2,
     seats: 1,
     target: '小規模オーナー向け',
     features: [
-      'Common Pack（基本ボイス・見出し・人肌フィルタ）',
-      '見出し自然化（業種別対応）',
-      '人肌フィルタ（AIらしさ除去）',
-      'WordPress下書き・予約投稿',
-      'メールサポート（48時間）'
+      '見出しの自然化（What/How/Why → 読者の言葉）',
+      '人肌フィルタ（紋切り表現を軽く除去）',
+      'WordPress 自動投稿（2サイト／下書き・予約対応）',
+      '※ 標準モデルで動作。BYOKで上位モデルも選択可',
+      'メールサポート'
     ],
-    buttonText: '始める',
+    buttonText: 'スタータープランを選ぶ',
     buttonColor: 'bg-blue-500 hover:bg-blue-600'
   },
   {
-    id: 'solo-plus',
-    name: 'Solo Plus',
-    price: 2980,
-    priceYearly: 29800,
-    maxArticles: 80,
-    maxSites: 2,
+    id: 'pro',
+    name: 'プロプラン',
+    price: 4980,
+    priceYearly: 49800,
+    maxArticles: 100,
+    maxSites: 5,
     seats: 1,
     target: '本格運用向け',
     badge: '人気',
     popular: true,
     features: [
-      '業種Pack最大3つ（専門性向上）',
-      '推敲ON（Draft→Critique→Revise）',
-      'タイトル自然化',
-      '見出し・人肌フィルタ強化版',
-      'WordPress自動投稿（2サイト）',
-      'メールサポート（24時間）'
+      '上記に 推敲フロー（Draft→Critique→Revise） を追加',
+      'タイトル自然化／重複記事チェック',
+      'WordPress 5サイト',
+      '※ 標準モデル＋BYOK対応',
+      '優先サポート'
     ],
-    buttonText: 'このプランにする',
+    buttonText: 'プロプランを選ぶ',
     buttonColor: 'bg-green-500 hover:bg-green-600'
   },
   {
-    id: 'agency-starter',
-    name: 'Agency Starter',
+    id: 'agency',
+    name: 'エージェンシー',
     price: 9800,
     priceYearly: 98000,
     maxArticles: 500,
-    maxSites: 10,
-    seats: 2,
+    maxSites: 20,
+    seats: 5,
     target: '記事代行・制作向け',
     features: [
-      'Packライブラリ10種（飲食/美容/SaaS他）',
-      'SimHash重複検知',
-      'A/B最適化（UCB1バンディット）',
-      'ホワイトラベル（ロゴ差し替え可）',
-      '推敲・自然化・人肌フィルタ全ON',
-      'チャットサポート（36時間）'
+      'Packライブラリ（業種オーバーレイ）／A/B最適化（UCB）',
+      '重複記事チェック／予約投稿／5席',
+      'WordPress 20サイト',
+      '※ 標準モデル＋BYOKで上位モデル選択可／優先サポート',
+      'チーム機能'
     ],
-    buttonText: '申し込む',
+    buttonText: 'エージェンシープランを選ぶ',
     buttonColor: 'bg-purple-500 hover:bg-purple-600'
-  },
-  {
-    id: 'agency-pro',
-    name: 'Agency Pro',
-    price: 19800,
-    priceYearly: 198000,
-    maxArticles: 2000,
-    maxSites: 30,
-    seats: 5,
-    target: 'エンタープライズ',
-    features: [
-      '全Pack + 内部RAG連携',
-      'A/B拡張・最適化レポート',
-      '構造化データ自動注入（FAQ/HowTo）',
-      '優先サポート（平日当日返信）',
-      'カスタムPack作成相談',
-      'APIアクセス（予定）'
-    ],
-    buttonText: '相談して始める',
-    buttonColor: 'bg-indigo-500 hover:bg-indigo-600'
   }
 ]
 
@@ -144,7 +122,12 @@ export default function PricingTable() {
     <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-8 w-full max-w-6xl">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-4">料金プラン</h2>
-        <p className="text-gray-600 mb-6">あなたのニーズに合ったプランをお選びください</p>
+        <p className="text-gray-600 mb-4">あなたのニーズに合ったプランをお選びください</p>
+        <div className="inline-block bg-blue-50 border border-blue-200 rounded-lg px-4 py-2 mb-6">
+          <span className="text-sm text-blue-800">
+            💡 通知×クーポン導線のテンプレで<strong>+7万円/月の上乗せ（例）</strong>
+          </span>
+        </div>
         
         {/* 月額/年額切り替え */}
         <div className="flex items-center justify-center mb-8">
@@ -260,6 +243,16 @@ export default function PricingTable() {
         ))}
       </div>
 
+      {/* BYOKセクション */}
+      <div className="mt-12">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-4xl mx-auto">
+          <h3 className="text-xl font-semibold text-blue-800 mb-3">BYOK（独自APIキー）対応</h3>
+          <p className="text-sm text-blue-700">
+            どのプランでも OpenAI のご自身のAPIキーを設定できます。当社側の月間上限の対象外でご利用可能（公正利用に基づくレート制限あり）。料金はOpenAIから直接請求されます。GPT-4o など上位モデルの選択も可（提供状況に準拠）。
+          </p>
+        </div>
+      </div>
+
       {/* アドオンセクション */}
       <div className="mt-12">
         <h3 className="text-2xl font-bold text-center text-gray-900 mb-8">アドオン</h3>
@@ -294,18 +287,40 @@ export default function PricingTable() {
           
           <div className="space-y-4">
             <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 何が"AIくささ"を抑えるの？</h4>
+              <p className="text-gray-600">A. 見出しの自然化＋人肌フィルタ＋推敲フローが自動で適用されます。</p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. どのAIモデルが使えますか？</h4>
+              <p className="text-gray-600">A. 当社キーでは標準モデルを提供し、BYOKで上位モデルの利用が可能です。具体のモデルは提供状況に準拠します。</p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. BYOKだと本当に上限なし？</h4>
+              <p className="text-gray-600">A. 当社側の月間上限の対象外になります。公正利用（レート制限・同時実行の制限）は適用されます。料金はお客様のOpenAI契約に準拠します。</p>
+            </div>
+
+            <div>
               <h4 className="font-semibold text-gray-800 mb-2">Q. 途中でプラン変更できますか？</h4>
               <p className="text-gray-600">A. 可能です。差額は日割りで精算します。</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 独自APIキーを使用する場合の費用は？</h4>
+              <p className="text-gray-600">A. GenPostのプラン料金に加えて、OpenAIの利用料が発生します。短文想定で1–3円/記事が目安ですが、入出力トークン量により変動します。</p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-gray-800 mb-2">Q. 既存WPに接続できますか？</h4>
+              <p className="text-gray-600">A. はい。Basic認証／Application Passwordsに対応しています。</p>
             </div>
             
             <div>
               <h4 className="font-semibold text-gray-800 mb-2">Q. 上限を超えた場合は？</h4>
               <p className="text-gray-600">A. 新規投稿はキュー待機。追加購入または翌月リセットで再開します。</p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. Packの中身は公開されますか？</h4>
-              <p className="text-gray-600">A. いいえ。サーバー側適用のため非公開です。</p>
             </div>
 
             <div>
@@ -313,44 +328,27 @@ export default function PricingTable() {
               <p className="text-gray-600">A. はい！登録後すぐに基本機能をお試しいただけます。</p>
             </div>
           </div>
-
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 既存WPに接続できますか？</h4>
-              <p className="text-gray-600">A. はい。Basic認証／Application Passwordsに対応しています。</p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. A/B最適化とは？</h4>
-              <p className="text-gray-600">A. UCB1バンディットアルゴリズムで複数パターンの記事を自動比較し、最適な生成方法を学習します（Agency以上）。</p>
-            </div>
-            
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. 重複検知の仕組みは？</h4>
-              <p className="text-gray-600">A. SimHashアルゴリズムで既存記事との類似度をチェックし、重複コンテンツを防ぎます。</p>
-            </div>
-
-            <div>
-              <h4 className="font-semibold text-gray-800 mb-2">Q. RAG Data Packとは？</h4>
-              <p className="text-gray-600">A. 業種別の専門知識データベースで、より具体的で専門性の高い記事を生成できます。</p>
-            </div>
-          </div>
         </div>
       </div>
 
       {/* CTA セクション */}
       <div className="mt-8 text-center bg-gradient-to-r from-blue-50 to-purple-50 border-2 border-blue-200 rounded-lg p-6">
-        <h4 className="text-xl font-bold text-gray-900 mb-2">🚀 今すぐ無料で始めよう</h4>
-        <p className="text-gray-600 mb-4">5記事無料生成 → WordPress自動投稿まで体験できます</p>
+        <h4 className="text-xl font-bold text-gray-900 mb-2">🚀 無料で始める</h4>
+        <p className="text-gray-600 mb-4">見出し自然化＋人肌フィルタを基本機能でお試しできます</p>
         {!session ? (
           <button
             onClick={() => alert('無料アカウント作成機能は準備中です')}
             className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-colors"
+            id="main-cta"
           >
-            無料でアカウント作成
+            無料で始める
           </button>
         ) : (
-          <Link href="/" className="inline-block bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-colors">
+          <Link 
+            href="/" 
+            className="inline-block bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-3 rounded-lg font-medium hover:from-blue-600 hover:to-purple-700 transition-colors"
+            id="main-cta"
+          >
             ダッシュボードへ
           </Link>
         )}

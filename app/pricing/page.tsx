@@ -50,7 +50,7 @@ export default function PricingPage() {
               GenPost 料金プラン
             </h1>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-              AI駆動のWordPress記事自動生成で、あなたのコンテンツマーケティングを加速させましょう
+              "見出しの自然化＋人肌フィルタ＋推敲フロー"でAIっぽさを抑え、WordPressへ自動投稿。
             </p>
           </div>
 
@@ -79,7 +79,7 @@ export default function PricingPage() {
                   Q. 独自APIキーを使用する場合の費用は？
                 </h3>
                 <p className="text-gray-600">
-                  A. 独自のOpenAI APIキーを設定した場合、GenPostのプラン料金に加えて、OpenAI APIの使用料金が直接OpenAIから請求されます。GPT-3.5-turboの場合、1記事あたり約1-3円程度の費用が目安です。
+                  A. 独自のOpenAI APIキーを設定した場合、GenPostのプラン料金に加えて、OpenAI APIの使用料金が直接OpenAIから請求されます。標準モデルの場合、1記事あたり約1-3円程度の費用が目安です。
                 </p>
               </div>
 
@@ -88,7 +88,7 @@ export default function PricingPage() {
                   Q. WordPress サイトは何個まで接続できますか？
                 </h3>
                 <p className="text-gray-600">
-                  A. Starter=2サイト、Pro=5サイト、Agency=20サイトです（フリープランは2サイト）。必要に応じて上位プランや追加オプションをご検討ください。
+                  A. スターター=2サイト、プロ=5サイト、エージェンシー=20サイトです。必要に応じて上位プランや追加オプションをご検討ください。
                 </p>
               </div>
 
@@ -97,7 +97,7 @@ export default function PricingPage() {
                   Q. 生成された記事の品質はどうですか？
                 </h3>
                 <p className="text-gray-600">
-                  A. 450種類以上の専用プロンプトを使用して、業界特化型の高品質な記事を生成します。重複チェック機能により、既存記事との重複も防げます。
+                  A. 自然化エンジン＋Pack（業種オーバーレイ）により、業界特化型の高品質な記事を生成します。重複チェック機能により、既存記事との重複も防げます。
                 </p>
               </div>
 
@@ -117,16 +117,17 @@ export default function PricingPage() {
             <div className="mt-16 text-center">
               <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-8 text-white">
                 <h2 className="text-2xl font-bold mb-4">
-                  今すぐ無料で始めましょう
+                  無料で始める
                 </h2>
                 <p className="text-lg mb-6 opacity-90">
-                  クレジットカード不要。5記事まで無料で生成できます。
+                  クレジットカード不要。見出し自然化＋人肌フィルタを基本機能でお試しできます。
                 </p>
                 <button
                   onClick={() => signIn('google')}
                   className="px-8 py-4 bg-white text-blue-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
+                  id="footer-cta"
                 >
-                  無料でGenPostを始める
+                  無料で始める
                 </button>
               </div>
             </div>
