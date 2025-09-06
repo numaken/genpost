@@ -25,7 +25,6 @@ const plans: PricingPlan[] = [
     maxArticles: 25, // 20-30記事の中央値
     features: [
       '月20-30記事まで生成可能（デイリー上限1本/日）',
-      '当社キーでGPT-3.5 Turbo使用',
       'WordPress自動投稿（2サイト）',
       '重複記事チェック',
       'ソフトキャップ+10%',
@@ -44,7 +43,6 @@ const plans: PricingPlan[] = [
     maxArticles: 100, // 80-120記事の中央値
     features: [
       '月80-120記事まで生成可能（デイリー上限5本/日）',
-      '当社キーでGPT-4o-mini使用',
       'WordPress自動投稿（5サイト）',
       'カスタムプロンプト作成機能',
       '重複記事チェック',
@@ -66,7 +64,6 @@ const plans: PricingPlan[] = [
     maxArticles: 400, // 300-500記事の中央値
     features: [
       '月300-500記事まで生成可能（デイリー上限20本/日）',
-      '当社キーでGPT-4o-mini使用',
       'WordPress自動投稿（20サイト）',
       '5席まで利用可能',
       '重複記事チェック',
@@ -227,7 +224,7 @@ export default function PricingTable() {
             
             <div>
               <h4 className="font-semibold text-gray-800 mb-2">Q. どのAIモデルが使えますか？</h4>
-              <p className="text-gray-600">A. スターターは当社キーでGPT-3.5、プロ/エージェンシーは当社キーでGPT-4o-miniまで。BYOKではGPT-4、GPT-4o等の高性能モデルも選択可能です。</p>
+              <p className="text-gray-600">A. 独自APIキー（BYOK）設定時は、GPT-4、GPT-4o等の高性能モデルも選択可能です。当社共有キー利用時のモデルについてはお問い合わせください。</p>
             </div>
             
             <div>
