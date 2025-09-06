@@ -7,6 +7,7 @@ import TrialPromptForm from '@/components/TrialPromptForm'
 import WordPressSiteManager from '@/components/WordPressSiteManager'
 import ApiKeyManager from '@/components/ApiKeyManager'
 import UsageDisplay from '@/components/UsageDisplay'
+import { getVersionInfo } from '@/lib/version'
 
 interface WordPressSite {
   id: string
@@ -45,6 +46,7 @@ export default function Home() {
   const [selectedModel, setSelectedModel] = useState<'gpt-3.5-turbo' | 'gpt-4o-mini' | 'gpt-4'>('gpt-3.5-turbo')
   const [hasUserApiKey, setHasUserApiKey] = useState(false)
   const [naturalizeHeadings, setNaturalizeHeadings] = useState(true) // デフォルトON
+  const [humanize, setHumanize] = useState(true) // デフォルトON
 
   // ローカルストレージからキーワード履歴を読み込み
   useEffect(() => {
@@ -136,7 +138,8 @@ export default function Home() {
           scheduled_start_date: postStatus === 'scheduled' ? scheduledStartDate : undefined,
           scheduled_interval: postStatus === 'scheduled' ? scheduledInterval : undefined,
           model: hasUserApiKey ? selectedModel : 'gpt-3.5-turbo', // APIキー設定による条件分岐
-          naturalize: naturalizeHeadings // 見出し自動変換オプション
+          naturalize: naturalizeHeadings, // 見出し自動変換オプション
+          humanize: humanize // 人肌フィルタオプション
         })
       })
 
@@ -441,6 +444,25 @@ export default function Home() {
                   </label>
                 </div>
 
+                {/* 人肌フィルタ設定 */}
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <label className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={humanize}
+                      onChange={(e) => setHumanize(e.target.checked)}
+                      className="mt-1 w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500"
+                    />
+                    <div>
+                      <span className="text-sm font-semibold text-green-800">人肌フィルタ</span>
+                      <div className="text-xs text-green-600 mt-1">
+                        AIっぽいフレーズを自然な表現に変換<br/>
+                        例：「本記事では」→「今日は」「解説します」→「話をしよう」
+                      </div>
+                    </div>
+                  </label>
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-3">投稿ステータス</label>
                   <select 
@@ -593,6 +615,18 @@ export default function Home() {
           </div>
         )}
       </div>
+      
+      {/* システムバージョン表示 */}
+      <footer className="mt-12 pt-8 border-t border-gray-200">
+        <div className="text-center text-sm text-gray-500">
+          <div className="mb-2">
+            {getVersionInfo().fullName} - WordPress記事自動生成システム
+          </div>
+          <div className="text-xs text-gray-400">
+            Build: {getVersionInfo().buildInfo} | panolabo AI エンジン搭載
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

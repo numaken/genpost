@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { humanizeJa, DEFAULT_VOICE_PROMPT } from '@/lib/humanizeJa'
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -106,7 +107,9 @@ export async function POST(request: NextRequest) {
       messages: [
         { 
           role: 'system', 
-          content: `あなたはpanolabo AI エンジンです。8つの要素を自動最適化してキーワードから高品質記事を生成します。
+          content: `${DEFAULT_VOICE_PROMPT}
+
+あなたはpanolabo AI エンジンです。上記の声質を保ちながら、8つの要素を自動最適化してキーワードから高品質記事を生成します。
 
 ${writerText}、${readerText}記事を作成します。
 
@@ -181,7 +184,7 @@ ${goalType === 'attraction' || goalType === 'experience'
     
     // タイトルと本文を分離し、不要な締めくくりを除去
     const lines = fullContent.split('\n')
-    const title = lines[0].replace(/^(#\s*|タイトル[：:]\s*)/i, '').trim()
+    let title = lines[0].replace(/^(#\s*|タイトル[：:]\s*)/i, '').trim()
     let content = lines.slice(1).join('\n').trim()
     
     // 不要な締めくくり文を除去
@@ -195,6 +198,10 @@ ${goalType === 'attraction' || goalType === 'experience'
     unnecessaryEndings.forEach(pattern => {
       content = content.replace(pattern, '').trim()
     })
+    
+    // 人肌フィルタ適用（デフォルトON）
+    title = humanizeJa(title)
+    content = humanizeJa(content)
 
     // IP使用記録（Admin除外）
     if (!isAdmin) {

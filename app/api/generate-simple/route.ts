@@ -4,6 +4,7 @@ import { getServerSession } from 'next-auth/next'
 import { canUse, recordUsage } from '@/lib/usage-safe'
 import { getEffectiveApiKey, getUserApiKey } from '@/lib/api-keys'
 import { naturalizeHeadings } from '@/lib/naturalizeHeadings'
+import { humanizeJa, DEFAULT_VOICE_PROMPT } from '@/lib/humanizeJa'
 import { authOptions } from '../auth/[...nextauth]/route'
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
@@ -21,8 +22,10 @@ const supabase = createClient(
 async function generateWithSimpleV2Engine(keywords: string, apiKey: string, count: number = 1, model: string = 'gpt-3.5-turbo') {
   const openai = new OpenAI({ apiKey })
 
-  // 8つの要素をAIが自動で最適化するシステムプロンプト
-  const systemPrompt = `あなたはpanolabo AIエンジンです。ユーザーが提供するキーワードから、以下の8要素を自動で最適化し、高品質なブログ記事を生成します：
+  // 8つの要素をAIが自動で最適化するシステムプロンプト + 声質指定
+  const systemPrompt = `${DEFAULT_VOICE_PROMPT}
+
+あなたはpanolabo AIエンジンです。上記の声質を保ちながら、以下の8要素を自動で最適化し、高品質なブログ記事を生成します：
 
 1. ターゲット読者（Who）- キーワードから最適な読者層を判定
 2. 問題・課題（What）- 読者の抱える課題を特定
@@ -114,7 +117,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { keywords, site_url, category_slug, count = 1, post_status = 'draft', scheduled_start_date, scheduled_interval = 1, model, naturalize = true } = body
+    const { keywords, site_url, category_slug, count = 1, post_status = 'draft', scheduled_start_date, scheduled_interval = 1, model, naturalize = true, humanize = true } = body
 
     // v2: キーワードが必須
     if (!keywords?.trim()) {
@@ -208,8 +211,14 @@ export async function POST(request: NextRequest) {
 
         try {
           // 見出し自動変換（デフォルトON）
-          const finalTitle = naturalize ? naturalizeHeadings(article.title) : article.title
-          const finalContent = naturalize ? naturalizeHeadings(article.content) : article.content
+          let finalTitle = naturalize ? naturalizeHeadings(article.title) : article.title
+          let finalContent = naturalize ? naturalizeHeadings(article.content) : article.content
+          
+          // 人肌フィルタ適用（デフォルトON）
+          if (humanize) {
+            finalTitle = humanizeJa(finalTitle)
+            finalContent = humanizeJa(finalContent)
+          }
           
           // WordPress REST API で投稿
           const wpApiUrl = `${site_url.replace(/\/$/, '')}/wp-json/wp/v2/posts`
@@ -254,7 +263,8 @@ export async function POST(request: NextRequest) {
             article.content = finalContent
             ;(article as any).wp_post_id = wpResult.id
             ;(article as any).wp_url = wpResult.link
-            ;(article as any).naturalized = naturalize // 変換フラグも保存
+            ;(article as any).naturalized = naturalize // 見出し変換フラグ
+            ;(article as any).humanized = humanize // 人肌フィルタフラグ
           }
 
         } catch (publishError) {
