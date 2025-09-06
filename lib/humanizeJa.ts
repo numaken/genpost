@@ -1,75 +1,100 @@
-// lib/humanizeJa.ts - AIっぽさを除去する人肌フィルタ
+// lib/humanizeJa.ts - 人肌フィルタ（ルール＋ピンポイントLLM）
 
-export function humanizeJa(text: string): string {
-  // AIでよく使われるフレーズを自然な表現に置換
-  const banPhrases = [
-    { re: /本記事では/g, rep: '今日は' },
-    { re: /について解説します/g, rep: 'の話をしよう' },
-    { re: /いかがでしたか？/g, rep: 'どう思う？' },
-    { re: /まとめ(です。|です|。)?\s*$/gm, rep: '最後にひとこと' },
-    { re: /ぜひ(.{0,12})してみてください/g, rep: 'まずは$1やってみよう' },
-    { re: /と言えるでしょう/g, rep: 'って言える' },
-    { re: /重要です/g, rep: '大事' },
-    { re: /していきます/g, rep: 'します' },
-    { re: /〜について説明します/g, rep: '〜の話です' },
-    { re: /ご紹介します/g, rep: '紹介しよう' },
-    { re: /確認してみてください/g, rep: 'チェックしてみよう' },
-    { re: /参考にしてください/g, rep: '参考にしてね' },
-    { re: /理解していただけたでしょうか/g, rep: '分かったかな' },
-    { re: /検討してみてください/g, rep: '考えてみて' },
-    { re: /活用してみてください/g, rep: '使ってみよう' },
-  ];
+import { DEFAULT_VOICE_PROMPT } from './voicePrompt'
+
+/**
+ * ルールベースのフィルタ（高速・8割カバー）
+ */
+export function ruleFilter(text: string): string {
+  const rules: [RegExp, string][] = [
+    // 基本的なAIっぽい表現
+    [/本記事では/g, '今日は'],
+    [/について解説します/g, 'の話をしよう'],
+    [/いかがでしたか？/g, 'どう思う？'],
+    [/と言えるでしょう/g, 'って言える'],
+    [/重要です/g, '大事'],
+    [/していきます/g, 'します'],
+    [/〜について説明します/g, '〜の話です'],
+    [/ご紹介します/g, '紹介しよう'],
+    [/確認してみてください/g, 'チェックしてみよう'],
+    [/参考にしてください/g, '参考にしてね'],
+    [/理解していただけたでしょうか/g, '分かったかな'],
+    [/検討してみてください/g, '考えてみて'],
+    [/活用してみてください/g, '使ってみよう'],
+    
+    // 過度に丁寧な表現
+    [/させていただきます/g, 'します'],
+    [/させていただく/g, 'する'],
+    [/いたします/g, 'します'],
+    [/おります/g, 'います'],
+    
+    // その他のAI特有表現
+    [/まず第一に/g, 'まず'],
+    [/次に/g, 'それから'],
+    [/最後に/g, 'そして'],
+    [/結論として/g, 'つまり'],
+    [/要するに/g, 'つまり'],
+    [/言い換えれば/g, 'つまり'],
+  ]
   
-  let output = text;
-  
-  // 禁止フレーズを自然な表現に置換
-  for (const {re, rep} of banPhrases) {
-    output = output.replace(re, rep);
+  let result = text
+  for (const [pattern, replacement] of rules) {
+    result = result.replace(pattern, replacement)
   }
   
   // 同じ語尾の連続を自然にバラす
-  output = output.replace(/です。です。です。/g, 'です。ですよ。です。');
-  output = output.replace(/ます。ます。ます。/g, 'ます。ますね。ます。');
-  output = output.replace(/でしょう。でしょう。/g, 'でしょう。だと思います。');
+  result = result.replace(/です。です。です。/g, 'です。ですよ。ですね。')
+  result = result.replace(/ます。ます。ます。/g, 'ます。ますね。ますよ。')
+  result = result.replace(/でしょう。でしょう。/g, 'でしょう。だと思います。')
+  result = result.replace(/ました。ました。/g, 'ました。ましたね。')
   
-  // 過度に丁寧な表現を自然に
-  output = output.replace(/させていただきます/g, 'します');
-  output = output.replace(/させていただく/g, 'する');
-  
-  return output;
+  return result
 }
 
-// 声質プロンプトのテンプレート（日本語フレンドリーカジュアル）
-export const VOICE_PROMPT_JA_FRIEND_CASUAL = `あなたはプロのライターです。以下の"声質"で出力してください。
+/**
+ * 不自然な文を検出（長すぎる文・同語尾連続など）
+ */
+export function pickWeirdSentences(text: string): string[] {
+  const sentences = text.split(/(?<=。)/)
+  const weird: string[] = []
+  
+  sentences.forEach((sentence, i) => {
+    // 60文字以上の長文
+    if (sentence.length > 60) {
+      weird.push(sentence)
+      return
+    }
+    
+    // 同じ語尾が3連続
+    if (i >= 2) {
+      const endings = [sentences[i-2], sentences[i-1], sentence]
+        .map(s => s.slice(-3))
+      if (endings[0] === endings[1] && endings[1] === endings[2]) {
+        weird.push(sentence)
+        return
+      }
+    }
+    
+    // カタカナ語の過剰使用（1文に4つ以上）
+    const katakanaCount = (sentence.match(/[ァ-ヶー]+/g) || []).length
+    if (katakanaCount >= 4) {
+      weird.push(sentence)
+      return
+    }
+    
+    // 「こと」「もの」の過剰使用
+    const kotoMonoCount = (sentence.match(/こと|もの/g) || []).length
+    if (kotoMonoCount >= 3) {
+      weird.push(sentence)
+      return
+    }
+  })
+  
+  // 最大3文まで
+  return weird.slice(0, 3)
+}
 
-[声質/JA-friend-casual]
-- 口調: 親しい友人に話すようなフレンドリーで自然な口語体。少しユーモア。
-- 難易度: 高校生にもわかる平易さ。専門用語はかみ砕く。
-- 表現: 具体例や比喩を1つは入れる。結論→理由→行動の順。
-- 禁止: 「本記事では」「〜について解説します」「いかがでしたか？」「まとめ」
-        「ぜひ〜してみてください」「と言えるでしょう」「重要です」「〜していきます」
-- 文リズム目安: 一文20〜40字中心。ときどき短文で間を作る。`;
+// 後方互換性のための旧humanizeJa関数
+export const humanizeJa = ruleFilter
 
-// その他の声質バリエーション
-export const VOICE_PROMPT_JA_PROFESSIONAL = `あなたはプロのライターです。以下の"声質"で出力してください。
-
-[声質/JA-professional]
-- 口調: 信頼感のある専門的な文体。丁寧だが親しみやすい。
-- 難易度: ビジネスパーソン向け。専門用語は適度に使用し説明も添える。
-- 表現: データや事例を重視。論理的な構成で説得力を重視。
-- 禁止: 「本記事では」「〜について解説します」「いかがでしたか？」
-        「ぜひ〜してみてください」「と言えるでしょう」「〜していきます」
-- 文リズム目安: 一文30〜50字。構造化された文章。`;
-
-export const VOICE_PROMPT_JA_SIMPLE = `あなたはプロのライターです。以下の"声質"で出力してください。
-
-[声質/JA-simple]
-- 口調: 誰でも読みやすい平易な文体。温かみのある表現。
-- 難易度: 中学生でも理解できる簡潔さ。難しい言葉は使わない。
-- 表現: 身近な例えと具体的な説明。「〜ですよ」「〜ですね」の親近感。
-- 禁止: 「本記事では」「〜について解説します」「いかがでしたか？」
-        「ぜひ〜してみてください」「重要です」「〜していきます」
-- 文リズム目安: 一文15〜25字。短くテンポよく。`;
-
-// デフォルトの声質（フレンドリーカジュアル）
-export const DEFAULT_VOICE_PROMPT = VOICE_PROMPT_JA_FRIEND_CASUAL;
+export { DEFAULT_VOICE_PROMPT }

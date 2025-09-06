@@ -3,11 +3,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth/next'
 import { canUse, recordUsage } from '@/lib/usage-safe'
 import { getEffectiveApiKey, getUserApiKey } from '@/lib/api-keys'
-import { naturalizeHeadings } from '@/lib/naturalizeHeadings'
-import { humanizeJa, DEFAULT_VOICE_PROMPT } from '@/lib/humanizeJa'
-import { naturalizeHeadingsByVertical, detectVertical } from '@/lib/headingMapsByVertical'
-import { smartCritiqueAndRevise, createGenerator } from '@/lib/critiqueAndRevise'
-import { fullHumanize } from '@/lib/hybridHumanizeFilter'
+import { createGenerator, smartCritiqueAndRevise } from '@/lib/critiqueAndRevise'
+import { detectVertical } from '@/lib/detectVertical'
+import { naturalizeHeadingsByVertical } from '@/lib/naturalizeHeadingsByVertical'
+import { fullHumanize } from '@/lib/fullHumanize'
+import { DEFAULT_VOICE_PROMPT } from '@/lib/voicePrompt'
 import { authOptions } from '../auth/[...nextauth]/route'
 import { createClient } from '@supabase/supabase-js'
 import OpenAI from 'openai'
@@ -21,7 +21,7 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// 簡易版v2エンジン（panolabo AI システム）
+// パワーアップv2エンジン（panolabo AI パワーアップシステム）
 async function generateWithSimpleV2Engine(keywords: string, apiKey: string, count: number = 1, model: string = 'gpt-3.5-turbo', useCritique: boolean = true) {
   const generator = createGenerator(apiKey, model)
 
@@ -78,6 +78,7 @@ async function generateWithSimpleV2Engine(keywords: string, apiKey: string, coun
         { role: 'user', content: userPrompt }
       ])
     }
+    
     if (content) {
       // タイトルと本文を抽出
       const titleMatch = content.match(/【タイトル】\s*\n+([\s\S]*?)(?=\n|$)/)
@@ -119,6 +120,7 @@ async function generateWithSimpleV2Engine(keywords: string, apiKey: string, coun
 
 export async function POST(request: NextRequest) {
   let session: any
+  let packId: string | undefined // スコープ拡張
   
   try {
     // セッション取得
@@ -128,7 +130,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { keywords, site_url, category_slug, count = 1, post_status = 'draft', scheduled_start_date, scheduled_interval = 1, model, naturalize = true, humanize = true } = body
+    const { keywords, site_url, category_slug, count = 1, post_status = 'draft', scheduled_start_date, scheduled_interval = 1, model, naturalize = true, humanize = true, packId: bodyPackId } = body
+    packId = bodyPackId // 変数に代入
 
     // v2: キーワードが必須
     if (!keywords?.trim()) {
@@ -203,8 +206,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // v2 エンジンで記事生成
-    const result = await generateWithSimpleV2Engine(keywords.trim(), apiKey, count, finalModel)
+    // v2 パワーアップエンジンで記事生成
+    const result = await generateWithSimpleV2Engine(keywords.trim(), apiKey, count, finalModel, true)
 
     // WordPress投稿処理
     const publishResults = []
@@ -296,7 +299,7 @@ export async function POST(request: NextRequest) {
     await recordUsage(userId, finalModel, {
       keywords,
       articles_generated: result.articles?.length || count,
-      engine: 'panolabo-ai-v2.1-hybrid',
+      engine: 'panolabo-ai-v2.1-powerup',
       wp_published: publishResults.filter(r => r.success).length
     })
 
@@ -304,7 +307,7 @@ export async function POST(request: NextRequest) {
     const publishedCount = publishResults.filter(r => r.success).length
     const publishErrors = publishResults.filter(r => !r.success)
     
-    let message = `${result.articles.length}件の記事生成が完了しました（panolabo AI エンジン）`
+    let message = `${result.articles.length}件の記事生成が完了しました（panolabo AI パワーアップエンジン${packId ? ' + Pack' : ''}）`
     if (wpSite) {
       if (publishedCount > 0) {
         message += `\n${publishedCount}件をWordPressに投稿しました`
@@ -331,7 +334,8 @@ export async function POST(request: NextRequest) {
         limit: usageResult.limit || 0,
         plan: usageResult.plan || 'free'
       },
-      engine: 'panolabo-ai-v2.1-hybrid',
+      engine: 'panolabo-ai-v2.1-powerup',
+      packId: packId || null,
       timestamp: new Date().toISOString()
     })
 
@@ -353,7 +357,8 @@ export async function POST(request: NextRequest) {
         stack: error.stack,
         cause: error.cause
       } : undefined,
-      engine: 'panolabo-ai-v2.1-hybrid'
+      engine: 'panolabo-ai-v2.1-powerup',
+      packId: packId || null
     }, { status: 500 })
   }
 }
