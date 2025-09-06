@@ -1,6 +1,7 @@
 // lib/subscription.ts - サブスクリプション管理
 
 import { createClient } from '@supabase/supabase-js'
+import { checkSuperUserLimits } from './superuser'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -90,7 +91,18 @@ export async function getUserPlan(userId: string): Promise<{ planId: PlanId; lim
 /**
  * プラン制限をチェック
  */
-export async function checkPlanLimits(userId: string, action: 'generate_article' | 'add_site' | 'add_seat') {
+export async function checkPlanLimits(userId: string, action: 'generate_article' | 'add_site' | 'add_seat', userEmail?: string) {
+  // スーパーユーザーチェック
+  const superUserResult = checkSuperUserLimits(userEmail)
+  if (superUserResult) {
+    return {
+      allowed: true,
+      used: 0,
+      limit: 999999,
+      planId: 'superuser'
+    }
+  }
+
   const { planId, limits } = await getUserPlan(userId)
   
   switch (action) {

@@ -4,6 +4,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import crypto from 'crypto'
+import { checkSuperUserLimits } from './superuser'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -60,7 +61,13 @@ async function getUsedSafe(userId: string): Promise<number> {
 /**
  * 使用可能かチェック（例外を投げない）
  */
-export async function canUse(model: string, userId: string): Promise<UsageResult> {
+export async function canUse(model: string, userId: string, userEmail?: string): Promise<UsageResult> {
+  // スーパーユーザーチェック
+  const superUserResult = checkSuperUserLimits(userEmail)
+  if (superUserResult) {
+    return superUserResult
+  }
+
   // 環境変数でバイパス
   if (process.env.DISABLE_USAGE_CHECK === '1') {
     return { ok: true, reason: 'disabled' }

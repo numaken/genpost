@@ -161,7 +161,7 @@ export async function POST(request: NextRequest) {
     console.log(`[generate-simple] Using model: ${finalModel}, User API Key: ${!!userApiKey}`)
 
     // 既存の使用制限チェック
-    const usageResult = await canUse(finalModel, userId)
+    const usageResult = await canUse(finalModel, userId, userEmail || '')
     if (!usageResult.ok) {
       return NextResponse.json({ 
         error: usageResult.reason === 'limit_reached' ? 'USAGE_LIMIT_EXCEEDED' : 'USAGE_CHECK_FAILED',
@@ -176,7 +176,7 @@ export async function POST(request: NextRequest) {
 
     // 新しいプラン制限チェック
     const { checkPlanLimits } = await import('@/lib/subscription')
-    const planLimitCheck = await checkPlanLimits(userId, 'generate_article')
+    const planLimitCheck = await checkPlanLimits(userId, 'generate_article', userEmail || '')
     if (!planLimitCheck.allowed) {
       return NextResponse.json({
         error: 'PLAN_LIMIT_EXCEEDED',

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 import Link from 'next/link'
+import { isSuperUser, getSuperUserUsage } from '@/lib/superuser'
 
 interface UsageInfo {
   sharedApiCount: number
@@ -82,6 +83,28 @@ export default function UsageDisplay() {
         <div className="animate-pulse">
           <div className="h-4 bg-gray-200 rounded w-1/3 mb-2"></div>
           <div className="h-6 bg-gray-200 rounded w-2/3"></div>
+        </div>
+      </div>
+    )
+  }
+
+  // スーパーユーザーチェック
+  const superUserUsage = getSuperUserUsage(session.user?.email)
+  if (superUserUsage) {
+    return (
+      <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg shadow-md p-6 text-white">
+        <div className="flex items-center mb-4">
+          <div className="w-3 h-3 bg-yellow-300 rounded-full mr-3 animate-pulse"></div>
+          <h3 className="text-lg font-semibold">👑 SuperUser Mode</h3>
+        </div>
+        <div className="space-y-2">
+          <p className="text-sm opacity-90">プラン: {superUserUsage.plan}</p>
+          <p className="text-lg font-bold">{superUserUsage.limit}</p>
+          <div className="text-xs opacity-75 space-y-1">
+            {superUserUsage.features.map((feature, index) => (
+              <div key={index}>✓ {feature}</div>
+            ))}
+          </div>
         </div>
       </div>
     )
