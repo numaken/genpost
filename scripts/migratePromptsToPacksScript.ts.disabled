@@ -29,7 +29,7 @@ interface LegacyPrompt {
  */
 function extractPackAssets(promptContent: string, category: string) {
   // voice（システムプロンプトの口調部分を抽出）
-  const voiceMatch = promptContent.match(/(?:あなたは|として|口調|トーン|文体)(.*?)(?=\n\n|\n#|。)/s)
+  const voiceMatch = promptContent.match(/(?:あなたは|として|口調|トーン|文体)(.*?)(?=\n\n|\n#|。)/)
   const voice = voiceMatch ? voiceMatch[0] : 
     "読者に親しみやすく、実用的な情報を提供するライターとして記事を作成してください。"
 
@@ -57,6 +57,7 @@ function extractPackAssets(promptContent: string, category: string) {
     },
     flow: {
       critiqueRubric: flowInstructions.critiqueRubric,
+      reviseInstruction: '指摘された箇所のみ最小修正。意味や事実は変えない。',
       skipThreshold: 2
     },
     meta: {
@@ -83,9 +84,9 @@ function extractHeadingInstructions(content: string): Record<string, string> {
   const headingTypes = ['問題・課題', '解決策と提案', '根拠と証拠', 'まとめ']
   
   patterns.forEach((pattern, index) => {
-    const matches = [...content.matchAll(pattern)]
-    if (matches.length > 0) {
-      headingMap[headingTypes[index]] = matches[0][1]
+    const match = content.match(pattern)
+    if (match && match[1]) {
+      headingMap[headingTypes[index]] = match[1]
     }
   })
   
@@ -106,12 +107,13 @@ function extractHumanizeRules(content: string): [string, string][] {
   ]
   
   patterns.forEach(pattern => {
-    const matches = [...content.matchAll(pattern)]
-    matches.forEach(match => {
+    let match
+    while ((match = pattern.exec(content)) !== null) {
       if (match[1] && match[2]) {
         rules.push([match[1].trim(), match[2].trim()])
       }
-    })
+    }
+    pattern.lastIndex = 0 // リセット
   })
   
   return rules
@@ -129,10 +131,11 @@ function extractFlowInstructions(content: string) {
   
   const critiques: string[] = []
   critiquePatterns.forEach(pattern => {
-    const matches = [...content.matchAll(pattern)]
-    matches.forEach(match => {
+    let match
+    while ((match = pattern.exec(content)) !== null) {
       critiques.push(match[1].trim())
-    })
+    }
+    pattern.lastIndex = 0 // リセット
   })
   
   const critiqueRubric = critiques.length > 0 
@@ -260,12 +263,12 @@ export async function migrateLegacyPromptsToPacks() {
   console.log(`❌ 失敗: ${errorCount}件`)
   
   // 3. 移行後の統計表示
-  const { data: newPacks } = await supabase
+  const { count } = await supabase
     .from('packs')
-    .select('count(*)')
+    .select('*', { count: 'exact' })
     .eq('is_active', true)
   
-  console.log(`📊 総Pack数: ${newPacks?.[0]?.count || '不明'}`)
+  console.log(`📊 総Pack数: ${count || '不明'}`)
 }
 
 /**

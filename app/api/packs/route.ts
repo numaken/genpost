@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
       packs = await getUserPacks(session.user.id)
     } else {
       // 利用可能Pack一覧
-      packs = await getAvailablePacks(session?.user?.id, vertical || undefined)
+      packs = await getAvailablePacks(session?.user?.id, vertical as any)
     }
 
     // ユーザーの所有状況をチェック
@@ -38,16 +38,19 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      packs: packs.map(pack => ({
-        ...pack,
-        // セキュリティ: Pack内容の詳細は所有者のみに提供
-        assets: pack.isOwned || pack.price === 0 ? pack.assets : {
-          // プレビュー情報のみ
-          voice: pack.assets.voice ? { preview: '専用ボイスプロンプト含む' } : undefined,
-          heading: pack.assets.heading ? { preview: '業種別見出し変換含む' } : undefined,
-          humanize: pack.assets.humanize ? { preview: '人肌化ルール含む' } : undefined,
+      packs: packs.map(pack => {
+        const isOwned = (pack as any).isOwned
+        return {
+          ...pack,
+          // セキュリティ: Pack内容の詳細は所有者のみに提供
+          assets: isOwned || pack.price === 0 ? pack.assets : {
+            // プレビュー情報のみ
+            voice: pack.assets.voice ? { preview: '専用ボイスプロンプト含む' } : undefined,
+            heading: pack.assets.heading ? { preview: '業種別見出し変換含む' } : undefined,
+            humanize: pack.assets.humanize ? { preview: '人肌化ルール含む' } : undefined,
+          }
         }
-      }))
+      })
     })
 
   } catch (error: any) {

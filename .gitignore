@@ -37,4 +37,5 @@ dist/
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
+next-env.d.tsscripts/
+server/publishEnhancedWithPacks.ts
